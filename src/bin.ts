@@ -4,20 +4,24 @@ import { exec } from "child_process";
 import { promises as fs } from "fs";
 import path from "path";
 
-function isPartOfGitRepository(dir: string): Promise<boolean> {
-  return new Promise<boolean>((resolve) => {
+async function hasUnsavedGitChanges(dir: string): Promise<boolean> {
+  const isPartOfGitRepo = await new Promise<boolean>((resolve) => {
     exec("git rev-parse --is-inside-work-tree", { cwd: dir }, (error) => {
       resolve(!error);
     });
   });
-}
 
-function hasUnsavedGitChanges(dir: string): Promise<boolean> {
-  return new Promise<boolean>((resolve) => {
+  if (!isPartOfGitRepo) {
+    return false;
+  }
+
+  const hasUnsavedChanges = await new Promise<boolean>((resolve) => {
     exec("git status --porcelain", { cwd: dir }, (error, stdout) => {
       resolve(!!error || !!stdout);
     });
   });
+
+  return hasUnsavedChanges;
 }
 
 async function findFileInDirectory(
@@ -70,23 +74,17 @@ const workDir = process.cwd();
 
 const packageJsonFile = await findPackageJsonFile(workDir);
 
-console.log({ packageJsonFile });
-
 if (!packageJsonFile) {
   // package.json file is missing.
   throw new Error("package.json file is missing");
 }
 
-const isGitRepo = await isPartOfGitRepository(workDir);
+const projectDir = path.dirname(packageJsonFile);
 
-if (isGitRepo) {
-  // We are inside a GIT repository.
+const hasUnsavedChanges = await hasUnsavedGitChanges(projectDir);
 
-  const hasUnsavedChanges = await hasUnsavedGitChanges(workDir);
-
-  if (hasUnsavedChanges) {
-    throw new Error("Project has unsaved changes");
-  }
+if (hasUnsavedChanges) {
+  throw new Error("Project has unsaved changes");
 }
 
 export {};
