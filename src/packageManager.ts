@@ -1,6 +1,5 @@
 import { execSync, spawn } from "child_process";
-
-export type PackageManager = "npm" | "pnpm" | "yarn";
+import { PackageManager } from "./types";
 
 export function getPackageManagerToUse(): PackageManager {
   try {
