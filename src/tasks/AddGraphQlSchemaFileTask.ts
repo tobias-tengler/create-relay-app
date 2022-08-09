@@ -13,8 +13,6 @@ export class AddGraphQlSchemaFileTask extends TaskBase {
   async run(): Promise<void> {
     if (existsSync(this.schemaFilePath)) {
       this.skip("File exists");
-
-      return;
     }
 
     await fs.writeFile(this.schemaFilePath, schemaGraphQLContent, "utf-8");

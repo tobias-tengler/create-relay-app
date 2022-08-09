@@ -1,5 +1,4 @@
 import { spawn } from "child_process";
-import { addNpmPackages } from "../packageManager.js";
 import { TaskBase } from "../TaskBase.js";
 import { PackageManager } from "../types.js";
 
@@ -38,9 +37,10 @@ export class InstallNpmPackagesTask extends TaskBase {
 
     return new Promise((resolve, reject) => {
       const child = spawn(command, args, {
-        stdio: "inherit",
-        // cwd: this.workingDirectory,
-        env: { ...process.env },
+        // stdio: "inherit",
+        cwd: this.workingDirectory,
+        env: process.env,
+        shell: true,
       });
 
       child.on("close", (code) => {

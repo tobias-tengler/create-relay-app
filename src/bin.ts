@@ -1,13 +1,11 @@
 #!/usr/bin/env node
 
 import path from "path";
-import { findPackageJsonFile } from "./files.js";
 import { TaskRunner } from "./TaskRunner.js";
 import { AddGraphQlSchemaFileTask } from "./tasks/AddGraphQlSchemaFileTask.js";
 import chalk from "chalk";
 import { AddRelayConfigurationTask } from "./tasks/AddRelayConfigurationTask.js";
 import inquirer from "inquirer";
-import { getPackageManagerToUse } from "./packageManager.js";
 import {
   ProjectSettings,
   ToolChainOptions,
@@ -19,6 +17,7 @@ import {
 import { InstallNpmPackagesTask } from "./tasks/InstallNpmPackagesTask.js";
 import { AddRelayPluginConfigurationTask } from "./tasks/AddRelayPluginConfigurationTask.js";
 import { AddRelayEnvironmentTask } from "./tasks/AddRelayEnvironmentTask.js";
+import { findPackageJsonFile, getPackageManagerToUse } from "./helpers.js";
 
 const workingDirectory = process.cwd();
 
@@ -43,6 +42,8 @@ const projectDir = path.dirname(packageJsonFile);
 
 const settings = await readProjectSettings();
 
+console.log();
+
 const dependencies = ["react-relay"];
 const devDependencies = getRelayDevDependencies(
   settings.toolchain,
@@ -51,23 +52,23 @@ const devDependencies = getRelayDevDependencies(
 
 const runner = new TaskRunner([
   {
-    title: `Add Relay dependencies ${dependencies
+    title: `Add Relay dependencies: ${dependencies
       .map((d) => chalk.cyan.bold(d))
       .join(" ")}`,
     task: new InstallNpmPackagesTask(
       dependencies,
       settings.packageManager,
-      workingDirectory
+      projectDir
     ),
   },
   {
-    title: `Add Relay devDependencies ${devDependencies
+    title: `Add Relay devDependencies: ${devDependencies
       .map((d) => chalk.cyan.bold(d))
       .join(" ")}`,
     task: new InstallNpmPackagesTask(
       devDependencies,
       settings.packageManager,
-      workingDirectory,
+      projectDir,
       true
     ),
   },
@@ -97,7 +98,17 @@ const runner = new TaskRunner([
 
 await runner.run();
 
-// todo: show next steps with 'replace host in relayenvironment' and 'replace schema.graphql file'.
+console.log();
+
+console.log(chalk.italic.bold("NEXT STEPS"));
+console.log(
+  `1. Replace ${chalk.cyan.bold(
+    settings.schemaFilePath
+  )} with your own GraphQL schema file.`
+);
+console.log(`2. Replace the HOST variable in the RelayEnvironment.ts file.`);
+
+console.log();
 
 // todo: add integration tests
 

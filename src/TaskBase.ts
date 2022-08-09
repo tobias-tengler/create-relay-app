@@ -12,8 +12,10 @@ export abstract class TaskBase {
 
   skip(message: string): void {
     this.spinner?.warn(
-      this.spinner.text + "   " + chalk.dim("Skipped: " + message)
+      this.spinner.text + " " + chalk.dim("[Skipped: " + message + "]")
     );
+
+    throw new TaskSkippedError();
   }
 
   error(message: string): void {
@@ -24,3 +26,5 @@ export abstract class TaskBase {
     this.spinner?.succeed();
   }
 }
+
+export class TaskSkippedError extends Error {}

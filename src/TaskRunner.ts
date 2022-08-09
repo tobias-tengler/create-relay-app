@@ -1,5 +1,5 @@
 import ora from "ora";
-import { TaskBase } from "./TaskBase.js";
+import { TaskBase, TaskSkippedError } from "./TaskBase.js";
 
 type TaskDefinition = {
   title: string;
@@ -16,8 +16,16 @@ export class TaskRunner {
       task.setSpinner(spinner);
 
       try {
+        spinner.start();
+
         await task.run();
+
+        task.complete();
       } catch (error) {
+        if (error instanceof TaskSkippedError) {
+          return;
+        }
+
         task.error("Unexpected error");
 
         throw error;
