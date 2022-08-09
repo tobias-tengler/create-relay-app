@@ -1,134 +1,15 @@
 #!/usr/bin/env node
 
-import { exec } from "child_process";
 import { promises as fs } from "fs";
 import path from "path";
 import inquirer from "inquirer";
-
-async function hasUnsavedGitChanges(dir: string): Promise<boolean> {
-  const isPartOfGitRepo = await new Promise<boolean>((resolve) => {
-    exec("git rev-parse --is-inside-work-tree", { cwd: dir }, (error) => {
-      resolve(!error);
-    });
-  });
-
-  if (!isPartOfGitRepo) {
-    return false;
-  }
-
-  const hasUnsavedChanges = await new Promise<boolean>((resolve) => {
-    exec("git status --porcelain", { cwd: dir }, (error, stdout) => {
-      resolve(!!error || !!stdout);
-    });
-  });
-
-  return hasUnsavedChanges;
-}
-
-async function findFileInDirectory(
-  searchedFilename: string,
-  dir: string
-): Promise<string | null> {
-  try {
-    const filenames = await fs.readdir(dir);
-
-    for (const filename of filenames) {
-      if (filename === searchedFilename) {
-        const filepath = path.join(dir, filename);
-
-        return filepath;
-      }
-    }
-  } catch {}
-
-  return null;
-}
-
-async function findPackageJsonFile(dir: string): Promise<string | null> {
-  const packageJsonFile = "package.json";
-
-  let curDir = dir;
-  let prevDir: string | null = null;
-
-  while (!!curDir) {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    const filepath = await findFileInDirectory(packageJsonFile, curDir);
-
-    if (!!filepath) {
-      return filepath;
-    }
-
-    prevDir = curDir;
-    curDir = path.join(curDir, "..");
-
-    if (prevDir === curDir) {
-      // We reached the root.
-      break;
-    }
-  }
-
-  return null;
-}
-
-function getPackageManagerToUse(): PackageManager {
-  const defaultPackageManager = "npm";
-
-  const userAgent = process.env.npm_config_user_agent;
-
-  if (!userAgent) {
-    return defaultPackageManager;
-  }
-
-  const packageManager = userAgent.split(" ")[0]?.split("/")[0];
-
-  if (packageManager !== "yarn" && packageManager !== "npm") {
-    // todo: how to handle this better
-    throw new Error("Only `yarn` and `npm` are supported package managers");
-  }
-
-  return packageManager || defaultPackageManager;
-}
-
-function getAddPackagesCommand(
-  manager: PackageManager,
-  packages: string[],
-  devDep: boolean
-): string {
-  const managerCmd = manager === "yarn" ? "add" : "install";
-  const packagesString = packages.join(" ");
-
-  let command = `${manager} ${managerCmd} ${packagesString} `;
-
-  if (devDep) {
-    command += manager === "npm" ? "--save-dev" : "-D";
-  }
-
-  return command.trim();
-}
-
-function addPackages(
-  manager: PackageManager,
-  workDir: string,
-  packages: string[],
-  devDep: boolean
-): Promise<void> {
-  const command = getAddPackagesCommand(manager, packages, devDep);
-
-  console.log({ command });
-
-  return Promise.resolve();
-
-  //   return new Promise((resolve, reject) => {
-  //     exec(command, { cwd: workDir }, (error) => {
-  //       if (!!error) {
-  //         reject(error);
-  //       } else {
-  //         resolve();
-  //       }
-  //     });
-  //   });
-}
+import {
+  addNpmPackages,
+  getPackageManagerToUse,
+  PackageManager,
+} from "./packageManager";
+import { hasUnsavedGitChanges } from "./git";
+import { findPackageJsonFile } from "./files";
 
 function getCompilerLanguage(
   language: ProjectLanguage
@@ -145,7 +26,11 @@ function getCompilerLanguage(
 
 const toolchainChoices = ["Create-React-App", "Next.js", "Vite"] as const;
 const compilerLanguageChoices = ["Typescript", "JavaScript", "Flow"] as const;
-const packageManagerChoices = ["npm", "yarn"] as const;
+const packageManagerChoices: readonly PackageManager[] = [
+  "npm",
+  "yarn",
+  "pnpm",
+] as const;
 
 const relayDep = ["react-relay"];
 const relayDevDep = ["relay-compiler"];
@@ -153,9 +38,10 @@ const relayTypeScriptDep = ["@types/react-relay", "@types/relay-runtime"];
 
 type ToolChain = typeof toolchainChoices[number];
 type ProjectLanguage = typeof compilerLanguageChoices[number];
-type PackageManager = typeof packageManagerChoices[number];
 
 const workDir = process.cwd();
+
+// FIND package.json file
 
 const packageJsonFile = await findPackageJsonFile(workDir);
 
@@ -166,11 +52,15 @@ if (!packageJsonFile) {
 
 const projectDir = path.dirname(packageJsonFile);
 
+// CHECK REPO FOR UNSAVED CHANGES
+
 const hasUnsavedChanges = await hasUnsavedGitChanges(projectDir);
 
 if (hasUnsavedChanges) {
   throw new Error("Project has unsaved changes");
 }
+
+// ASK FOR PROJECT SETTINGS
 
 // todo: handle artifact directory
 // todo: handle error
@@ -217,8 +107,8 @@ if (answers.language === "Typescript") {
   devDependencies = devDependencies.concat(relayTypeScriptDep);
 }
 
-await addPackages(answers.packageManager, projectDir, dependencies, false);
-await addPackages(answers.packageManager, projectDir, devDependencies, true);
+await addNpmPackages(answers.packageManager, projectDir, dependencies, false);
+await addNpmPackages(answers.packageManager, projectDir, devDependencies, true);
 
 // ADD RELAY CONFIG
 
@@ -226,17 +116,17 @@ await addPackages(answers.packageManager, projectDir, devDependencies, true);
 const packageJsonContent = await fs.readFile(packageJsonFile, {
   encoding: "utf-8",
 });
-const parsedConfig = JSON.parse(packageJsonContent);
+const packageJson = JSON.parse(packageJsonContent);
 
 const compilerLanguage = getCompilerLanguage(answers.language);
 
-const scriptsSection = parsedConfig["scripts"] ?? {};
+const scriptsSection = packageJson["scripts"] ?? {};
 
 scriptsSection["relay"] = "relay-compiler";
 
-parsedConfig["scripts"] = scriptsSection;
+packageJson["scripts"] = scriptsSection;
 
-parsedConfig["relay"] = {
+packageJson["relay"] = {
   // todo: this should probably be different for the Next.js project
   src: "./src",
   language: compilerLanguage,
@@ -244,10 +134,12 @@ parsedConfig["relay"] = {
   exclude: ["**/node_modules/**", "**/__mocks__/**", "**/__generated__/**"],
 };
 
-const serializedConfig = JSON.stringify(parsedConfig);
+const serializedPackageJson = JSON.stringify(packageJson);
 
 // todo: handle error
-await fs.writeFile(packageJsonFile, serializedConfig, "utf-8");
+await fs.writeFile(packageJsonFile, serializedPackageJson, "utf-8");
+
+// todo: wire up plugins
 
 // todo: at the end show next steps with 'replace host in relayenvironment' and 'replace schema.graphql file'.
 
