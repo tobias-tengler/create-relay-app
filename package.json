@@ -1,0 +1,17 @@
+{
+  "name": "create-relay-app",
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": "tobias-tengler",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "create-relay-app": "node ./dist/index.js",
+    "build": "tsc"
+  },
+  "peerDependencies": {},
+  "devDependencies": {
+    "typescript": "^4.7.4"
+  }
+}
