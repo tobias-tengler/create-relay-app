@@ -1,7 +1,20 @@
 import { exec, execSync } from "child_process";
 import path from "path";
 import { promises as fs } from "fs";
-import { PackageManager } from "./types.js";
+import { CodeLanguage, PackageManager } from "./types.js";
+
+export function getRelayCompilerLanguage(
+  language: CodeLanguage
+): "typescript" | "flow" | "javascript" {
+  switch (language) {
+    case "Typescript":
+      return "typescript";
+    case "Flow":
+      return "flow";
+    default:
+      return "javascript";
+  }
+}
 
 export async function hasUnsavedGitChanges(dir: string): Promise<boolean> {
   const isPartOfGitRepo = await new Promise<boolean>((resolve) => {

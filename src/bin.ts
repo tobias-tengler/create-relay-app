@@ -43,7 +43,13 @@ const projectRootDirectory = path.dirname(packageJsonFile);
 //   throw new Error("Project has unsaved changes");
 // }
 
-const settings = await readProjectSettings();
+// const settings = await readProjectSettings();
+const settings: ProjectSettings = {
+  language: "Typescript",
+  toolchain: "Next.js",
+  packageManager: "yarn",
+  schemaFilePath: "schema.graphql",
+};
 
 console.log();
 

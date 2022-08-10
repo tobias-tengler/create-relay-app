@@ -1,6 +1,7 @@
 import { TaskBase } from "../TaskBase.js";
 import { promises as fs } from "fs";
 import { CodeLanguage } from "../types.js";
+import { getRelayCompilerLanguage } from "../helpers.js";
 
 export class AddRelayConfigurationTask extends TaskBase {
   constructor(
@@ -12,7 +13,7 @@ export class AddRelayConfigurationTask extends TaskBase {
   }
 
   async run(): Promise<void> {
-    const compilerLanguage = getCompilerLanguage(this.language);
+    const compilerLanguage = getRelayCompilerLanguage(this.language);
 
     // todo: handle error
     const packageJsonContent = await fs.readFile(this.packageJsonFile, {
@@ -49,18 +50,5 @@ export class AddRelayConfigurationTask extends TaskBase {
 
     // todo: handle error
     await fs.writeFile(this.packageJsonFile, serializedPackageJson, "utf-8");
-  }
-}
-
-function getCompilerLanguage(
-  language: CodeLanguage
-): "typescript" | "flow" | "javascript" {
-  switch (language) {
-    case "Typescript":
-      return "typescript";
-    case "Flow":
-      return "flow";
-    default:
-      return "javascript";
   }
 }
