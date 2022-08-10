@@ -1,7 +1,13 @@
-import { exec, execSync } from "child_process";
+import { exec, execSync, spawn } from "child_process";
 import path from "path";
 import { promises as fs } from "fs";
-import { CodeLanguage, PackageManager } from "./types.js";
+import { CodeLanguage, PackageManager, ToolChain } from "./types.js";
+import {
+  FLOW_PACKAGE,
+  NEXTJS_CONFIG_FILE,
+  TS_CONFIG_FILE,
+  TYPESCRIPT_PACKAGE,
+} from "./consts.js";
 
 export function getRelayCompilerLanguage(
   language: CodeLanguage
@@ -36,6 +42,105 @@ export async function hasUnsavedGitChanges(dir: string): Promise<boolean> {
   return hasUnsavedChanges;
 }
 
+export async function getProjectToolChain(
+  workingDirectory: string,
+  manager: PackageManager
+): Promise<ToolChain> {
+  const nextjsConfigFile = await findFileInDirectory(
+    workingDirectory,
+    NEXTJS_CONFIG_FILE
+  );
+
+  if (!!nextjsConfigFile) {
+    return "Next.js";
+  }
+
+  const viteConfigFiles = await searchFilesInDirectory(
+    workingDirectory,
+    "vite.config.*"
+  );
+
+  if (viteConfigFiles.some((f) => !!f)) {
+    return "Vite";
+  }
+
+  return "Create-React-App";
+}
+
+export async function getProjectLanguage(
+  workingDirectory: string,
+  manager: PackageManager
+): Promise<CodeLanguage> {
+  const tsconfigFile = await findFileInDirectory(
+    workingDirectory,
+    TS_CONFIG_FILE
+  );
+
+  if (!!tsconfigFile) {
+    return "Typescript";
+  }
+
+  const typescriptInstalled = await isNpmPackageInstalled(
+    manager,
+    workingDirectory,
+    TYPESCRIPT_PACKAGE
+  );
+
+  if (typescriptInstalled) {
+    return "Typescript";
+  }
+
+  const flowInstalled = await isNpmPackageInstalled(
+    manager,
+    workingDirectory,
+    FLOW_PACKAGE
+  );
+
+  if (flowInstalled) {
+    return "Flow";
+  }
+
+  return "JavaScript";
+}
+
+export async function isNpmPackageInstalled(
+  manager: PackageManager,
+  workingDirectory: string,
+  packageName: string
+): Promise<boolean> {
+  const command = manager;
+  const useYarn = manager === "yarn";
+
+  let args: string[] = [];
+
+  if (useYarn) {
+    args = ["list", "--depth=0", "--pattern", packageName];
+  } else {
+    args = ["ls", "--depth=0", packageName];
+  }
+
+  return new Promise((resolve) => {
+    const child = spawn(command, args, {
+      // stdio: "inherit",
+      cwd: workingDirectory,
+      env: process.env,
+      shell: true,
+    });
+
+    child.stdout.on("data", (data) => {
+      const stringData = data.toString() as string;
+
+      if (stringData.includes(packageName)) {
+        resolve(true);
+      }
+    });
+
+    child.on("close", () => {
+      resolve(false);
+    });
+  });
+}
+
 export function getPackageManagerToUse(): PackageManager {
   try {
     const userAgent = process.env.npm_config_user_agent;
@@ -50,9 +155,11 @@ export function getPackageManagerToUse(): PackageManager {
 
     try {
       execSync("yarn --version", { stdio: "ignore" });
+
       return "yarn";
     } catch {
       execSync("pnpm --version", { stdio: "ignore" });
+
       return "pnpm";
     }
   } catch {
@@ -105,4 +212,11 @@ export async function findFileInDirectory(
   } catch {}
 
   return null;
+}
+
+export async function searchFilesInDirectory(
+  directory: string,
+  pattern: string
+): Promise<string[]> {
+  return [];
 }

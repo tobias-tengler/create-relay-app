@@ -17,7 +17,13 @@ import {
 import { InstallNpmPackagesTask } from "./tasks/InstallNpmPackagesTask.js";
 import { AddRelayPluginConfigurationTask } from "./tasks/AddRelayPluginConfigurationTask.js";
 import { AddRelayEnvironmentTask } from "./tasks/AddRelayEnvironmentTask.js";
-import { traverseUpToFindFile, getPackageManagerToUse } from "./helpers.js";
+import {
+  traverseUpToFindFile,
+  getPackageManagerToUse,
+  getProjectToolChain,
+  getProjectLanguage,
+  isNpmPackageInstalled,
+} from "./helpers.js";
 
 const workingDirectory = process.cwd();
 
@@ -127,6 +133,14 @@ console.log();
 
 async function readProjectSettings(): Promise<ProjectSettings> {
   const defaultPackageManager = getPackageManagerToUse();
+  const defaultToolChain = await getProjectToolChain(
+    workingDirectory,
+    defaultPackageManager
+  );
+  const defaultLanguage = getProjectLanguage(
+    workingDirectory,
+    defaultPackageManager
+  );
 
   // todo: handle artifact directory
   // todo: handle error
@@ -135,18 +149,18 @@ async function readProjectSettings(): Promise<ProjectSettings> {
       name: "toolchain",
       message: "Select the toolchain your project is using",
       type: "list",
-      default: 0, // todo: try to infer the correct value
+      default: defaultToolChain,
       choices: ToolChainOptions,
     },
     {
       name: "language",
       message: "Select the language of your project",
       type: "list",
-      default: 0, // todo: try to infer the correct value
+      default: defaultLanguage,
       choices: LanguageOptions,
     },
     {
-      // todo: validate that it's inside project dir and ends in .graphql
+      // todo: validate that it's inside project dir
       name: "schemaFilePath",
       message: "Select the path to your GraphQL schema file",
       type: "input",

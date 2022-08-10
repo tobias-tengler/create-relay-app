@@ -8,6 +8,7 @@ import { parse } from "@babel/parser";
 import generate from "@babel/generator";
 import t from "@babel/types";
 import { format } from "prettier";
+import { NEXTJS_CONFIG_FILE } from "../consts.js";
 
 export class AddRelayPluginConfigurationTask extends TaskBase {
   constructor(
@@ -20,9 +21,6 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
 
   async run(): Promise<void> {
     switch (this.toolChain) {
-      case "Vite":
-        await this.configureVite();
-        break;
       case "Next.js":
         await this.configureNext();
         break;
@@ -32,21 +30,19 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
   }
 
   private async configureNext() {
-    const configFilename = "next.config.js";
-
     const configFilepath = await findFileInDirectory(
       this.workingDirectory,
-      configFilename
+      NEXTJS_CONFIG_FILE
     );
 
     if (!configFilepath) {
       throw new Error(
-        `Could not find ${configFilename} in ${this.workingDirectory}`
+        `Could not find ${NEXTJS_CONFIG_FILE} in ${this.workingDirectory}`
       );
     }
 
     // todo: handle errors
-    const configCode = await fs.readFile(configFilename, "utf-8");
+    const configCode = await fs.readFile(configFilepath, "utf-8");
 
     const ast = parse(configCode);
 
