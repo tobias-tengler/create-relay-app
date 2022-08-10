@@ -32,14 +32,6 @@ jobs:
       - run: yarn publish package.tgz --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 16.x
-          registry-url: https://npm.pkg.github.com/
-          scope: '@tobiastengler'
-      - run: yarn publish package.tgz
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
       - uses: actions/upload-artifact@v2
         with:
           name: package
