@@ -28,8 +28,12 @@ export class TaskRunner {
 
         let errorMsg: string;
 
-        if (!!error && typeof error === "string") {
-          errorMsg = error;
+        if (!!error) {
+          if (typeof error === "string") {
+            errorMsg = error;
+          } else if (error instanceof Error) {
+            errorMsg = error.message;
+          }
         }
 
         errorMsg ??= "Unexpected error";

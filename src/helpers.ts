@@ -8,6 +8,7 @@ import {
   TS_CONFIG_FILE,
   TYPESCRIPT_PACKAGE,
 } from "./consts.js";
+import glob from "glob";
 
 export function getRelayCompilerLanguage(
   language: CodeLanguage
@@ -218,5 +219,17 @@ export async function searchFilesInDirectory(
   directory: string,
   pattern: string
 ): Promise<string[]> {
-  return [];
+  return new Promise((resolve) => {
+    try {
+      glob(pattern, { cwd: directory }, (error, matches) => {
+        if (error || !matches || !matches.some((m) => !!m)) {
+          resolve([]);
+        } else {
+          resolve(matches);
+        }
+      });
+    } catch {
+      resolve([]);
+    }
+  });
 }
