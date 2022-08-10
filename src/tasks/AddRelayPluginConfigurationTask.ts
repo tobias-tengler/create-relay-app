@@ -1,10 +1,13 @@
 import { findFileInDirectory, getRelayCompilerLanguage } from "../helpers.js";
 import { TaskBase } from "../TaskBase.js";
 import { CodeLanguage, ToolChain } from "../types.js";
-import { parse, print, types, visit } from "recast";
+// import { parse, print, types, visit } from "recast";
 import { promises as fs } from "fs";
-import { parenthesizedExpression } from "@babel/types";
-import { Scope } from "ast-types/lib/scope.js";
+import traverse from "@babel/traverse";
+import { parse } from "@babel/parser";
+import generate from "@babel/generator";
+import t from "@babel/types";
+import { format } from "prettier";
 
 export class AddRelayPluginConfigurationTask extends TaskBase {
   constructor(
@@ -47,103 +50,113 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
 
     const ast = parse(configCode);
 
-    visit(ast, {
-      visitAssignmentExpression: (path) => {
+    traverse.default(ast, {
+      AssignmentExpression: (path) => {
         const node = path.node;
-        const n = types.namedTypes;
-        const b = types.builders;
 
         // We are looking for module.exports = ???.
         if (
           node.operator !== "=" ||
-          !n.MemberExpression.check(node.left) ||
-          !n.Identifier.check(node.left.object) ||
-          !n.Identifier.check(node.left.property) ||
+          !t.isMemberExpression(node.left) ||
+          !t.isIdentifier(node.left.object) ||
+          !t.isIdentifier(node.left.property) ||
           node.left.object.name !== "module" ||
           node.left.property.name !== "exports"
         ) {
-          return false;
+          return;
         }
 
-        let objExp: types.namedTypes.ObjectExpression;
+        let objExp: t.ObjectExpression;
 
         // We are looking for the object expression
         // that was assigned to module.exports.
-        if (n.Identifier.check(node.right)) {
+        if (t.isIdentifier(node.right)) {
           // The export is linked to a variable,
           // so we need to resolve the variable declaration.
-          // todo: no typescript
-
-          const scope = path.scope as Scope;
-          const bindings = scope.getBindings();
-          const binding = bindings[node.right.name];
-
-          console.log("binding", binding);
+          const binding = path.scope.getBinding(node.right.name);
 
           if (
             !binding ||
-            !n.VariableDeclarator.check(binding.path.node) ||
-            !n.ObjectExpression.check(binding.path.node.init)
+            !t.isVariableDeclarator(binding.path.node) ||
+            !t.isObjectExpression(binding.path.node.init)
           ) {
-            return false;
+            return;
           }
 
           objExp = binding.path.node.init;
-        } else if (n.ObjectExpression.check(node.right)) {
+        } else if (t.isObjectExpression(node.right)) {
           objExp = node.right;
         } else {
-          return false;
+          return;
         }
 
         // We are creating or getting the 'compiler' property
         // of this object expression.
         let compilerProperty = objExp.properties.find(
           (p) =>
-            n.ObjectProperty.check(p) &&
-            n.Identifier.check(p.key) &&
+            t.isObjectProperty(p) &&
+            t.isIdentifier(p.key) &&
             p.key.name === "compiler"
-        ) as types.namedTypes.ObjectProperty;
+        ) as t.ObjectProperty;
 
         if (!compilerProperty) {
-          compilerProperty = b.objectProperty(
-            b.identifier("compiler"),
-            b.objectExpression([])
+          compilerProperty = t.objectProperty(
+            t.identifier("compiler"),
+            t.objectExpression([])
           );
 
           objExp.properties.push(compilerProperty);
         }
 
-        if (!n.ObjectExpression.check(compilerProperty.value)) {
-          return false;
+        if (!t.isObjectExpression(compilerProperty.value)) {
+          return;
+        }
+
+        const relayProperty = compilerProperty.value.properties.find(
+          (p) =>
+            t.isObjectProperty(p) &&
+            t.isIdentifier(p.key) &&
+            p.key.name === "relay"
+        );
+
+        if (!!relayProperty) {
+          // A "relay" property already exists.
+          return;
         }
 
         // Add the "relay" property to the "compiler" property object.
         compilerProperty.value.properties.push(
-          b.objectProperty(
-            b.identifier("relay"),
-            b.objectExpression([
-              b.objectProperty(
-                b.identifier("src"),
-                b.stringLiteral("./src") // todo: get through config
+          t.objectProperty(
+            t.identifier("relay"),
+            t.objectExpression([
+              t.objectProperty(
+                t.identifier("src"),
+                t.stringLiteral("./src") // todo: get through config
               ),
-              b.objectProperty(
-                b.identifier("language"),
-                b.stringLiteral(getRelayCompilerLanguage(this.language))
+              t.objectProperty(
+                t.identifier("language"),
+                t.stringLiteral(getRelayCompilerLanguage(this.language))
               ),
               // todo: add artifact directory
             ])
           )
         );
-
-        return false;
       },
     });
 
-    const updatedConfigCode = print(ast).code;
+    const updatedConfigCode = generate.default(
+      ast,
+      { retainLines: true },
+      configCode
+    ).code;
 
-    console.log({ og: configCode, new: updatedConfigCode });
+    const formattedConfigCode = format(updatedConfigCode, {
+      bracketSameLine: false,
+    });
 
-    await fs.writeFile(configFilepath, updatedConfigCode, "utf-8");
+    console.log({ configCode, formattedConfigCode });
+
+    await fs.writeFile(configFilepath, formattedConfigCode, "utf-8");
   }
 
   private async configureVite() {
