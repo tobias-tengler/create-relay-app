@@ -1,8 +1,21 @@
 {
   "name": "@tobiastengler/create-relay-app",
   "version": "0.1.0",
+  "homepage": "https://github.com/tobias-tengler/create-relay-app#readme",
   "license": "MIT",
-  "author": "tobias-tengler",
+  "author": {
+    "name": "Tobias Tengler",
+    "url": "https://github.com/tobias-tengler",
+    "email": "contact.tobiastengler@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tobias-tengler/create-relay-app.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tobias-tengler/create-relay-app/issues"
+  },
+  "keywords": [],
   "files": [
     "dist"
   ],
