@@ -1,14 +1,13 @@
 import { findFileInDirectory, getRelayCompilerLanguage } from "../helpers.js";
 import { TaskBase } from "../TaskBase.js";
 import { CodeLanguage, ToolChain } from "../types.js";
-// import { parse, print, types, visit } from "recast";
 import { promises as fs } from "fs";
 import traverse from "@babel/traverse";
-import { parse } from "@babel/parser";
+import { parse, ParseResult } from "@babel/parser";
 import generate from "@babel/generator";
 import t from "@babel/types";
 import { format } from "prettier";
-import { NEXTJS_CONFIG_FILE } from "../consts.js";
+import { NEXTJS_CONFIG_FILE, VITE_RELAY_PACKAGE } from "../consts.js";
 
 export class AddRelayPluginConfigurationTask extends TaskBase {
   constructor(
@@ -21,6 +20,9 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
 
   async run(): Promise<void> {
     switch (this.toolChain) {
+      case "Vite":
+        await this.configureVite();
+        break;
       case "Next.js":
         await this.configureNext();
         break;
@@ -36,15 +38,13 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
     );
 
     if (!configFilepath) {
-      throw new Error(
-        `Could not find ${NEXTJS_CONFIG_FILE} in ${this.workingDirectory}`
-      );
+      throw new Error(`${NEXTJS_CONFIG_FILE} not found`);
     }
 
     // todo: handle errors
     const configCode = await fs.readFile(configFilepath, "utf-8");
 
-    const ast = parse(configCode);
+    const ast = this.parseAst(configCode);
 
     traverse.default(ast, {
       AssignmentExpression: (path) => {
@@ -59,7 +59,9 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
           node.left.object.name !== "module" ||
           node.left.property.name !== "exports"
         ) {
-          return;
+          throw new Error(
+            `Expected to find a module.exports assignment that exports the Next.js configuration from ${NEXTJS_CONFIG_FILE}.`
+          );
         }
 
         let objExp: t.ObjectExpression;
@@ -76,18 +78,21 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
             !t.isVariableDeclarator(binding.path.node) ||
             !t.isObjectExpression(binding.path.node.init)
           ) {
-            return;
+            throw new Error(
+              `module.exports in ${NEXTJS_CONFIG_FILE} references a variable, which is not a valid object definition.`
+            );
           }
 
           objExp = binding.path.node.init;
         } else if (t.isObjectExpression(node.right)) {
           objExp = node.right;
         } else {
-          return;
+          throw new Error(
+            `Expected to find a module.exports assignment that exports the Next.js configuration from ${NEXTJS_CONFIG_FILE}.`
+          );
         }
 
-        // We are creating or getting the 'compiler' property
-        // of this object expression.
+        // We are creating or getting the 'compiler' property.
         let compilerProperty = objExp.properties.find(
           (p) =>
             t.isObjectProperty(p) &&
@@ -105,7 +110,9 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
         }
 
         if (!t.isObjectExpression(compilerProperty.value)) {
-          return;
+          throw new Error(
+            `Could not create or get a "compiler" property on the Next.js configuration object in ${NEXTJS_CONFIG_FILE}.`
+          );
         }
 
         const relayProperty = compilerProperty.value.properties.find(
@@ -140,19 +147,9 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
       },
     });
 
-    const updatedConfigCode = generate.default(
-      ast,
-      { retainLines: true },
-      configCode
-    ).code;
+    const updatedConfigCode = this.printAst(ast, configCode);
 
-    const formattedConfigCode = format(updatedConfigCode, {
-      bracketSameLine: false,
-    });
-
-    console.log({ configCode, formattedConfigCode });
-
-    await fs.writeFile(configFilepath, formattedConfigCode, "utf-8");
+    await fs.writeFile(configFilepath, updatedConfigCode, "utf-8");
   }
 
   private async configureVite() {
@@ -165,12 +162,99 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
     );
 
     if (!configFilepath) {
-      throw new Error(
-        `Could not find ${configFilename} in ${this.workingDirectory}`
-      );
+      throw new Error(`${configFilename} not found`);
     }
 
-    // todo: write native plugin for vite
-    // todo: parse config and modify
+    // todo: handle errors
+    const configCode = await fs.readFile(configFilepath, "utf-8");
+
+    const ast = this.parseAst(configCode);
+
+    traverse.default(ast, {
+      Program: (path) => {
+        const importDeclaration = t.importDeclaration(
+          [t.importDefaultSpecifier(t.identifier("relay"))],
+          t.stringLiteral(VITE_RELAY_PACKAGE)
+        );
+
+        // Insert import at start of file.
+        path.node.body.unshift(importDeclaration);
+      },
+      ExportDefaultDeclaration: (path) => {
+        const node = path.node;
+
+        // Find export default defineConfig(???)
+        if (
+          !t.isCallExpression(node.declaration) ||
+          node.declaration.arguments.length < 1 ||
+          !t.isIdentifier(node.declaration.callee) ||
+          node.declaration.callee.name !== "defineConfig"
+        ) {
+          throw new Error(
+            `Expected a export default defineConfig({}) in ${configFilename}.`
+          );
+        }
+
+        const arg = node.declaration.arguments[0];
+
+        if (!t.isObjectExpression(arg)) {
+          throw new Error(
+            `Expected a export default defineConfig({}) in ${configFilename}.`
+          );
+        }
+
+        // We are creating or getting the 'plugins' property.
+        let pluginsProperty = arg.properties.find(
+          (p) =>
+            t.isObjectProperty(p) &&
+            t.isIdentifier(p.key) &&
+            p.key.name === "plugins"
+        ) as t.ObjectProperty;
+
+        if (!pluginsProperty) {
+          pluginsProperty = t.objectProperty(
+            t.identifier("plugins"),
+            t.arrayExpression([])
+          );
+
+          arg.properties.push(pluginsProperty);
+        }
+
+        if (!t.isArrayExpression(pluginsProperty.value)) {
+          throw new Error(
+            `Could not create or get a "plugins" property on the Vite configuration object in ${configFilename}.`
+          );
+        }
+
+        const vitePlugins = pluginsProperty.value.elements;
+
+        if (vitePlugins.some((e) => t.isIdentifier(e) && e.name === "relay")) {
+          // A "relay" entry already exists.
+          return;
+        }
+
+        // Add the "relay" import to the "plugins".
+        vitePlugins.push(t.identifier("relay"));
+      },
+    });
+
+    const updatedConfigCode = this.printAst(ast, configCode);
+
+    await fs.writeFile(configFilepath, updatedConfigCode, "utf-8");
+  }
+
+  private parseAst(code: string): ParseResult<t.File> {
+    return parse(code, {
+      sourceType: "module",
+    });
+  }
+
+  private printAst(ast: ParseResult<t.File>, oldCode: string): string {
+    const newCode = generate.default(ast, { retainLines: true }, oldCode).code;
+
+    return format(newCode, {
+      bracketSameLine: false,
+      parser: "babel",
+    });
   }
 }

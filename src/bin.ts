@@ -25,7 +25,7 @@ import {
   hasUnsavedGitChanges,
 } from "./helpers.js";
 import { exit } from "process";
-import { PACKAGE_FILE } from "./consts.js";
+import { PACKAGE_FILE, VITE_RELAY_PACKAGE } from "./consts.js";
 
 const workingDirectory = process.cwd();
 
@@ -58,13 +58,13 @@ const projectRootDirectory = path.dirname(packageJsonFile);
 //   exit(1);
 // }
 
-const settings = await readProjectSettings();
-// const settings: ProjectSettings = {
-//   language: "Typescript",
-//   toolchain: "Next.js",
-//   packageManager: "yarn",
-//   schemaFilePath: "schema.graphql",
-// };
+// const settings = await readProjectSettings();
+const settings: ProjectSettings = {
+  language: "Typescript",
+  toolchain: "Vite",
+  packageManager: "yarn",
+  schemaFilePath: "schema.graphql",
+};
 
 console.log();
 
@@ -75,27 +75,27 @@ const devDependencies = getRelayDevDependencies(
 );
 
 const runner = new TaskRunner([
-  {
-    title: `Add Relay dependencies: ${dependencies
-      .map((d) => chalk.cyan.bold(d))
-      .join(" ")}`,
-    task: new InstallNpmPackagesTask(
-      dependencies,
-      settings.packageManager,
-      projectRootDirectory
-    ),
-  },
-  {
-    title: `Add Relay devDependencies: ${devDependencies
-      .map((d) => chalk.cyan.bold(d))
-      .join(" ")}`,
-    task: new InstallNpmPackagesTask(
-      devDependencies,
-      settings.packageManager,
-      projectRootDirectory,
-      true
-    ),
-  },
+  // {
+  //   title: `Add Relay dependencies: ${dependencies
+  //     .map((d) => chalk.cyan.bold(d))
+  //     .join(" ")}`,
+  //   task: new InstallNpmPackagesTask(
+  //     dependencies,
+  //     settings.packageManager,
+  //     projectRootDirectory
+  //   ),
+  // },
+  // {
+  //   title: `Add Relay devDependencies: ${devDependencies
+  //     .map((d) => chalk.cyan.bold(d))
+  //     .join(" ")}`,
+  //   task: new InstallNpmPackagesTask(
+  //     devDependencies,
+  //     settings.packageManager,
+  //     projectRootDirectory,
+  //     true
+  //   ),
+  // },
   {
     title: "Add Relay configuration to package.json",
     task: new AddRelayConfigurationTask(
@@ -127,6 +127,7 @@ const runner = new TaskRunner([
 try {
   await runner.run();
 } catch {
+  console.log();
   console.log(`❌ Some of the tasks unexpectedly failed.`);
   exit(1);
 }
@@ -206,7 +207,7 @@ export function getRelayDevDependencies(
   if (toolChain === "Create-React-App") {
     relayDevDep = relayDevDep.concat(["babel-plugin-relay", "graphql"]);
   } else if (toolChain === "Vite") {
-    relayDevDep.push("vite-plugin-relay");
+    relayDevDep.push(VITE_RELAY_PACKAGE);
   }
 
   if (language === "Typescript") {
