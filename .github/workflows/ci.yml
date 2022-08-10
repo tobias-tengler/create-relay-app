@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      publishExperimental:
+        description: 'Publish an experimental release'
+        required: false 
+        type: boolean
+        default: false
+  push:
+    branches:
+      - main
+    paths-ignore: 
+      - '**/**.md'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+      - uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: node_modules-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: node_modules-
+      - run: yarn install --frozen-lockfile
+      - run: yarn lint
+      - run: yarn build
+      - uses: actions/upload-artifact@v2
+        if: ${{ inputs.publishExperimental }}
+        with:
+          name: build-output
+          path: dist
+  experimental-publish:
+    if: ${{ inputs.publishExperimental }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          name: build-output
+          path: dist
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+          registry-url: https://registry.npmjs.org/
+      - run: yarn version --no-git-tag-version --new-version "0.0.0-experimental-$(echo $GITHUB_SHA | cut -c1-9)"
+      - run: yarn pack --filename package.tgz
+      - run: yarn publish package.tgz --tag experimental --access public
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+          registry-url: https://npm.pkg.github.com/
+          scope: '@tobiastengler'
+      - run: yarn publish package.tgz --tag experimental
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      - uses: actions/upload-artifact@v2
+        with:
+          name: experimental-package
+          path: package.tgz

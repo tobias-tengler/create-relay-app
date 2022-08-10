@@ -26,9 +26,18 @@ export class TaskRunner {
           return;
         }
 
-        task.error("Unexpected error");
+        let errorMsg: string;
 
-        throw error;
+        if (!!error && typeof error === "string") {
+          errorMsg = error;
+        }
+
+        errorMsg ??= "Unexpected error";
+
+        task.error(errorMsg);
+
+        // throw error;
+        break;
       }
     }
   }

@@ -47,25 +47,26 @@ export function getPackageManagerToUse(): PackageManager {
   }
 }
 
-export async function findPackageJsonFile(dir: string): Promise<string | null> {
-  const packageJsonFile = "package.json";
+export async function traverseUpToFindFile(
+  directory: string,
+  filename: string
+): Promise<string | null> {
+  let currentDirectory = directory;
+  let previousDirectory: string | null = null;
 
-  let curDir = dir;
-  let prevDir: string | null = null;
-
-  while (!!curDir) {
+  while (!!currentDirectory) {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    const filepath = await findFileInDirectory(packageJsonFile, curDir);
+    const filepath = await findFileInDirectory(currentDirectory, filename);
 
     if (!!filepath) {
       return filepath;
     }
 
-    prevDir = curDir;
-    curDir = path.join(curDir, "..");
+    previousDirectory = currentDirectory;
+    currentDirectory = path.join(currentDirectory, "..");
 
-    if (prevDir === curDir) {
+    if (previousDirectory === currentDirectory) {
       // We reached the root.
       break;
     }
@@ -73,16 +74,17 @@ export async function findPackageJsonFile(dir: string): Promise<string | null> {
 
   return null;
 }
-async function findFileInDirectory(
-  searchedFilename: string,
-  dir: string
+
+export async function findFileInDirectory(
+  directory: string,
+  filename: string
 ): Promise<string | null> {
   try {
-    const filenames = await fs.readdir(dir);
+    const filenames = await fs.readdir(directory);
 
-    for (const filename of filenames) {
-      if (filename === searchedFilename) {
-        const filepath = path.join(dir, filename);
+    for (const name of filenames) {
+      if (name === filename) {
+        const filepath = path.join(directory, filename);
 
         return filepath;
       }

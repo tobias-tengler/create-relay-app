@@ -1,12 +1,12 @@
 import { TaskBase } from "../TaskBase.js";
 import { promises as fs } from "fs";
-import { ProjectLanguage } from "../types.js";
+import { CodeLanguage } from "../types.js";
 
 export class AddRelayConfigurationTask extends TaskBase {
   constructor(
     private packageJsonFile: string,
     private schemaFilePath: string,
-    private language: ProjectLanguage
+    private language: CodeLanguage
   ) {
     super();
   }
@@ -53,7 +53,7 @@ export class AddRelayConfigurationTask extends TaskBase {
 }
 
 function getCompilerLanguage(
-  language: ProjectLanguage
+  language: CodeLanguage
 ): "typescript" | "flow" | "javascript" {
   switch (language) {
     case "Typescript":

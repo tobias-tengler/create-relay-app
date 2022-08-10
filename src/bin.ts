@@ -12,25 +12,28 @@ import {
   LanguageOptions,
   PackageManagerOptions,
   ToolChain,
-  ProjectLanguage,
+  CodeLanguage,
 } from "./types.js";
 import { InstallNpmPackagesTask } from "./tasks/InstallNpmPackagesTask.js";
 import { AddRelayPluginConfigurationTask } from "./tasks/AddRelayPluginConfigurationTask.js";
 import { AddRelayEnvironmentTask } from "./tasks/AddRelayEnvironmentTask.js";
-import { findPackageJsonFile, getPackageManagerToUse } from "./helpers.js";
+import { traverseUpToFindFile, getPackageManagerToUse } from "./helpers.js";
 
 const workingDirectory = process.cwd();
 
 // FIND package.json FILE
 
-const packageJsonFile = await findPackageJsonFile(workingDirectory);
+const packageJsonFile = await traverseUpToFindFile(
+  workingDirectory,
+  "package.json"
+);
 
 if (!packageJsonFile) {
   // package.json file is missing.
   throw new Error("package.json file is missing");
 }
 
-const projectDir = path.dirname(packageJsonFile);
+const projectRootDirectory = path.dirname(packageJsonFile);
 
 // CHECK REPO FOR UNSAVED CHANGES
 
@@ -58,7 +61,7 @@ const runner = new TaskRunner([
     task: new InstallNpmPackagesTask(
       dependencies,
       settings.packageManager,
-      projectDir
+      projectRootDirectory
     ),
   },
   {
@@ -68,7 +71,7 @@ const runner = new TaskRunner([
     task: new InstallNpmPackagesTask(
       devDependencies,
       settings.packageManager,
-      projectDir,
+      projectRootDirectory,
       true
     ),
   },
@@ -82,7 +85,11 @@ const runner = new TaskRunner([
   },
   {
     title: "Add Relay plugin configuration",
-    task: new AddRelayPluginConfigurationTask(),
+    task: new AddRelayPluginConfigurationTask(
+      projectRootDirectory,
+      settings.toolchain,
+      settings.language
+    ),
   },
   {
     title: "Add Relay environment",
@@ -100,7 +107,7 @@ await runner.run();
 
 console.log();
 
-console.log(chalk.italic.bold("NEXT STEPS"));
+console.log(chalk.italic.bold("### NEXT STEPS ###"));
 console.log(
   `1. Replace ${chalk.cyan.bold(
     settings.schemaFilePath
@@ -158,7 +165,7 @@ async function readProjectSettings(): Promise<ProjectSettings> {
 
 export function getRelayDevDependencies(
   toolChain: ToolChain,
-  language: ProjectLanguage
+  language: CodeLanguage
 ) {
   let relayDevDep = ["relay-compiler"];
 
@@ -169,10 +176,7 @@ export function getRelayDevDependencies(
   }
 
   if (language === "Typescript") {
-    relayDevDep = relayDevDep.concat([
-      "@types/react-relay",
-      "@types/relay-runtime",
-    ]);
+    relayDevDep = relayDevDep.concat(["@types/react-relay"]);
   }
 
   return relayDevDep;
