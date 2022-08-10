@@ -4,4 +4,4 @@ export const PACKAGE_FILE = "package.json";
 
 export const TYPESCRIPT_PACKAGE = "typescript";
 export const FLOW_PACKAGE = "flow-bin";
-export const VITE_RELAY_PACKAGE = '"@tobiastengler/vite-plugin-relay"';
+export const VITE_RELAY_PACKAGE = "@tobiastengler/vite-plugin-relay";

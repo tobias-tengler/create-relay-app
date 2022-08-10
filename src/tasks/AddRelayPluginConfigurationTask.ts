@@ -233,8 +233,13 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
           return;
         }
 
+        const relayPlugin = t.callExpression(t.identifier("relay"), [
+          // todo: fill with args
+          t.objectExpression([]),
+        ]);
+
         // Add the "relay" import to the "plugins".
-        vitePlugins.push(t.identifier("relay"));
+        vitePlugins.push(relayPlugin);
       },
     });
 
