@@ -39,8 +39,10 @@
     "@babel/generator": "^7.18.12",
     "@babel/parser": "^7.18.11",
     "@babel/traverse": "^7.18.11",
+    "ast-types": "^0.14.2",
     "chalk": "^5.0.1",
     "inquirer": "^9.1.0",
-    "ora": "^6.1.2"
+    "ora": "^6.1.2",
+    "recast": "^0.21.2"
   }
 }
