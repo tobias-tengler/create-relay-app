@@ -40,8 +40,7 @@ export class TaskRunner {
 
         task.error(errorMsg);
 
-        // throw error;
-        break;
+        throw error;
       }
     }
   }

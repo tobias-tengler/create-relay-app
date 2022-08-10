@@ -22,8 +22,10 @@ import {
   getPackageManagerToUse,
   getProjectToolChain,
   getProjectLanguage,
-  isNpmPackageInstalled,
+  hasUnsavedGitChanges,
 } from "./helpers.js";
+import { exit } from "process";
+import { PACKAGE_FILE } from "./consts.js";
 
 const workingDirectory = process.cwd();
 
@@ -31,31 +33,38 @@ const workingDirectory = process.cwd();
 
 const packageJsonFile = await traverseUpToFindFile(
   workingDirectory,
-  "package.json"
+  PACKAGE_FILE
 );
 
 if (!packageJsonFile) {
-  // package.json file is missing.
-  throw new Error("package.json file is missing");
+  console.log(
+    `❌ Could not find a ${chalk.cyan.bold(
+      PACKAGE_FILE
+    )} in the ${chalk.cyan.bold(workingDirectory)} directory.`
+  );
+  exit(1);
 }
 
 const projectRootDirectory = path.dirname(packageJsonFile);
 
 // CHECK REPO FOR UNSAVED CHANGES
 
-// const hasUnsavedChanges = await hasUnsavedGitChanges(projectDir);
+// const hasUnsavedChanges = await hasUnsavedGitChanges(projectRootDirectory);
 
 // if (hasUnsavedChanges) {
-//   throw new Error("Project has unsaved changes");
+//   console.log(
+//     `❌ Please commit or discard all changes in the ${workingDirectory} before continuing.`
+//   );
+//   exit(1);
 // }
 
-// const settings = await readProjectSettings();
-const settings: ProjectSettings = {
-  language: "Typescript",
-  toolchain: "Next.js",
-  packageManager: "yarn",
-  schemaFilePath: "schema.graphql",
-};
+const settings = await readProjectSettings();
+// const settings: ProjectSettings = {
+//   language: "Typescript",
+//   toolchain: "Next.js",
+//   packageManager: "yarn",
+//   schemaFilePath: "schema.graphql",
+// };
 
 console.log();
 
@@ -115,7 +124,12 @@ const runner = new TaskRunner([
   },
 ]);
 
-await runner.run();
+try {
+  await runner.run();
+} catch {
+  console.log(`❌ Some of the tasks unexpectedly failed.`);
+  exit(1);
+}
 
 console.log();
 
@@ -134,11 +148,11 @@ console.log();
 async function readProjectSettings(): Promise<ProjectSettings> {
   const defaultPackageManager = getPackageManagerToUse();
   const defaultToolChain = await getProjectToolChain(
-    workingDirectory,
+    projectRootDirectory,
     defaultPackageManager
   );
   const defaultLanguage = getProjectLanguage(
-    workingDirectory,
+    projectRootDirectory,
     defaultPackageManager
   );
 
