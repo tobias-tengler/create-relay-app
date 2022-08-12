@@ -257,20 +257,14 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
 
         if (
           vitePlugins.some(
-            (e) =>
-              t.isCallExpression(e) &&
-              t.isIdentifier(e.callee) &&
-              e.callee.name === relayImportName
+            (p) => t.isIdentifier(p) && p.name === relayImportName
           )
         ) {
           // A "relay" entry already exists.
           return;
         }
 
-        const relayPlugin = t.callExpression(t.identifier(relayImportName), [
-          // todo: fill with args
-          t.objectExpression([]),
-        ]);
+        const relayPlugin = t.identifier(relayImportName);
 
         // Add the "relay" import to the "plugins".
         vitePlugins.push(relayPlugin);

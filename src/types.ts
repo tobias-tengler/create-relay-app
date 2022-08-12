@@ -11,7 +11,7 @@ export type CodeLanguage = typeof LanguageOptions[number];
 export type PackageManager = typeof PackageManagerOptions[number];
 
 export type ProjectSettings = {
-  toolchain: ToolChain;
+  toolChain: ToolChain;
   language: CodeLanguage;
   schemaFilePath: string;
   packageManager: PackageManager;

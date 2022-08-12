@@ -59,43 +59,38 @@ const projectRootDirectory = path.dirname(packageJsonFile);
 // }
 
 // const settings = await readProjectSettings();
-const settings: ProjectSettings = {
-  language: "Typescript",
-  toolchain: "Vite",
-  packageManager: "yarn",
-  schemaFilePath: "schema.graphql",
-};
+const settings = await getDefaultProjectSettings();
 
 console.log();
 
 const dependencies = ["react-relay"];
 const devDependencies = getRelayDevDependencies(
-  settings.toolchain,
+  settings.toolChain,
   settings.language
 );
 
 const runner = new TaskRunner([
-  // {
-  //   title: `Add Relay dependencies: ${dependencies
-  //     .map((d) => chalk.cyan.bold(d))
-  //     .join(" ")}`,
-  //   task: new InstallNpmPackagesTask(
-  //     dependencies,
-  //     settings.packageManager,
-  //     projectRootDirectory
-  //   ),
-  // },
-  // {
-  //   title: `Add Relay devDependencies: ${devDependencies
-  //     .map((d) => chalk.cyan.bold(d))
-  //     .join(" ")}`,
-  //   task: new InstallNpmPackagesTask(
-  //     devDependencies,
-  //     settings.packageManager,
-  //     projectRootDirectory,
-  //     true
-  //   ),
-  // },
+  {
+    title: `Add Relay dependencies: ${dependencies
+      .map((d) => chalk.cyan.bold(d))
+      .join(" ")}`,
+    task: new InstallNpmPackagesTask(
+      dependencies,
+      settings.packageManager,
+      projectRootDirectory
+    ),
+  },
+  {
+    title: `Add Relay devDependencies: ${devDependencies
+      .map((d) => chalk.cyan.bold(d))
+      .join(" ")}`,
+    task: new InstallNpmPackagesTask(
+      devDependencies,
+      settings.packageManager,
+      projectRootDirectory,
+      true
+    ),
+  },
   {
     title: "Add Relay configuration to package.json",
     task: new AddRelayConfigurationTask(
@@ -108,7 +103,7 @@ const runner = new TaskRunner([
     title: "Add Relay plugin configuration",
     task: new AddRelayPluginConfigurationTask(
       projectRootDirectory,
-      settings.toolchain,
+      settings.toolChain,
       settings.language
     ),
   },
@@ -116,7 +111,7 @@ const runner = new TaskRunner([
     title: "Add Relay environment",
     task: new AddRelayEnvironmentTask(
       projectRootDirectory,
-      settings.toolchain,
+      settings.toolChain,
       settings.language
     ),
   },
@@ -150,32 +145,43 @@ console.log();
 
 // todo: add integration tests
 
-async function readProjectSettings(): Promise<ProjectSettings> {
+async function getDefaultProjectSettings(): Promise<ProjectSettings> {
   const defaultPackageManager = getPackageManagerToUse();
   const defaultToolChain = await getProjectToolChain(
     projectRootDirectory,
     defaultPackageManager
   );
-  const defaultLanguage = getProjectLanguage(
+  const defaultLanguage = await getProjectLanguage(
     projectRootDirectory,
     defaultPackageManager
   );
+
+  return {
+    packageManager: defaultPackageManager,
+    toolChain: defaultToolChain,
+    language: defaultLanguage,
+    schemaFilePath: "./src/schema.graphql",
+  };
+}
+
+async function readProjectSettings(): Promise<ProjectSettings> {
+  const defaults = await getDefaultProjectSettings();
 
   // todo: handle artifact directory
   // todo: handle error
   return await inquirer.prompt<ProjectSettings>([
     {
-      name: "toolchain",
+      name: "toolChain",
       message: "Select the toolchain your project is using",
       type: "list",
-      default: defaultToolChain,
+      default: defaults.toolChain,
       choices: ToolChainOptions,
     },
     {
       name: "language",
       message: "Select the language of your project",
       type: "list",
-      default: defaultLanguage,
+      default: defaults.language,
       choices: LanguageOptions,
     },
     {
@@ -183,7 +189,7 @@ async function readProjectSettings(): Promise<ProjectSettings> {
       name: "schemaFilePath",
       message: "Select the path to your GraphQL schema file",
       type: "input",
-      default: "./src/schema.graphql",
+      default: defaults.schemaFilePath,
       validate: (input: string) => {
         if (!input.endsWith(".graphql")) {
           return `File needs to end in ${chalk.green(".graphql")}`;
@@ -196,7 +202,7 @@ async function readProjectSettings(): Promise<ProjectSettings> {
       name: "packageManager",
       message: "Select the package manager you wish to use to install packages",
       type: "list",
-      default: defaultPackageManager,
+      default: defaults.packageManager,
       choices: PackageManagerOptions,
     },
   ]);
