@@ -35,22 +35,22 @@ export class InstallNpmPackagesTask extends TaskBase {
       args.push(...this.packages);
     }
 
-    return new Promise((resolve, reject) => {
-      const child = spawn(command, args, {
-        // stdio: "inherit",
-        cwd: this.workingDirectory,
-        env: process.env,
-        shell: true,
-      });
+    // return new Promise((resolve, reject) => {
+    //   const child = spawn(command, args, {
+    //     // stdio: "inherit",
+    //     cwd: this.workingDirectory,
+    //     env: process.env,
+    //     shell: true,
+    //   });
 
-      child.on("close", (code) => {
-        if (code !== 0) {
-          reject({ command: `${command} ${args.join(" ")}` });
-          return;
-        }
+    //   child.on("close", (code) => {
+    //     if (code !== 0) {
+    //       reject({ command: `${command} ${args.join(" ")}` });
+    //       return;
+    //     }
 
-        resolve();
-      });
-    });
+    //     resolve();
+    //   });
+    // });
   }
 }

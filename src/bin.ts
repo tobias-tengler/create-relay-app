@@ -140,14 +140,17 @@ try {
 
 console.log();
 
-console.log(chalk.italic.bold("### NEXT STEPS ###"));
+console.log(chalk.yellow.bold("Next steps:"));
+
 console.log(
   `1. Replace ${chalk.cyan.bold(
     settings.schemaFilePath
   )} with your own GraphQL schema file.`
 );
+
+// todo: get correct path to file
 console.log(
-  `2. Replace the ${chalk.cyan.bold(
+  `2. Replace the value of the ${chalk.cyan.bold(
     "HOST"
   )} variable in the RelayEnvironment.ts file.`
 );
@@ -179,6 +182,7 @@ async function readProjectSettings(): Promise<ProjectSettings> {
   const defaults = await getDefaultProjectSettings();
 
   // todo: handle artifact directory
+  // todo: maybe handle subscription or @defer / @stream setup
   // todo: handle error
   return await inquirer.prompt<ProjectSettings>([
     {
@@ -228,7 +232,11 @@ export function getRelayDevDependencies(
   if (toolChain === "Create-React-App") {
     relayDevDep = relayDevDep.concat(["babel-plugin-relay", "graphql"]);
   } else if (toolChain === "Vite") {
-    relayDevDep.push(VITE_RELAY_PACKAGE);
+    relayDevDep = relayDevDep.concat([
+      VITE_RELAY_PACKAGE,
+      "babel-plugin-relay",
+      "graphql",
+    ]);
   }
 
   if (language === "Typescript") {

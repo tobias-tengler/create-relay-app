@@ -1,14 +1,15 @@
+import traverse from "@babel/traverse";
 import fs from "fs-extra";
-import path, { dirname } from "path";
-import { fileURLToPath } from "url";
+import path from "path";
 import {
   VITE_MAIN_FILE_NO_EXT,
   VITE_RELAY_ENV_FILE_NO_EXT,
   VITE_SRC_DIR,
 } from "../consts.js";
-import { findFileInDirectory } from "../helpers.js";
+import { findFileInDirectory, parseAst, printAst } from "../helpers.js";
 import { TaskBase } from "../TaskBase.js";
 import { ToolChain, CodeLanguage } from "../types.js";
+import t from "@babel/types";
 
 export class AddRelayEnvironmentTask extends TaskBase {
   constructor(
@@ -53,7 +54,47 @@ export class AddRelayEnvironmentTask extends TaskBase {
       throw new Error(`${relativeMainFilepath} not found`);
     }
 
-    // todo: import environment and wrap jsx in render(...) with it.
+    const mainCode = await fs.readFile(mainFilePath, "utf-8");
+
+    const ast = parseAst(mainCode);
+
+    const RELAY_ENV_PROVIDER = "RelayEnvironmentProvider";
+
+    traverse.default(ast, {
+      JSXElement: (path, node) => {
+        const parent = path.parentPath.node;
+
+        // todo: import env provider
+        // todo: import export env
+
+        // todo: check if env provider already exists
+
+        if (
+          !t.isCallExpression(parent) ||
+          !t.isMemberExpression(parent.callee) ||
+          !t.isIdentifier(parent.callee.property) ||
+          parent.callee.property.name !== "render"
+        ) {
+          return;
+        }
+
+        path.replaceWith(
+          t.jsxElement(
+            t.jsxOpeningElement(t.jsxIdentifier(RELAY_ENV_PROVIDER), [
+              t.jsxAttribute(t.jsxIdentifier("environment")),
+            ]),
+            t.jsxClosingElement(t.jsxIdentifier(RELAY_ENV_PROVIDER)),
+            [path.node]
+          )
+        );
+
+        path.skip();
+      },
+    });
+
+    const updatedCode = printAst(ast, mainCode);
+
+    await fs.writeFile(mainFilePath, updatedCode, "utf-8");
   }
 
   async addRelayEnvironmentFile(filepathNoExt: string) {

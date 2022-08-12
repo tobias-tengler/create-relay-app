@@ -201,7 +201,9 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
 
         const importDeclaration = t.importDeclaration(
           [t.importDefaultSpecifier(t.identifier(relayImportName))],
-          t.stringLiteral(VITE_RELAY_PACKAGE)
+          // todo: replace with VITE_RELAY_PACKAGE,
+          // once it no longer has the explict version
+          t.stringLiteral("vite-plugin-relay")
         );
 
         // Insert import at start of file.

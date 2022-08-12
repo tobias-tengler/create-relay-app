@@ -22,7 +22,7 @@ export function printError(message: string) {
 export function parseAst(code: string): ParseResult<t.File> {
   return parse(code, {
     sourceType: "module",
-    plugins: ["typescript"],
+    plugins: ["typescript", "jsx"],
   });
 }
 
