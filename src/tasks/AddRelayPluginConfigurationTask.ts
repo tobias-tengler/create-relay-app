@@ -1,13 +1,19 @@
-import { findFileInDirectory, getRelayCompilerLanguage } from "../helpers.js";
+import {
+  findFileInDirectory,
+  getRelayCompilerLanguage,
+  parseAst,
+  printAst,
+} from "../helpers.js";
 import { TaskBase } from "../TaskBase.js";
 import { CodeLanguage, ToolChain } from "../types.js";
 import { promises as fs } from "fs";
 import traverse from "@babel/traverse";
-import { parse, ParseResult } from "@babel/parser";
-import generate from "@babel/generator";
 import t from "@babel/types";
-import { format } from "prettier";
-import { NEXTJS_CONFIG_FILE, VITE_RELAY_PACKAGE } from "../consts.js";
+import {
+  NEXTJS_CONFIG_FILE,
+  VITE_CONFIG_FILE_NO_EXT,
+  VITE_RELAY_PACKAGE,
+} from "../consts.js";
 
 export class AddRelayPluginConfigurationTask extends TaskBase {
   constructor(
@@ -26,6 +32,7 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
       case "Next.js":
         await this.configureNext();
         break;
+      // todo: implement CRA
       default:
         throw new Error("Unsupported toolchain");
     }
@@ -44,7 +51,7 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
     // todo: handle errors
     const configCode = await fs.readFile(configFilepath, "utf-8");
 
-    const ast = this.parseAst(configCode);
+    const ast = parseAst(configCode);
 
     traverse.default(ast, {
       AssignmentExpression: (path) => {
@@ -147,14 +154,17 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
       },
     });
 
-    const updatedConfigCode = this.printAst(ast, configCode);
+    const updatedConfigCode = printAst(ast, configCode);
 
     await fs.writeFile(configFilepath, updatedConfigCode, "utf-8");
   }
 
   private async configureVite() {
+    const relayImportName = "relay";
+
     const configFilename =
-      "vite.config" + (this.language === "Typescript" ? ".ts" : ".js");
+      VITE_CONFIG_FILE_NO_EXT +
+      (this.language === "Typescript" ? ".ts" : ".js");
 
     const configFilepath = await findFileInDirectory(
       this.workingDirectory,
@@ -168,12 +178,29 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
     // todo: handle errors
     const configCode = await fs.readFile(configFilepath, "utf-8");
 
-    const ast = this.parseAst(configCode);
+    const ast = parseAst(configCode);
 
     traverse.default(ast, {
       Program: (path) => {
+        const hasRelayImport = path
+          .get("body")
+          .some(
+            (s) =>
+              s.isImportDeclaration() &&
+              s.node.specifiers.some(
+                (sp) =>
+                  t.isImportDefaultSpecifier(sp) &&
+                  sp.local.name === relayImportName
+              )
+          );
+
+        if (hasRelayImport) {
+          // Import already exists.
+          return;
+        }
+
         const importDeclaration = t.importDeclaration(
-          [t.importDefaultSpecifier(t.identifier("relay"))],
+          [t.importDefaultSpecifier(t.identifier(relayImportName))],
           t.stringLiteral(VITE_RELAY_PACKAGE)
         );
 
@@ -228,12 +255,19 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
 
         const vitePlugins = pluginsProperty.value.elements;
 
-        if (vitePlugins.some((e) => t.isIdentifier(e) && e.name === "relay")) {
+        if (
+          vitePlugins.some(
+            (e) =>
+              t.isCallExpression(e) &&
+              t.isIdentifier(e.callee) &&
+              e.callee.name === relayImportName
+          )
+        ) {
           // A "relay" entry already exists.
           return;
         }
 
-        const relayPlugin = t.callExpression(t.identifier("relay"), [
+        const relayPlugin = t.callExpression(t.identifier(relayImportName), [
           // todo: fill with args
           t.objectExpression([]),
         ]);
@@ -243,23 +277,8 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
       },
     });
 
-    const updatedConfigCode = this.printAst(ast, configCode);
+    const updatedConfigCode = printAst(ast, configCode);
 
     await fs.writeFile(configFilepath, updatedConfigCode, "utf-8");
-  }
-
-  private parseAst(code: string): ParseResult<t.File> {
-    return parse(code, {
-      sourceType: "module",
-    });
-  }
-
-  private printAst(ast: ParseResult<t.File>, oldCode: string): string {
-    const newCode = generate.default(ast, { retainLines: true }, oldCode).code;
-
-    return format(newCode, {
-      bracketSameLine: false,
-      parser: "babel",
-    });
   }
 }

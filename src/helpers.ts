@@ -9,6 +9,26 @@ import {
   TYPESCRIPT_PACKAGE,
 } from "./consts.js";
 import glob from "glob";
+import { ParseResult } from "@babel/parser";
+import t from "@babel/types";
+import { parse } from "@babel/parser";
+import generate from "@babel/generator";
+import { format } from "prettier";
+
+export function parseAst(code: string): ParseResult<t.File> {
+  return parse(code, {
+    sourceType: "module",
+  });
+}
+
+export function printAst(ast: ParseResult<t.File>, oldCode: string): string {
+  const newCode = generate.default(ast, { retainLines: true }, oldCode).code;
+
+  return format(newCode, {
+    bracketSameLine: false,
+    parser: "babel",
+  });
+}
 
 export function getRelayCompilerLanguage(
   language: CodeLanguage

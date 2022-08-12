@@ -114,7 +114,11 @@ const runner = new TaskRunner([
   },
   {
     title: "Add Relay environment",
-    task: new AddRelayEnvironmentTask(),
+    task: new AddRelayEnvironmentTask(
+      projectRootDirectory,
+      settings.toolchain,
+      settings.language
+    ),
   },
   {
     title: `Generate GraphQL schema file (${chalk.cyan.bold(
