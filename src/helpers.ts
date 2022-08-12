@@ -1,9 +1,8 @@
 import { exec, execSync, spawn } from "child_process";
 import path from "path";
-import { promises as fs } from "fs";
+import fs from "fs/promises";
 import { CodeLanguage, PackageManager, ToolChain } from "./types.js";
 import {
-  FLOW_PACKAGE,
   NEXTJS_CONFIG_FILE,
   TS_CONFIG_FILE,
   TYPESCRIPT_PACKAGE,
@@ -14,10 +13,16 @@ import t from "@babel/types";
 import { parse } from "@babel/parser";
 import generate from "@babel/generator";
 import { format } from "prettier";
+import chalk from "chalk";
+
+export function printError(message: string) {
+  console.log(chalk.red("✖") + " " + message);
+}
 
 export function parseAst(code: string): ParseResult<t.File> {
   return parse(code, {
     sourceType: "module",
+    plugins: ["typescript"],
   });
 }
 
@@ -26,18 +31,16 @@ export function printAst(ast: ParseResult<t.File>, oldCode: string): string {
 
   return format(newCode, {
     bracketSameLine: false,
-    parser: "babel",
+    parser: "babel-ts",
   });
 }
 
 export function getRelayCompilerLanguage(
   language: CodeLanguage
-): "typescript" | "flow" | "javascript" {
+): "typescript" | "javascript" {
   switch (language) {
     case "Typescript":
       return "typescript";
-    case "Flow":
-      return "flow";
     default:
       return "javascript";
   }
@@ -109,16 +112,6 @@ export async function getProjectLanguage(
 
   if (typescriptInstalled) {
     return "Typescript";
-  }
-
-  const flowInstalled = await isNpmPackageInstalled(
-    manager,
-    workingDirectory,
-    FLOW_PACKAGE
-  );
-
-  if (flowInstalled) {
-    return "Flow";
   }
 
   return "JavaScript";

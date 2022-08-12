@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import path from "path";
+import path, { dirname } from "path";
 import { TaskRunner } from "./TaskRunner.js";
 import { AddGraphQlSchemaFileTask } from "./tasks/AddGraphQlSchemaFileTask.js";
 import chalk from "chalk";
@@ -23,10 +23,16 @@ import {
   getProjectToolChain,
   getProjectLanguage,
   hasUnsavedGitChanges,
+  printError,
 } from "./helpers.js";
 import { exit } from "process";
 import { PACKAGE_FILE, VITE_RELAY_PACKAGE } from "./consts.js";
+import { fileURLToPath } from "url";
 
+const packageDirectory = path.join(
+  dirname(fileURLToPath(import.meta.url)),
+  ".."
+);
 const workingDirectory = process.cwd();
 
 // FIND package.json FILE
@@ -37,10 +43,10 @@ const packageJsonFile = await traverseUpToFindFile(
 );
 
 if (!packageJsonFile) {
-  console.log(
-    `❌ Could not find a ${chalk.cyan.bold(
-      PACKAGE_FILE
-    )} in the ${chalk.cyan.bold(workingDirectory)} directory.`
+  printError(
+    `Could not find a ${chalk.cyan.bold(PACKAGE_FILE)} in the ${chalk.cyan.bold(
+      workingDirectory
+    )} directory.`
   );
   exit(1);
 }
@@ -52,8 +58,8 @@ const projectRootDirectory = path.dirname(packageJsonFile);
 // const hasUnsavedChanges = await hasUnsavedGitChanges(projectRootDirectory);
 
 // if (hasUnsavedChanges) {
-//   console.log(
-//     `❌ Please commit or discard all changes in the ${workingDirectory} before continuing.`
+//   printError(
+//     `Please commit or discard all changes in the ${workingDirectory} before continuing.`
 //   );
 //   exit(1);
 // }
@@ -111,6 +117,7 @@ const runner = new TaskRunner([
     title: "Add Relay environment",
     task: new AddRelayEnvironmentTask(
       projectRootDirectory,
+      packageDirectory,
       settings.toolChain,
       settings.language
     ),
@@ -127,7 +134,7 @@ try {
   await runner.run();
 } catch {
   console.log();
-  console.log(`❌ Some of the tasks unexpectedly failed.`);
+  printError("Some of the tasks unexpectedly failed.");
   exit(1);
 }
 
@@ -139,7 +146,11 @@ console.log(
     settings.schemaFilePath
   )} with your own GraphQL schema file.`
 );
-console.log(`2. Replace the HOST variable in the RelayEnvironment.ts file.`);
+console.log(
+  `2. Replace the ${chalk.cyan.bold(
+    "HOST"
+  )} variable in the RelayEnvironment.ts file.`
+);
 
 console.log();
 
@@ -160,7 +171,7 @@ async function getDefaultProjectSettings(): Promise<ProjectSettings> {
     packageManager: defaultPackageManager,
     toolChain: defaultToolChain,
     language: defaultLanguage,
-    schemaFilePath: "./src/schema.graphql",
+    schemaFilePath: "./schema.graphql",
   };
 }
 

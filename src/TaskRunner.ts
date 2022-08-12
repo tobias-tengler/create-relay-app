@@ -39,8 +39,6 @@ export class TaskRunner {
         errorMsg ??= "Unexpected error";
 
         task.error(errorMsg);
-
-        throw error;
       }
     }
   }

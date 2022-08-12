@@ -6,7 +6,7 @@ import {
 } from "../helpers.js";
 import { TaskBase } from "../TaskBase.js";
 import { CodeLanguage, ToolChain } from "../types.js";
-import { promises as fs } from "fs";
+import fs from "fs/promises";
 import traverse from "@babel/traverse";
 import t from "@babel/types";
 import {

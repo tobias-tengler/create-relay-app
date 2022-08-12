@@ -1,5 +1,5 @@
 import { TaskBase } from "../TaskBase.js";
-import { promises as fs } from "fs";
+import fs from "fs/promises";
 import { CodeLanguage } from "../types.js";
 import { getRelayCompilerLanguage } from "../helpers.js";
 

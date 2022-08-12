@@ -1,5 +1,11 @@
-import path from "path";
-import { VITE_MAIN_FILE_NO_EXT, VITE_SRC_DIR } from "../consts.js";
+import fs from "fs-extra";
+import path, { dirname } from "path";
+import { fileURLToPath } from "url";
+import {
+  VITE_MAIN_FILE_NO_EXT,
+  VITE_RELAY_ENV_FILE_NO_EXT,
+  VITE_SRC_DIR,
+} from "../consts.js";
 import { findFileInDirectory } from "../helpers.js";
 import { TaskBase } from "../TaskBase.js";
 import { ToolChain, CodeLanguage } from "../types.js";
@@ -7,6 +13,7 @@ import { ToolChain, CodeLanguage } from "../types.js";
 export class AddRelayEnvironmentTask extends TaskBase {
   constructor(
     private workingDirectory: string,
+    private packageDirectory: string,
     private toolChain: ToolChain,
     private language: CodeLanguage
   ) {
@@ -25,6 +32,8 @@ export class AddRelayEnvironmentTask extends TaskBase {
   }
 
   async configureVite() {
+    await this.addRelayEnvironmentFile(VITE_RELAY_ENV_FILE_NO_EXT);
+
     const relativeMainFilepath =
       VITE_MAIN_FILE_NO_EXT +
       (this.language === "Typescript" ? ".tsx" : ".jsx");
@@ -45,5 +54,30 @@ export class AddRelayEnvironmentTask extends TaskBase {
     }
 
     // todo: import environment and wrap jsx in render(...) with it.
+  }
+
+  async addRelayEnvironmentFile(filepathNoExt: string) {
+    const isTypescript = this.language === "Typescript";
+
+    const relativeRelayEnvFilepath =
+      filepathNoExt + (isTypescript ? ".ts" : ".js");
+
+    const relayEnvFilepath = path.join(
+      this.workingDirectory,
+      relativeRelayEnvFilepath
+    );
+
+    let srcFile: string;
+
+    if (isTypescript) {
+      srcFile = "./assets/env_ts";
+    } else {
+      srcFile = "./assets/env";
+    }
+
+    const srcFilepath = path.join(this.packageDirectory, srcFile);
+
+    // todo: handle error
+    await fs.copyFile(srcFilepath, relayEnvFilepath);
   }
 }

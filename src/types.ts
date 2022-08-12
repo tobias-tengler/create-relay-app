@@ -3,7 +3,7 @@ export const ToolChainOptions = [
   "Next.js",
   "Vite",
 ] as const;
-export const LanguageOptions = ["Typescript", "JavaScript", "Flow"] as const;
+export const LanguageOptions = ["Typescript", "JavaScript"] as const;
 export const PackageManagerOptions = ["npm", "yarn", "pnpm"] as const;
 
 export type ToolChain = typeof ToolChainOptions[number];

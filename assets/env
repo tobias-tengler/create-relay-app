@@ -1,0 +1,20 @@
+import { Environment, Network, RecordSource, Store } from "relay-runtime";
+
+const HOST = "http://localhost:5000/graphql";
+
+const fetchFn = async (request, variables) => {
+  const resp = await fetch(HOST, {
+    method: "POST",
+    body: JSON.stringify({
+      query: request.text,
+      variables,
+    }),
+  });
+
+  return await resp.json();
+};
+
+export const RelayEnvironment = new Environment({
+  network: Network.create(fetchFn),
+  store: new Store(new RecordSource()),
+});
