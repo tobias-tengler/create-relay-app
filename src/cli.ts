@@ -1,27 +1,40 @@
-import path from "path";
-import { PACKAGE_FILE } from "./consts.js";
 import {
   CliArguments,
   EnvArguments,
+  Optional,
   PackageManager,
   PackageManagerOptions,
   ToolChain,
   ToolChainOptions,
 } from "./types.js";
-import fs from "fs/promises";
 import { program } from "commander";
 import chalk from "chalk";
 import inquirer from "inquirer";
+import { getPackageDetails } from "./helpers.js";
+import { getDefaultCliArguments } from "./defaults.js";
 import {
-  getProjectToolChain,
-  doesProjectUseTypescript,
-  getProjectPackageManager,
-} from "./helpers.js";
+  isValidArtifactDirectory,
+  isValidSchemaPath,
+  isValidSrcDirectory,
+} from "./validation.js";
+import {
+  ARTIFACT_DIR_ARG,
+  IGNORE_GIT_CHANGES_ARG,
+  PACKAGE_MANAGER_ARG,
+  SCHEMA_FILE_ARG,
+  SRC_DIR_ARG,
+  TOOLCHAIN_ARG,
+  TYPESCRIPT_ARG,
+  VERSION_ARG,
+  YES_ARG,
+} from "./consts.js";
 
 type RawCliArguments = Partial<{
   toolchain: string;
   typescript: boolean;
   schemaFile: string;
+  src: string;
+  artifactDirectory: string;
   packageManager: string;
   ignoreGitChanges: boolean;
   yes: boolean;
@@ -29,7 +42,7 @@ type RawCliArguments = Partial<{
 
 export async function getCliArguments(
   env: EnvArguments
-): Promise<Partial<CliArguments>> {
+): Promise<Optional<CliArguments>> {
   const {
     name: PACKAGE_NAME,
     version: PACKAGE_VERSION,
@@ -39,25 +52,36 @@ export async function getCliArguments(
   program
     .name(PACKAGE_NAME)
     .description(PACKAGE_DESCRIPTION)
-    .version(PACKAGE_VERSION, "-v, --version");
+    .version(PACKAGE_VERSION, `-v, ${VERSION_ARG}`);
 
   // If you change argumemts, make to match up RawCliArguments as well.
   program
     .option(
-      "-t, --toolchain <toolchain>",
+      `-t, ${TOOLCHAIN_ARG} <toolchain>`,
       "the toolchain used to bundle / serve the project"
     )
-    .option("--typescript", "use Typescript")
+    .option(TYPESCRIPT_ARG, "use Typescript")
     .option(
-      "-s, --schema-file <path>",
+      `-f,  ${SCHEMA_FILE_ARG} <path>`,
       "path to a GraphQL schema file, relative to the root directory"
     )
-    .option("-p, --package-manager <manager>")
     .option(
-      "--ignore-git-changes",
+      `-s, ${SRC_DIR_ARG} <path>`,
+      "path to the directory, where the Relay compiler will be run on"
+    )
+    .option(
+      `-a, ${ARTIFACT_DIR_ARG} <path>`,
+      "path to the directory, where the Relay compiler will be run on"
+    )
+    .option(
+      `-p, ${PACKAGE_MANAGER_ARG} <manager>`,
+      "the package manager to use for installing packages"
+    )
+    .option(
+      IGNORE_GIT_CHANGES_ARG,
       "do not exit if the current directory has un-commited Git changes"
     )
-    .option("-y, --yes", `answer \"yes\" to any prompts`);
+    .option(`-y, ${YES_ARG}`, `answer \"yes\" to any prompts`);
 
   program.parse();
 
@@ -68,21 +92,23 @@ export async function getCliArguments(
 }
 
 export async function promptForMissingCliArguments(
-  existingArgs: Partial<CliArguments>,
+  existingArgs: Optional<CliArguments>,
   env: EnvArguments
 ): Promise<CliArguments> {
   const defaults = await getDefaultCliArguments(existingArgs, env);
 
-  const definedExistingArgs = { ...existingArgs };
+  // todo: re-implement
 
-  (Object.keys(definedExistingArgs) as (keyof CliArguments)[]).forEach(
-    (k) => definedExistingArgs[k] === undefined && delete definedExistingArgs[k]
-  );
+  // const definedExistingArgs = { ...existingArgs };
 
-  // todo: find better way to skip prompts, but still show inquirer results
-  if (existingArgs.skipPrompts) {
-    return { ...defaults, ...definedExistingArgs };
-  }
+  // (Object.keys(definedExistingArgs) as (keyof CliArguments)[]).forEach(
+  //   (k) => definedExistingArgs[k] === null && delete definedExistingArgs[k]
+  // );
+
+  // // todo: find better way to skip prompts, but still show inquirer results
+  // if (existingArgs.skipPrompts) {
+  //   return { ...defaults, ...definedExistingArgs };
+  // }
 
   // todo: handle artifact directory
   // todo: maybe handle subscription or @defer / @stream setup
@@ -108,16 +134,22 @@ export async function promptForMissingCliArguments(
       message: "Select the path to your GraphQL schema file",
       type: "input",
       default: defaults.schemaFilePath,
-      // todo: also have this validation for cli args
-      // todo: validate that it's inside project dir
-      validate: (input: string) => {
-        if (!input.endsWith(".graphql")) {
-          return `File needs to end in ${chalk.green(".graphql")}`;
-        }
-
-        return true;
-      },
+      validate: isValidSchemaPath,
       when: !existingArgs.schemaFilePath,
+    },
+    {
+      name: "srcDirectoryPath",
+      message: "Select the source directory",
+      type: "input",
+      default: defaults.srcDirectoryPath,
+      validate: isValidSrcDirectory,
+    },
+    {
+      name: "artifactDirectoryPath",
+      message: "Select the artifactDirectory",
+      type: "input",
+      default: defaults.artifactDirectoryPath,
+      validate: isValidArtifactDirectory,
     },
     {
       name: "packageManager",
@@ -131,89 +163,25 @@ export async function promptForMissingCliArguments(
 
   console.log();
 
-  return { ...answers, ...definedExistingArgs };
+  return { ...answers };
 }
 
-function parseCliArguments(args: RawCliArguments): Partial<CliArguments> {
+function parseCliArguments(args: RawCliArguments): Optional<CliArguments> {
   return {
     toolChain: tryParseToolChain(args.toolchain),
     packageManager: tryParsePackageManager(args.packageManager),
-    schemaFilePath: args.schemaFile,
-    useTypescript: args.typescript,
-    skipPrompts: args.yes,
-    ignoreGitChanges: args.ignoreGitChanges,
+    srcDirectoryPath: args.src || null,
+    artifactDirectoryPath: args.artifactDirectory || null,
+    schemaFilePath: args.schemaFile || null,
+    useTypescript: args.typescript || null,
+    skipPrompts: args.yes || null,
+    ignoreGitChanges: args.ignoreGitChanges || null,
   };
 }
 
-async function getDefaultCliArguments(
-  existingArgs: Partial<CliArguments>,
-  env: EnvArguments
-): Promise<CliArguments> {
-  const packageManager =
-    existingArgs.packageManager ||
-    (await getProjectPackageManager(env.projectRootDirectory));
-
-  const toolChain =
-    existingArgs.toolChain ||
-    (await getProjectToolChain(packageManager, env.projectRootDirectory));
-
-  const useTypescript =
-    existingArgs.useTypescript ||
-    (await doesProjectUseTypescript(env.projectRootDirectory, packageManager));
-
-  // todo: use the src directory as base once configurable
-  const schemaFilePath = existingArgs.schemaFilePath || "./schema.graphql";
-
-  const ignoreGitChanges = existingArgs.ignoreGitChanges || false;
-  const skipPrompts = existingArgs.skipPrompts || false;
-
-  return {
-    packageManager,
-    toolChain,
-    useTypescript,
-    schemaFilePath,
-    ignoreGitChanges,
-    skipPrompts,
-  };
-}
-
-type PackageDetails = Readonly<{
-  name: string;
-  version: string;
-  description: string;
-}>;
-
-async function getPackageDetails(env: EnvArguments): Promise<PackageDetails> {
-  const ownPackageJsonFile = path.join(env.ownPackageDirectory, PACKAGE_FILE);
-
-  const packageJsonContent = await fs.readFile(ownPackageJsonFile, "utf8");
-
-  const packageJson = JSON.parse(packageJsonContent);
-
-  const name = packageJson?.name;
-
-  if (!name) {
-    throw new Error(`Could not determine name in ${ownPackageJsonFile}`);
-  }
-
-  const version = packageJson?.version;
-
-  if (!version) {
-    throw new Error(`Could not determine version in ${ownPackageJsonFile}`);
-  }
-
-  const description = packageJson?.description;
-
-  if (!description) {
-    throw new Error(`Could not determine description in ${ownPackageJsonFile}`);
-  }
-
-  return { name, version, description };
-}
-
-function tryParsePackageManager(rawInput?: string): PackageManager | undefined {
+function tryParsePackageManager(rawInput?: string): PackageManager | null {
   if (!rawInput) {
-    return undefined;
+    return null;
   }
 
   const input = getNormalizedCliString(rawInput);
@@ -230,12 +198,12 @@ function tryParsePackageManager(rawInput?: string): PackageManager | undefined {
     return "npm";
   }
 
-  throw invalidArgError("--package-manager", input, PackageManagerOptions);
+  throw invalidArgError(PACKAGE_MANAGER_ARG, input, PackageManagerOptions);
 }
 
-function tryParseToolChain(rawInput?: string): ToolChain | undefined {
+function tryParseToolChain(rawInput?: string): ToolChain | null {
   if (!rawInput) {
-    return undefined;
+    return null;
   }
 
   const input = getNormalizedCliString(rawInput);
@@ -252,7 +220,7 @@ function tryParseToolChain(rawInput?: string): ToolChain | undefined {
     return "cra";
   }
 
-  throw invalidArgError("--toolchain", input, ToolChainOptions);
+  throw invalidArgError(TOOLCHAIN_ARG, input, ToolChainOptions);
 }
 
 function invalidArgError(

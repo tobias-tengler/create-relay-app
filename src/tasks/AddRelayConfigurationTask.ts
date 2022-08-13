@@ -30,8 +30,8 @@ export class AddRelayConfigurationTask extends TaskBase {
 
     if (!packageJson["relay"]) {
       // Add "relay" configuration section
-      packageJson["relay"] = {
-        src: this.settings.srcDirectory,
+      const relayConfig: Record<string, string | string[]> = {
+        src: this.settings.srcDirectoryPath,
         language: getRelayCompilerLanguage(this.settings.useTypescript),
         schema: this.settings.schemaFilePath,
         exclude: [
@@ -40,6 +40,12 @@ export class AddRelayConfigurationTask extends TaskBase {
           "**/__generated__/**",
         ],
       };
+
+      if (this.settings.artifactDirectoryPath) {
+        relayConfig.artifactDirectory = this.settings.artifactDirectoryPath;
+      }
+
+      packageJson["relay"] = relayConfig;
     }
 
     const serializedPackageJson = JSON.stringify(packageJson, null, 2);

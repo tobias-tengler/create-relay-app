@@ -1,15 +1,11 @@
-import {
-  findFileInDirectory,
-  getRelayCompilerLanguage,
-  parseAst,
-  printAst,
-} from "../helpers.js";
+import { findFileInDirectory, getRelayCompilerLanguage } from "../helpers.js";
 import { TaskBase } from "../TaskBase.js";
 import { ProjectSettings, ToolChain } from "../types.js";
 import fs from "fs/promises";
 import traverse from "@babel/traverse";
 import t from "@babel/types";
 import { NEXTJS_CONFIG_FILE, VITE_CONFIG_FILE_NO_EXT } from "../consts.js";
+import { parseAst, printAst } from "../ast.js";
 
 export class AddRelayPluginConfigurationTask extends TaskBase {
   constructor(private settings: ProjectSettings) {
@@ -25,7 +21,7 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
         await this.configureNext();
         break;
       default:
-        throw new Error("Unsupported toolchain");
+        throw new Error(`Unsupported toolchain: ${this.settings.toolChain}`);
     }
   }
 
@@ -125,23 +121,33 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
           return;
         }
 
+        const objProperties: t.ObjectProperty[] = [
+          t.objectProperty(
+            t.identifier("src"),
+            t.stringLiteral(this.settings.srcDirectoryPath)
+          ),
+          t.objectProperty(
+            t.identifier("language"),
+            t.stringLiteral(
+              getRelayCompilerLanguage(this.settings.useTypescript)
+            )
+          ),
+        ];
+
+        if (this.settings.artifactDirectoryPath) {
+          objProperties.push(
+            t.objectProperty(
+              t.identifier("artifactDirectory"),
+              t.stringLiteral(this.settings.artifactDirectoryPath)
+            )
+          );
+        }
+
         // Add the "relay" property to the "compiler" property object.
         compilerProperty.value.properties.push(
           t.objectProperty(
             t.identifier("relay"),
-            t.objectExpression([
-              t.objectProperty(
-                t.identifier("src"),
-                t.stringLiteral(this.settings.srcDirectory)
-              ),
-              t.objectProperty(
-                t.identifier("language"),
-                t.stringLiteral(
-                  getRelayCompilerLanguage(this.settings.useTypescript)
-                )
-              ),
-              // todo: add artifact directory
-            ])
+            t.objectExpression(objProperties)
           )
         );
       },

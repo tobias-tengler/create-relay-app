@@ -1,3 +1,7 @@
+export type Optional<T> = {
+  [key in keyof T]: T[key] | null;
+};
+
 export const ToolChainOptions = ["cra", "next", "vite"] as const;
 export const PackageManagerOptions = ["npm", "yarn", "pnpm"] as const;
 
@@ -8,6 +12,8 @@ export type CliArguments = Readonly<{
   toolChain: ToolChain;
   useTypescript: boolean;
   schemaFilePath: string;
+  srcDirectoryPath: string;
+  artifactDirectoryPath: string | null;
   packageManager: PackageManager;
   ignoreGitChanges: boolean;
   skipPrompts: boolean;
@@ -20,9 +26,4 @@ export type EnvArguments = Readonly<{
   packageJsonFile: string;
 }>;
 
-export type ProjectSettings = Readonly<
-  CliArguments &
-    EnvArguments & {
-      srcDirectory: string;
-    }
->;
+export type ProjectSettings = Readonly<CliArguments & EnvArguments>;

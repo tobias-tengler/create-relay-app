@@ -5,15 +5,11 @@ import {
   VITE_MAIN_FILE_NO_EXT,
   VITE_RELAY_ENV_FILE_NO_EXT,
 } from "../consts.js";
-import {
-  findFileInDirectory,
-  insertNamedImport,
-  parseAst,
-  printAst,
-} from "../helpers.js";
+import { findFileInDirectory } from "../helpers.js";
 import { TaskBase } from "../TaskBase.js";
-import { ProjectSettings, ToolChain } from "../types.js";
 import t from "@babel/types";
+import { parseAst, insertNamedImport, printAst } from "../ast.js";
+import { ProjectSettings } from "../types.js";
 
 export class AddRelayEnvironmentTask extends TaskBase {
   constructor(private settings: ProjectSettings) {
@@ -25,10 +21,17 @@ export class AddRelayEnvironmentTask extends TaskBase {
       case "vite":
         await this.configureVite();
         break;
-      // todo: implement CRA and Next.js
+      case "next":
+        await this.configureNext();
+        break;
       default:
-        throw new Error("Unsupported toolchain");
+        throw new Error(`Unsupported toolchain: ${this.settings.toolChain}`);
     }
+  }
+
+  async configureNext() {
+    // todo: use other path and create differently
+    await this.addRelayEnvironmentFile(VITE_RELAY_ENV_FILE_NO_EXT);
   }
 
   async configureVite() {

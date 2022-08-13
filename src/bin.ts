@@ -9,19 +9,24 @@ import { ToolChain, EnvArguments, ProjectSettings } from "./types.js";
 import { InstallNpmPackagesTask } from "./tasks/InstallNpmPackagesTask.js";
 import { AddRelayPluginConfigurationTask } from "./tasks/AddRelayPluginConfigurationTask.js";
 import { AddRelayEnvironmentTask } from "./tasks/AddRelayEnvironmentTask.js";
-import {
-  traverseUpToFindFile,
-  hasUnsavedGitChanges,
-  printError,
-} from "./helpers.js";
+import { traverseUpToFindFile, printError } from "./helpers.js";
 import { exit } from "process";
 import {
+  ARTIFACT_DIR_ARG,
   BABEL_RELAY_PACKAGE,
   PACKAGE_FILE,
+  SCHEMA_FILE_ARG,
+  SRC_DIR_ARG,
   VITE_RELAY_PACKAGE,
 } from "./consts.js";
 import { fileURLToPath } from "url";
 import { getCliArguments, promptForMissingCliArguments } from "./cli.js";
+import {
+  hasUnsavedGitChanges,
+  isValidArtifactDirectory,
+  isValidSchemaPath,
+  isValidSrcDirectory,
+} from "./validation.js";
 
 const distDirectory = dirname(fileURLToPath(import.meta.url));
 const ownPackageDirectory = path.join(distDirectory, "..");
@@ -75,9 +80,30 @@ const completeArguments = await promptForMissingCliArguments(
 const settings: ProjectSettings = {
   ...envArguments,
   ...completeArguments,
-  // todo: determine based on toolchain
-  srcDirectory: "./src",
 };
+
+const schemaPathValid = isValidSchemaPath(settings.schemaFilePath);
+
+if (schemaPathValid !== true) {
+  printError(`Invalid ${SCHEMA_FILE_ARG} specified: ${schemaPathValid}`);
+  exit(1);
+}
+
+const srcDirValid = isValidSrcDirectory(settings.srcDirectoryPath);
+
+if (srcDirValid !== true) {
+  printError(`Invalid ${SRC_DIR_ARG}  specified: ${srcDirValid}`);
+  exit(1);
+}
+
+const artifactDirValid = isValidArtifactDirectory(
+  settings.artifactDirectoryPath
+);
+
+if (artifactDirValid !== true) {
+  printError(`Invalid ${ARTIFACT_DIR_ARG} specified: ${artifactDirValid}`);
+  exit(1);
+}
 
 const dependencies = ["react-relay"];
 const devDependencies = getRelayDevDependencies(
