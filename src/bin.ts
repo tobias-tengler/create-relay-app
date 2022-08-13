@@ -17,7 +17,6 @@ import {
   highlight,
   printInvalidArg,
   getToolchainSettings,
-  getRelayEnvFilepath,
   prettifyRelativePath,
 } from "./helpers.js";
 import { exit } from "process";
@@ -38,6 +37,7 @@ import {
 } from "./validation.js";
 import { GenerateRelayEnvironmentTask } from "./tasks/GenerateRelayEnvironmentTask.js";
 import { GenerateArtifactDirectoryTask } from "./tasks/GenerateArtifactDirectoryTask.js";
+import { getProjectRelayEnvFilepath } from "./defaults.js";
 
 // INIT ENVIRONMENT
 
@@ -147,7 +147,7 @@ const settings: ProjectSettings = {
   ...envArguments,
   ...cliArgs,
   compilerLanguage: getRelayCompilerLanguage(cliArgs.typescript),
-  relayEnvFilepath: getRelayEnvFilepath(envArguments, cliArgs),
+  relayEnvFilepath: getProjectRelayEnvFilepath(envArguments, cliArgs),
   ...toolchainSettings,
 };
 

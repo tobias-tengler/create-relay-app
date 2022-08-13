@@ -50,20 +50,35 @@ export async function getDefaultCliArguments(
   };
 }
 
+export function getProjectRelayEnvFilepath(
+  env: EnvArguments,
+  args: CliArguments
+): string {
+  const filename = "RelayEnvironment" + (args.typescript ? ".ts" : ".js");
+
+  const relativeDirectory = args.toolchain === "next" ? "src" : args.src;
+
+  const directory = path.join(env.projectRootDirectory, relativeDirectory);
+
+  return path.join(directory, filename);
+}
+
 export function getProjectSchemaFilepath(
   toolchain: Toolchain,
   srcDirectoryPath: string
 ): string {
   const filename = "schema.graphql";
 
+  let srcPath: string = srcDirectoryPath;
+
   if (toolchain === "next") {
-    return filename;
+    srcPath = "src";
   }
 
-  return prettifyPath(path.join(srcDirectoryPath, filename));
+  return prettifyPath(path.join(srcPath, filename));
 }
 
-function getProjectArtifactDirectory(toolchain: Toolchain): string | string {
+function getProjectArtifactDirectory(toolchain: Toolchain): string {
   if (toolchain === "next") {
     // Artifacts need to be located outside the ./pages directory,
     // or they will be treated as pages.

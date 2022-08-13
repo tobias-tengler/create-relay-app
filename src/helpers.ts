@@ -173,7 +173,7 @@ export function getSpecifiedProperties<T extends object>(obj: Partial<T>): T {
 export function isSubDirectory(parent: string, dir: string): boolean {
   const relative = path.relative(parent, dir);
 
-  return !!relative && !relative.startsWith("..") && !path.isAbsolute(relative);
+  return !relative.startsWith("..") && !path.isAbsolute(relative);
 }
 
 export function prettifyRelativePath(
@@ -211,17 +211,6 @@ export function getRelayCompilerLanguage(
   } else {
     return "javascript";
   }
-}
-
-export function getRelayEnvFilepath(
-  env: EnvArguments,
-  args: CliArguments
-): string {
-  const filename = "RelayEnvironment" + (args.typescript ? ".ts" : ".js");
-
-  const directory = path.join(env.projectRootDirectory, "src");
-
-  return path.join(directory, filename);
 }
 
 export async function getToolchainSettings(

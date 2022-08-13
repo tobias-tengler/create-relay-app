@@ -91,6 +91,8 @@ export async function promptForMissingCliArguments(
 ): Promise<CliArguments> {
   const defaults = await getDefaultCliArguments(existingArgs, env);
 
+  // todo: find way to auto submit inquirer form instead,
+  //       so the default values are still outputted to the console.
   if (existingArgs.yes) {
     return buildFinalArgs(defaults, {});
   }
@@ -139,7 +141,7 @@ export async function promptForMissingCliArguments(
       name: "artifactDirectory",
       message: "Select the artifactDirectory",
       type: "input",
-      default: defaults.artifactDirectory,
+      default: defaults.artifactDirectory || undefined,
       validate: (input: string, answers: Partial<CliArguments> | undefined) =>
         isValidArtifactDirectory(
           input,
@@ -173,7 +175,9 @@ function buildFinalArgs(
     ...combined,
     src: prettifyPath(combined.src),
     schemaFile: prettifyPath(combined.schemaFile),
-    artifactDirectory: prettifyPath(combined.artifactDirectory),
+    artifactDirectory: combined.artifactDirectory
+      ? prettifyPath(combined.artifactDirectory)
+      : "",
   };
 }
 

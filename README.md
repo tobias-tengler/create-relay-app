@@ -165,7 +165,7 @@ If the [toolchain](#t---toolchain-lttoolchaingt) is `next`, `./pages`, otherwise
 
 ### --schema-file
 
-If the [toolchain](#t---toolchain-lttoolchaingt) is `next`, `./schema.graphql`, otherwise the value of [--src](#s---src-ltpathgt) joined with `schema.graphql`, unless specified otherwise.
+If the [toolchain](#t---toolchain-lttoolchaingt) is `next`, `./src/schema.graphql`, otherwise the value of [--src](#s---src-ltpathgt) joined with `schema.graphql`, unless specified otherwise.
 
 ### --artifact-directory
 
