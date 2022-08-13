@@ -1,11 +1,9 @@
-import { findFileInDirectory, getRelayCompilerLanguage } from "../helpers.js";
 import { TaskBase } from "../TaskBase.js";
-import { ProjectSettings, Toolchain } from "../types.js";
+import { isNextSettings, isViteSettings, ProjectSettings } from "../types.js";
 import fs from "fs/promises";
 import traverse from "@babel/traverse";
 import t from "@babel/types";
-import { NEXTJS_CONFIG_FILE, VITE_CONFIG_FILE_NO_EXT } from "../consts.js";
-import { parseAst, printAst } from "../ast.js";
+import { insertDefaultImport, parseAst, printAst } from "../ast.js";
 
 export class AddRelayPluginConfigurationTask extends TaskBase {
   constructor(private settings: ProjectSettings) {
@@ -26,17 +24,15 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
   }
 
   private async configureNext() {
-    const configFilepath = await findFileInDirectory(
-      this.settings.projectRootDirectory,
-      NEXTJS_CONFIG_FILE
-    );
+    const tSettings = this.settings.toolchainSettings;
 
-    if (!configFilepath) {
-      throw new Error(`${NEXTJS_CONFIG_FILE} not found`);
+    if (!isNextSettings(tSettings)) {
+      // todo: handle correctly
+      throw new Error();
     }
 
     // todo: handle errors
-    const configCode = await fs.readFile(configFilepath, "utf-8");
+    const configCode = await fs.readFile(tSettings.configFilepath, "utf-8");
 
     const ast = parseAst(configCode);
 
@@ -54,7 +50,7 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
           node.left.property.name !== "exports"
         ) {
           throw new Error(
-            `Expected to find a module.exports assignment that exports the Next.js configuration from ${NEXTJS_CONFIG_FILE}.`
+            `Expected to find a module.exports assignment that exports the Next.js configuration from ${tSettings.configFilepath}.`
           );
         }
 
@@ -73,7 +69,7 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
             !t.isObjectExpression(binding.path.node.init)
           ) {
             throw new Error(
-              `module.exports in ${NEXTJS_CONFIG_FILE} references a variable, which is not a valid object definition.`
+              `module.exports in ${tSettings.configFilepath} references a variable, which is not a valid object definition.`
             );
           }
 
@@ -82,7 +78,7 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
           objExp = node.right;
         } else {
           throw new Error(
-            `Expected to find a module.exports assignment that exports the Next.js configuration from ${NEXTJS_CONFIG_FILE}.`
+            `Expected to find a module.exports assignment that exports the Next.js configuration from ${tSettings.configFilepath}.`
           );
         }
 
@@ -105,7 +101,7 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
 
         if (!t.isObjectExpression(compilerProperty.value)) {
           throw new Error(
-            `Could not create or get a "compiler" property on the Next.js configuration object in ${NEXTJS_CONFIG_FILE}.`
+            `Could not create or get a "compiler" property on the Next.js configuration object in ${tSettings.configFilepath}.`
           );
         }
 
@@ -128,9 +124,7 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
           ),
           t.objectProperty(
             t.identifier("language"),
-            t.stringLiteral(
-              getRelayCompilerLanguage(this.settings.useTypescript)
-            )
+            t.stringLiteral(this.settings.compilerLanguage)
           ),
         ];
 
@@ -155,59 +149,30 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
 
     const updatedConfigCode = printAst(ast, configCode);
 
-    await fs.writeFile(configFilepath, updatedConfigCode, "utf-8");
+    await fs.writeFile(tSettings.configFilepath, updatedConfigCode, "utf-8");
   }
 
   private async configureVite() {
-    const relayImportName = "relay";
+    const tSettings = this.settings.toolchainSettings;
 
-    const configFilename =
-      VITE_CONFIG_FILE_NO_EXT + (this.settings.useTypescript ? ".ts" : ".js");
-
-    const configFilepath = await findFileInDirectory(
-      this.settings.projectRootDirectory,
-      configFilename
-    );
-
-    if (!configFilepath) {
-      throw new Error(`${configFilename} not found`);
+    if (!isViteSettings(tSettings)) {
+      // todo: handle correctly
+      throw new Error();
     }
 
+    const relayImportName = "relay";
+
     // todo: handle errors
-    const configCode = await fs.readFile(configFilepath, "utf-8");
+    const configCode = await fs.readFile(tSettings.configFilepath, "utf-8");
 
     const ast = parseAst(configCode);
 
     traverse.default(ast, {
-      Program: (path) => {
-        const hasRelayImport = path
-          .get("body")
-          .some(
-            (s) =>
-              s.isImportDeclaration() &&
-              s.node.specifiers.some(
-                (sp) =>
-                  t.isImportDefaultSpecifier(sp) &&
-                  sp.local.name === relayImportName
-              )
-          );
-
-        if (hasRelayImport) {
-          // Import already exists.
-          return;
-        }
-
-        const importDeclaration = t.importDeclaration(
-          [t.importDefaultSpecifier(t.identifier(relayImportName))],
-          // todo: replace with VITE_RELAY_PACKAGE,
-          // once it no longer has the explict version
-          t.stringLiteral("vite-plugin-relay")
-        );
-
-        // Insert import at start of file.
-        path.node.body.unshift(importDeclaration);
-      },
       ExportDefaultDeclaration: (path) => {
+        // todo: replace with VITE_RELAY_PACKAGE,
+        // once it no longer has the explict version
+        insertDefaultImport(path, relayImportName, "vite-plugin-relay");
+
         const node = path.node;
 
         // Find export default defineConfig(???)
@@ -218,7 +183,7 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
           node.declaration.callee.name !== "defineConfig"
         ) {
           throw new Error(
-            `Expected a export default defineConfig({}) in ${configFilename}.`
+            `Expected a export default defineConfig({}) in ${tSettings.configFilepath}.`
           );
         }
 
@@ -226,7 +191,7 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
 
         if (!t.isObjectExpression(arg)) {
           throw new Error(
-            `Expected a export default defineConfig({}) in ${configFilename}.`
+            `Expected a export default defineConfig({}) in ${tSettings.configFilepath}.`
           );
         }
 
@@ -249,7 +214,7 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
 
         if (!t.isArrayExpression(pluginsProperty.value)) {
           throw new Error(
-            `Could not create or get a "plugins" property on the Vite configuration object in ${configFilename}.`
+            `Could not create or get a "plugins" property on the Vite configuration object in ${tSettings.configFilepath}.`
           );
         }
 
@@ -273,6 +238,6 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
 
     const updatedConfigCode = printAst(ast, configCode);
 
-    await fs.writeFile(configFilepath, updatedConfigCode, "utf-8");
+    await fs.writeFile(tSettings.configFilepath, updatedConfigCode, "utf-8");
   }
 }

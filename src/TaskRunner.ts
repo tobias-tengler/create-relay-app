@@ -4,13 +4,18 @@ import { TaskBase, TaskSkippedError } from "./TaskBase.js";
 type TaskDefinition = {
   title: string;
   task: TaskBase;
+  when?: boolean;
 };
 
 export class TaskRunner {
   constructor(private taskDefs: TaskDefinition[]) {}
 
   async run(): Promise<void> {
-    for (const { title, task } of this.taskDefs) {
+    for (const { title, task, when } of this.taskDefs) {
+      if (when === false) {
+        continue;
+      }
+
       const spinner = ora(title);
 
       task.setSpinner(spinner);

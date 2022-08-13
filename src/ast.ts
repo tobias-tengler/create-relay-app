@@ -13,14 +13,7 @@ export function insertNamedImport(
 
   const program = path.findParent((p) => p.isProgram()) as NodePath<t.Program>;
 
-  const existingImport = program.node.body.find(
-    (s) =>
-      t.isImportDeclaration(s) &&
-      s.source.value === packageName &&
-      s.specifiers.some(
-        (sp) => t.isImportSpecifier(sp) && sp.local.name === importName
-      )
-  );
+  const existingImport = getNamedImport(program, importName, packageName);
 
   if (!!existingImport) {
     return importIdentifier;
@@ -35,6 +28,63 @@ export function insertNamedImport(
   program.node.body.unshift(importDeclaration);
 
   return importIdentifier;
+}
+
+export function insertDefaultImport(
+  path: NodePath,
+  importName: string,
+  packageName: string
+): t.Identifier {
+  const importIdentifier = t.identifier(importName);
+
+  const program = path.findParent((p) => p.isProgram()) as NodePath<t.Program>;
+
+  const existingImport = getDefaultImport(program, importName, packageName);
+
+  if (!!existingImport) {
+    return importIdentifier;
+  }
+
+  const importDeclaration = t.importDeclaration(
+    [t.importDefaultSpecifier(t.cloneNode(importIdentifier))],
+
+    t.stringLiteral(packageName)
+  );
+
+  // Insert import at start of file.
+  program.node.body.unshift(importDeclaration);
+
+  return importIdentifier;
+}
+
+export function getNamedImport(
+  path: NodePath<t.Program>,
+  importName: string,
+  packageName: string
+): t.ImportDeclaration {
+  return path.node.body.find(
+    (s) =>
+      t.isImportDeclaration(s) &&
+      s.source.value === packageName &&
+      s.specifiers.some(
+        (sp) => t.isImportSpecifier(sp) && sp.local.name === importName
+      )
+  ) as t.ImportDeclaration;
+}
+
+export function getDefaultImport(
+  path: NodePath<t.Program>,
+  importName: string,
+  packageName: string
+): t.ImportDeclaration {
+  return path.node.body.find(
+    (s) =>
+      t.isImportDeclaration(s) &&
+      s.source.value === packageName &&
+      s.specifiers.some(
+        (sp) => t.isImportDefaultSpecifier(sp) && sp.local.name === importName
+      )
+  ) as t.ImportDeclaration;
 }
 
 export function parseAst(code: string): ParseResult<t.File> {

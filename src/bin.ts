@@ -5,23 +5,27 @@ import { TaskRunner } from "./TaskRunner.js";
 import { AddGraphQlSchemaFileTask } from "./tasks/AddGraphQlSchemaFileTask.js";
 import chalk from "chalk";
 import { AddRelayConfigurationTask } from "./tasks/AddRelayConfigurationTask.js";
-import { Toolchain, EnvArguments, ProjectSettings } from "./types.js";
+import { EnvArguments, ProjectSettings } from "./types.js";
 import { InstallNpmPackagesTask } from "./tasks/InstallNpmPackagesTask.js";
 import { AddRelayPluginConfigurationTask } from "./tasks/AddRelayPluginConfigurationTask.js";
-import { AddRelayEnvironmentTask } from "./tasks/AddRelayEnvironmentTask.js";
+import { AddRelayEnvironmentProviderTask } from "./tasks/AddRelayEnvironmentProviderTask.js";
 import {
   traverseUpToFindFile,
   printError,
   getRelayDevDependencies,
+  getRelayCompilerLanguage,
+  highlight,
+  printInvalidArg,
+  getToolchainSettings,
+  getRelayEnvFilepath,
 } from "./helpers.js";
 import { exit } from "process";
 import {
   ARTIFACT_DIR_ARG,
-  BABEL_RELAY_PACKAGE,
   PACKAGE_FILE,
+  REACT_RELAY_PACKAGE,
   SCHEMA_FILE_ARG,
   SRC_DIR_ARG,
-  VITE_RELAY_PACKAGE,
 } from "./consts.js";
 import { fileURLToPath } from "url";
 import { getCliArguments, promptForMissingCliArguments } from "./cli.js";
@@ -31,6 +35,8 @@ import {
   isValidSchemaPath,
   isValidSrcDirectory,
 } from "./validation.js";
+import { GenerateRelayEnvironmentTask } from "./tasks/GenerateRelayEnvironmentTask.js";
+import { GenerateArtifactDirectoryTask } from "./tasks/GenerateArtifactDirectoryTask.js";
 
 // INIT ENVIRONMENT
 
@@ -44,7 +50,7 @@ const packageJsonFile = await traverseUpToFindFile(
 
 if (!packageJsonFile) {
   printError(
-    `Could not find a ${chalk.cyan.bold(PACKAGE_FILE)} in the ${chalk.cyan.bold(
+    `Could not find a ${highlight(PACKAGE_FILE)} in the ${highlight(
       workingDirectory
     )} directory.`
   );
@@ -72,7 +78,7 @@ if (!cliArguments.ignoreGitChanges) {
 
   if (hasUnsavedChanges) {
     printError(
-      `Please commit or discard all changes in the ${chalk.cyan.bold(
+      `Please commit or discard all changes in the ${highlight(
         envArguments.projectRootDirectory
       )} directory before continuing.`
     );
@@ -90,10 +96,10 @@ const completeArguments = await promptForMissingCliArguments(
 const schemaPathValid = isValidSchemaPath(completeArguments.schemaFilePath);
 
 if (schemaPathValid !== true) {
-  printError(
-    `Invalid ${SCHEMA_FILE_ARG} specified: ${
-      completeArguments.schemaFilePath
-    } ${chalk.dim(schemaPathValid)}`
+  printInvalidArg(
+    SCHEMA_FILE_ARG,
+    schemaPathValid,
+    completeArguments.schemaFilePath
   );
   exit(1);
 }
@@ -101,11 +107,8 @@ if (schemaPathValid !== true) {
 const srcDirValid = isValidSrcDirectory(completeArguments.srcDirectoryPath);
 
 if (srcDirValid !== true) {
-  printError(
-    `Invalid ${SRC_DIR_ARG}  specified:  ${
-      completeArguments.srcDirectoryPath
-    } ${chalk.dim(srcDirValid)}`
-  );
+  printInvalidArg(SRC_DIR_ARG, srcDirValid, completeArguments.srcDirectoryPath);
+
   exit(1);
 }
 
@@ -115,22 +118,32 @@ const artifactDirValid = isValidArtifactDirectory(
 );
 
 if (artifactDirValid !== true) {
-  printError(
-    `Invalid ${ARTIFACT_DIR_ARG} specified:  ${
-      completeArguments.artifactDirectoryPath
-    } ${chalk.dim(artifactDirValid)}`
+  printInvalidArg(
+    ARTIFACT_DIR_ARG,
+    artifactDirValid,
+    completeArguments.artifactDirectoryPath
   );
   exit(1);
 }
 
-// EXECUTE TASKS
+const toolchainSettings = await getToolchainSettings(
+  envArguments,
+  completeArguments
+);
 
 const settings: ProjectSettings = {
   ...envArguments,
   ...completeArguments,
+  compilerLanguage: getRelayCompilerLanguage(completeArguments.useTypescript),
+  relayEnvFilepath: getRelayEnvFilepath(envArguments, completeArguments),
+  toolchainSettings,
 };
 
-const dependencies = ["react-relay"];
+console.log(settings);
+
+// EXECUTE TASKS
+
+const dependencies = [REACT_RELAY_PACKAGE];
 const devDependencies = getRelayDevDependencies(
   settings.toolchain,
   settings.useTypescript
@@ -139,13 +152,13 @@ const devDependencies = getRelayDevDependencies(
 const runner = new TaskRunner([
   {
     title: `Add Relay dependencies: ${dependencies
-      .map((d) => chalk.cyan.bold(d))
+      .map((d) => highlight(d))
       .join(" ")}`,
     task: new InstallNpmPackagesTask(dependencies, false, settings),
   },
   {
     title: `Add Relay devDependencies: ${devDependencies
-      .map((d) => chalk.cyan.bold(d))
+      .map((d) => highlight(d))
       .join(" ")}`,
     task: new InstallNpmPackagesTask(devDependencies, true, settings),
   },
@@ -154,18 +167,31 @@ const runner = new TaskRunner([
     task: new AddRelayConfigurationTask(settings),
   },
   {
+    // todo: better name
     title: "Add Relay plugin configuration",
     task: new AddRelayPluginConfigurationTask(settings),
   },
   {
-    title: "Add Relay environment",
-    task: new AddRelayEnvironmentTask(settings),
+    // todo: path is not relative
+    title: `Generate Relay environment ${highlight(settings.relayEnvFilepath)}`,
+    task: new GenerateRelayEnvironmentTask(settings),
   },
   {
-    title: `Generate GraphQL schema file (${chalk.cyan.bold(
+    title: "Add RelayEnvironmentProvider",
+    task: new AddRelayEnvironmentProviderTask(settings),
+  },
+  {
+    title: `Generate GraphQL schema file (${highlight(
       settings.schemaFilePath
     )})`,
     task: new AddGraphQlSchemaFileTask(settings),
+  },
+  {
+    title: `Generate artifact directory ${highlight(
+      settings.artifactDirectoryPath!
+    )}`,
+    task: new GenerateArtifactDirectoryTask(settings),
+    when: !!settings.artifactDirectoryPath,
   },
 ]);
 
@@ -186,14 +212,14 @@ console.log();
 console.log(chalk.yellow.bold("Next steps:"));
 
 console.log(
-  `1. Replace ${chalk.cyan.bold(
+  `1. Replace ${highlight(
     settings.schemaFilePath
   )} with your own GraphQL schema file.`
 );
 
 // todo: get correct path to file
 console.log(
-  `2. Replace the value of the ${chalk.cyan.bold(
+  `2. Replace the value of the ${highlight(
     "HOST"
   )} variable in the RelayEnvironment.ts file.`
 );

@@ -26,4 +26,39 @@ export type EnvArguments = Readonly<{
   packageJsonFile: string;
 }>;
 
-export type ProjectSettings = Readonly<CliArguments & EnvArguments>;
+export type ViteToolchainSettings = {
+  toolchain: "vite";
+  configFilepath: string;
+  mainFilepath: string;
+};
+
+export type NextToolchainSettings = {
+  toolchain: "next";
+  configFilepath: string;
+  appFilepath: string;
+};
+
+export type ToolchainSettings = Readonly<
+  (ViteToolchainSettings | NextToolchainSettings) & { toolchain: Toolchain }
+>;
+
+export function isViteSettings(
+  settings: ToolchainSettings
+): settings is ViteToolchainSettings {
+  return settings.toolchain === "vite";
+}
+
+export function isNextSettings(
+  settings: ToolchainSettings
+): settings is NextToolchainSettings {
+  return settings.toolchain === "next";
+}
+
+export type ProjectSettings = Readonly<
+  CliArguments &
+    EnvArguments & {
+      compilerLanguage: "javascript" | "typescript";
+      relayEnvFilepath: string;
+      toolchainSettings: ToolchainSettings;
+    }
+>;

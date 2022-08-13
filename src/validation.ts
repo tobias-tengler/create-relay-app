@@ -1,7 +1,7 @@
-import chalk from "chalk";
 import { exec, spawn } from "child_process";
+import path from "path";
 import { TS_CONFIG_FILE, TYPESCRIPT_PACKAGE } from "./consts.js";
-import { findFileInDirectory } from "./helpers.js";
+import { findFileInDirectory, highlight } from "./helpers.js";
 import { PackageManager, Toolchain } from "./types.js";
 
 // todo: validate that these are relative to the project root
@@ -11,7 +11,7 @@ export function isValidSchemaPath(input: string): string | true {
   }
 
   if (!input.endsWith(".graphql")) {
-    return `File needs to end in ${chalk.green(".graphql")}`;
+    return `File needs to end in ${highlight(".graphql")}`;
   }
 
   return true;
@@ -36,6 +36,12 @@ export function isValidArtifactDirectory(
 
     // The artifactDirectory is optional.
     return true;
+  }
+
+  if (path.basename(input) !== "__generated__") {
+    return `Last directory segment should be called ${highlight(
+      "__generated__"
+    )}`;
   }
 
   return true;

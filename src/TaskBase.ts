@@ -10,9 +10,11 @@ export abstract class TaskBase {
     this.spinner = spinner;
   }
 
-  skip(message: string): void {
+  skip(message?: string): void {
+    const reason = message ? ": " + message : undefined;
+
     this.spinner?.warn(
-      this.spinner.text + " " + chalk.dim("[Skipped: " + message + "]")
+      this.spinner.text + " " + chalk.dim(`[Skipped${reason}]`)
     );
 
     throw new TaskSkippedError();

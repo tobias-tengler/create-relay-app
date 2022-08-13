@@ -1,6 +1,14 @@
 import path from "path";
 import fs from "fs/promises";
-import { EnvArguments, Optional, Toolchain } from "./types.js";
+import {
+  CliArguments,
+  EnvArguments,
+  NextToolchainSettings,
+  Optional,
+  Toolchain,
+  ToolchainSettings,
+  ViteToolchainSettings,
+} from "./types.js";
 import {
   BABEL_RELAY_PACKAGE,
   PACKAGE_FILE,
@@ -9,18 +17,20 @@ import {
 import glob from "glob";
 import chalk from "chalk";
 
-export function printError(message: string) {
+export function printInvalidArg(
+  arg: string,
+  validationMsg: string,
+  value?: string
+) {
+  printError(`Invalid ${arg} specified: ${value} ${chalk.dim(validationMsg)}`);
+}
+
+export function printError(message: string): void {
   console.log(chalk.red("✖") + " " + message);
 }
 
-export function getRelayCompilerLanguage(
-  useTypescript: boolean
-): "typescript" | "javascript" {
-  if (useTypescript) {
-    return "typescript";
-  } else {
-    return "javascript";
-  }
+export function highlight(message: string): string {
+  return chalk.cyan.bold(message);
 }
 
 export async function traverseUpToFindFile(
@@ -161,4 +171,94 @@ export function getSpecifiedProperties<T extends object>(obj: Optional<T>): T {
   }
 
   return newObj;
+}
+
+export function getRelayCompilerLanguage(
+  useTypescript: boolean
+): "typescript" | "javascript" {
+  if (useTypescript) {
+    return "typescript";
+  } else {
+    return "javascript";
+  }
+}
+
+export function getRelayEnvFilepath(
+  env: EnvArguments,
+  args: CliArguments
+): string {
+  const filename = "RelayEnvironment" + (args.useTypescript ? ".ts" : ".js");
+
+  const destDirectory = path.join(env.projectRootDirectory, "src");
+  return path.join(destDirectory, filename);
+}
+
+export async function getToolchainSettings(
+  env: EnvArguments,
+  args: CliArguments
+): Promise<ToolchainSettings> {
+  if (args.toolchain === "vite") {
+    const configFilename = "vite.config" + (args.useTypescript ? ".ts" : ".js");
+
+    const configFilepath = await findFileInDirectory(
+      env.projectRootDirectory,
+      configFilename
+    );
+
+    if (!configFilepath) {
+      throw new Error(`${configFilename} not found`);
+    }
+
+    const mainFilename = "main" + (args.useTypescript ? ".tsx" : ".jsx");
+
+    const searchDirectory = path.join(env.projectRootDirectory, "src");
+
+    const mainFilepath = await findFileInDirectory(
+      searchDirectory,
+      mainFilename
+    );
+
+    if (!mainFilepath) {
+      throw new Error(`${mainFilename} not found`);
+    }
+
+    const settings: ViteToolchainSettings = {
+      toolchain: "vite",
+      configFilepath,
+      mainFilepath,
+    };
+
+    return settings;
+  } else if (args.toolchain === "next") {
+    const configFilename = "next.config.js";
+
+    const configFilepath = await findFileInDirectory(
+      env.projectRootDirectory,
+      configFilename
+    );
+
+    if (!configFilepath) {
+      throw new Error(`${configFilename} not found`);
+    }
+
+    const appFilename = "_app" + (args.useTypescript ? ".tsx" : ".jsx");
+
+    const searchDirectory = path.join(env.projectRootDirectory, "pages");
+
+    const appFilepath = await findFileInDirectory(searchDirectory, appFilename);
+
+    if (!appFilepath) {
+      throw new Error(`${appFilename} not found`);
+    }
+
+    const settings: NextToolchainSettings = {
+      toolchain: "next",
+      configFilepath: configFilepath,
+      appFilepath,
+    };
+
+    return settings;
+  }
+
+  return null!;
 }

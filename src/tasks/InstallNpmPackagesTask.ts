@@ -34,6 +34,9 @@ export class InstallNpmPackagesTask extends TaskBase {
       args.push(...this.packages);
     }
 
+    // todo: remove
+    return;
+
     return new Promise((resolve, reject) => {
       const child = spawn(command, args, {
         // stdio: "inherit",

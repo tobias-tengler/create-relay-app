@@ -1,7 +1,6 @@
 import { TaskBase } from "../TaskBase.js";
 import fs from "fs/promises";
 import { ProjectSettings } from "../types.js";
-import { getRelayCompilerLanguage } from "../helpers.js";
 
 export class AddRelayConfigurationTask extends TaskBase {
   constructor(private settings: ProjectSettings) {
@@ -32,7 +31,7 @@ export class AddRelayConfigurationTask extends TaskBase {
       // Add "relay" configuration section
       const relayConfig: Record<string, string | string[]> = {
         src: this.settings.srcDirectoryPath,
-        language: getRelayCompilerLanguage(this.settings.useTypescript),
+        language: this.settings.compilerLanguage,
         schema: this.settings.schemaFilePath,
         exclude: [
           "**/node_modules/**",
