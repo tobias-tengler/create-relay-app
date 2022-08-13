@@ -29,7 +29,7 @@ type RawCliArguments = Partial<{
 
 export async function getCliArguments(
   env: EnvArguments
-): Promise<CliArguments> {
+): Promise<Partial<CliArguments>> {
   const {
     name: PACKAGE_NAME,
     version: PACKAGE_VERSION,
@@ -64,53 +64,10 @@ export async function getCliArguments(
   const rawCliArguments = program.opts<RawCliArguments>();
   const partialCliArguments = parseCliArguments(rawCliArguments);
 
-  return await promptForMissingCliArguments(partialCliArguments, env);
+  return partialCliArguments;
 }
 
-function parseCliArguments(args: RawCliArguments): Partial<CliArguments> {
-  return {
-    toolChain: tryParseToolChain(args.toolchain),
-    packageManager: tryParsePackageManager(args.packageManager),
-    schemaFilePath: args.schemaFile,
-    useTypescript: args.typescript,
-    skipPrompts: args.yes,
-    ignoreGitChanges: args.ignoreGitChanges,
-  };
-}
-
-async function getDefaultCliArguments(
-  existingArgs: Partial<CliArguments>,
-  env: EnvArguments
-): Promise<CliArguments> {
-  const packageManager =
-    existingArgs.packageManager ||
-    (await getProjectPackageManager(env.projectRootDirectory));
-
-  const toolChain =
-    existingArgs.toolChain ||
-    (await getProjectToolChain(env.projectRootDirectory));
-
-  const useTypescript =
-    existingArgs.useTypescript ||
-    (await doesProjectUseTypescript(env.projectRootDirectory, packageManager));
-
-  // todo: use the src directory as base once configurable
-  const schemaFilePath = existingArgs.schemaFilePath || "./schema.graphql";
-
-  const ignoreGitChanges = existingArgs.ignoreGitChanges || false;
-  const skipPrompts = existingArgs.skipPrompts || false;
-
-  return {
-    packageManager,
-    toolChain,
-    useTypescript,
-    schemaFilePath,
-    ignoreGitChanges,
-    skipPrompts,
-  };
-}
-
-async function promptForMissingCliArguments(
+export async function promptForMissingCliArguments(
   existingArgs: Partial<CliArguments>,
   env: EnvArguments
 ): Promise<CliArguments> {
@@ -175,6 +132,49 @@ async function promptForMissingCliArguments(
   console.log();
 
   return { ...answers, ...definedExistingArgs };
+}
+
+function parseCliArguments(args: RawCliArguments): Partial<CliArguments> {
+  return {
+    toolChain: tryParseToolChain(args.toolchain),
+    packageManager: tryParsePackageManager(args.packageManager),
+    schemaFilePath: args.schemaFile,
+    useTypescript: args.typescript,
+    skipPrompts: args.yes,
+    ignoreGitChanges: args.ignoreGitChanges,
+  };
+}
+
+async function getDefaultCliArguments(
+  existingArgs: Partial<CliArguments>,
+  env: EnvArguments
+): Promise<CliArguments> {
+  const packageManager =
+    existingArgs.packageManager ||
+    (await getProjectPackageManager(env.projectRootDirectory));
+
+  const toolChain =
+    existingArgs.toolChain ||
+    (await getProjectToolChain(packageManager, env.projectRootDirectory));
+
+  const useTypescript =
+    existingArgs.useTypescript ||
+    (await doesProjectUseTypescript(env.projectRootDirectory, packageManager));
+
+  // todo: use the src directory as base once configurable
+  const schemaFilePath = existingArgs.schemaFilePath || "./schema.graphql";
+
+  const ignoreGitChanges = existingArgs.ignoreGitChanges || false;
+  const skipPrompts = existingArgs.skipPrompts || false;
+
+  return {
+    packageManager,
+    toolChain,
+    useTypescript,
+    schemaFilePath,
+    ignoreGitChanges,
+    skipPrompts,
+  };
 }
 
 type PackageDetails = Readonly<{

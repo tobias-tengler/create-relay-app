@@ -21,7 +21,7 @@ import {
   VITE_RELAY_PACKAGE,
 } from "./consts.js";
 import { fileURLToPath } from "url";
-import { getCliArguments } from "./cli.js";
+import { getCliArguments, promptForMissingCliArguments } from "./cli.js";
 
 const distDirectory = dirname(fileURLToPath(import.meta.url));
 const ownPackageDirectory = path.join(distDirectory, "..");
@@ -52,14 +52,7 @@ const envArguments: EnvArguments = {
 // todo: handle errors
 const cliArguments = await getCliArguments(envArguments);
 
-const settings: ProjectSettings = {
-  ...envArguments,
-  ...cliArguments,
-  // todo: determine based on toolchain
-  srcDirectory: "./src",
-};
-
-if (!settings.ignoreGitChanges) {
+if (!cliArguments.ignoreGitChanges) {
   const hasUnsavedChanges = await hasUnsavedGitChanges(
     envArguments.projectRootDirectory
   );
@@ -73,6 +66,18 @@ if (!settings.ignoreGitChanges) {
     exit(1);
   }
 }
+
+const completeArguments = await promptForMissingCliArguments(
+  cliArguments,
+  envArguments
+);
+
+const settings: ProjectSettings = {
+  ...envArguments,
+  ...completeArguments,
+  // todo: determine based on toolchain
+  srcDirectory: "./src",
+};
 
 const dependencies = ["react-relay"];
 const devDependencies = getRelayDevDependencies(

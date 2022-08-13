@@ -2,11 +2,7 @@ import { exec, execSync, spawn } from "child_process";
 import path from "path";
 import fs from "fs/promises";
 import { PackageManager, ToolChain } from "./types.js";
-import {
-  NEXTJS_CONFIG_FILE,
-  TS_CONFIG_FILE,
-  TYPESCRIPT_PACKAGE,
-} from "./consts.js";
+import { TS_CONFIG_FILE, TYPESCRIPT_PACKAGE } from "./consts.js";
 import glob from "glob";
 import { ParseResult } from "@babel/parser";
 import t from "@babel/types";
@@ -100,23 +96,14 @@ export async function hasUnsavedGitChanges(dir: string): Promise<boolean> {
 }
 
 export async function getProjectToolChain(
+  manager: PackageManager,
   projectRootDirectory: string
 ): Promise<ToolChain> {
-  const nextjsConfigFile = await findFileInDirectory(
-    projectRootDirectory,
-    NEXTJS_CONFIG_FILE
-  );
-
-  if (!!nextjsConfigFile) {
+  if (await isNpmPackageInstalled(manager, projectRootDirectory, "next")) {
     return "next";
   }
 
-  const viteConfigFiles = await searchFilesInDirectory(
-    projectRootDirectory,
-    "vite.config.*"
-  );
-
-  if (viteConfigFiles.some((f) => !!f)) {
+  if (await isNpmPackageInstalled(manager, projectRootDirectory, "vite")) {
     return "vite";
   }
 
@@ -176,7 +163,7 @@ export async function isNpmPackageInstalled(
     child.stdout.on("data", (data) => {
       const stringData = data.toString() as string;
 
-      if (stringData.includes(packageName)) {
+      if (new RegExp(`\x20${packageName}@\\w`, "m").test(stringData)) {
         resolve(true);
       }
     });

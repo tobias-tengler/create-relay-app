@@ -111,11 +111,11 @@ If certain options are not specified as CLI arguments, we try to infer most of t
 
 ### --toolchain
 
-If there is a `next.config.js` file in the root directory of your project, we assume it's a _Next.js_ project, unless specified otherwise.
+If the `next` package is installed, we assume it's a _Next.js_ project, unless specified otherwise.
 
-If there is a `vite.config.js` or `vite.config.ts` file in the root directory of your project, we assume it's a _Vite.js_ project, unless specified otherwise.
+If the `vite` package is installed, we assume it's a _Vite.js_ project, unless specified otherwise.
 
-If none of the files above are matched, we assume it's a _Create React App_ project, unless specified otherwise.
+Otherwise, we assume it's a _Create React App_ project, unless specified otherwise.
 
 ### --typescript
 
@@ -127,8 +127,8 @@ If you run the script using `yarn` or `pnpm`, we use them as the default.
 
 If we can't determine which package manger has run the script, we choose:
 
-- `yarn`, if `yarn` is installed and a `yarn.lock` file exists at the root of the project.
-- `pnpm`, if `pnpm` is installed and a `pnpm-lock.yml` file exists at the root of the project.
+- `yarn`, if `yarn` is installed **and** a `yarn.lock` file exists at the root of the project.
+- `pnpm`, if `pnpm` is installed **and** a `pnpm-lock.yml` file exists at the root of the project.
 - `npm` in all other cases.
 
 ### --schema-file
