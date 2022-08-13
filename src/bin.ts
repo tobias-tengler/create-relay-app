@@ -5,23 +5,12 @@ import { TaskRunner } from "./TaskRunner.js";
 import { AddGraphQlSchemaFileTask } from "./tasks/AddGraphQlSchemaFileTask.js";
 import chalk from "chalk";
 import { AddRelayConfigurationTask } from "./tasks/AddRelayConfigurationTask.js";
-import inquirer from "inquirer";
-import {
-  CliArguments,
-  ToolChainOptions,
-  PackageManagerOptions,
-  ToolChain,
-  EnvArguments,
-  ProjectSettings,
-} from "./types.js";
+import { ToolChain, EnvArguments, ProjectSettings } from "./types.js";
 import { InstallNpmPackagesTask } from "./tasks/InstallNpmPackagesTask.js";
 import { AddRelayPluginConfigurationTask } from "./tasks/AddRelayPluginConfigurationTask.js";
 import { AddRelayEnvironmentTask } from "./tasks/AddRelayEnvironmentTask.js";
 import {
   traverseUpToFindFile,
-  getProjectPackageManager as getProjectPackageManager,
-  getProjectToolChain,
-  doesProjectUseTypescript,
   hasUnsavedGitChanges,
   printError,
 } from "./helpers.js";
@@ -32,8 +21,6 @@ import {
   VITE_RELAY_PACKAGE,
 } from "./consts.js";
 import { fileURLToPath } from "url";
-import { OptionValues, program } from "commander";
-import fs from "fs/promises";
 import { getCliArguments } from "./cli.js";
 
 const distDirectory = dirname(fileURLToPath(import.meta.url));
@@ -62,22 +49,6 @@ const envArguments: EnvArguments = {
   projectRootDirectory,
 };
 
-// CHECK REPO FOR UNSAVED CHANGES
-const skipChangesCheck = true;
-
-if (!skipChangesCheck) {
-  const hasUnsavedChanges = await hasUnsavedGitChanges(
-    envArguments.projectRootDirectory
-  );
-
-  if (hasUnsavedChanges) {
-    printError(
-      `Please commit or discard all changes in the ${envArguments.projectRootDirectory} before continuing.`
-    );
-    exit(1);
-  }
-}
-
 // todo: handle errors
 const cliArguments = await getCliArguments(envArguments);
 
@@ -88,7 +59,20 @@ const settings: ProjectSettings = {
   srcDirectory: "./src",
 };
 
-console.log(settings);
+if (!settings.ignoreGitChanges) {
+  const hasUnsavedChanges = await hasUnsavedGitChanges(
+    envArguments.projectRootDirectory
+  );
+
+  if (hasUnsavedChanges) {
+    printError(
+      `Please commit or discard all changes in the ${chalk.cyan.bold(
+        envArguments.projectRootDirectory
+      )} directory before continuing.`
+    );
+    exit(1);
+  }
+}
 
 const dependencies = ["react-relay"];
 const devDependencies = getRelayDevDependencies(

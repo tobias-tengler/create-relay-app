@@ -23,6 +23,7 @@ type RawCliArguments = Partial<{
   typescript: boolean;
   schemaFile: string;
   packageManager: string;
+  ignoreGitChanges: boolean;
   yes: boolean;
 }>;
 
@@ -52,6 +53,10 @@ export async function getCliArguments(
       "path to a GraphQL schema file, relative to the root directory"
     )
     .option("-p, --package-manager <manager>")
+    .option(
+      "--ignore-git-changes",
+      "do not exit if the current directory has un-commited Git changes"
+    )
     .option("-y, --yes", `answer \"yes\" to any prompts`);
 
   program.parse();
@@ -69,6 +74,7 @@ function parseCliArguments(args: RawCliArguments): Partial<CliArguments> {
     schemaFilePath: args.schemaFile,
     useTypescript: args.typescript,
     skipPrompts: args.yes,
+    ignoreGitChanges: args.ignoreGitChanges,
   };
 }
 
@@ -88,8 +94,10 @@ async function getDefaultCliArguments(
     existingArgs.useTypescript ||
     (await doesProjectUseTypescript(env.projectRootDirectory, packageManager));
 
+  // todo: use the src directory as base once configurable
   const schemaFilePath = existingArgs.schemaFilePath || "./schema.graphql";
 
+  const ignoreGitChanges = existingArgs.ignoreGitChanges || false;
   const skipPrompts = existingArgs.skipPrompts || false;
 
   return {
@@ -97,6 +105,7 @@ async function getDefaultCliArguments(
     toolChain,
     useTypescript,
     schemaFilePath,
+    ignoreGitChanges,
     skipPrompts,
   };
 }
