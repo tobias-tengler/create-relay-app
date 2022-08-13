@@ -62,6 +62,13 @@ export function isValidArtifactDirectory(
     return `Must be directory below ${highlight(projectRootDirectory)}`;
   }
 
+  const relativePagesDir = "./pages";
+  const pagesDirectory = path.join(projectRootDirectory, relativePagesDir);
+
+  if (toolchain === "next" && isSubDirectory(pagesDirectory, input)) {
+    return `Can not be under ${highlight(relativePagesDir)}`;
+  }
+
   return true;
 }
 

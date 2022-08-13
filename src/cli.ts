@@ -102,7 +102,7 @@ export async function promptForMissingCliArguments(
   const answers = await inquirer.prompt<Partial<CliArguments>>([
     {
       name: "toolchain",
-      message: "Select the toolchain your project is using",
+      message: "Select the toolchain your project was setup with",
       type: "list",
       default: defaults.toolchain,
       choices: ToolchainOptions,
@@ -117,7 +117,7 @@ export async function promptForMissingCliArguments(
     },
     {
       name: "src",
-      message: "Select the source directory",
+      message: "Select the root directory of your application code",
       type: "input",
       default: defaults.src,
       validate: (input: string) =>
@@ -139,7 +139,7 @@ export async function promptForMissingCliArguments(
     },
     {
       name: "artifactDirectory",
-      message: "Select the artifactDirectory",
+      message: "Select, if needed, a directory to place all Relay artifacts in",
       type: "input",
       default: defaults.artifactDirectory || undefined,
       validate: (input: string, answers: Partial<CliArguments> | undefined) =>
@@ -152,7 +152,7 @@ export async function promptForMissingCliArguments(
     },
     {
       name: "packageManager",
-      message: "Select the package manager you wish to use to install packages",
+      message: "Select the package manager to install packages with",
       type: "list",
       default: defaults.packageManager,
       choices: PackageManagerOptions,
