@@ -26,7 +26,7 @@ Setting up Relay can be quite time consuming. The goal of this project is to aut
 Once you have scaffolded a project using your preferred toolchain of choice, simply execute the `@tobiastengler/create-relay-app` script in the directory of your project:
 
 ```bash
-npx @tobiastengler/create-relay-app
+npx @tobiastengler/create-relay-app@experimental
 ```
 
 > Note: We are working on getting the `create-relay-app` name!
