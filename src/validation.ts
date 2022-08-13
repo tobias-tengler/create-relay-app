@@ -2,9 +2,14 @@ import chalk from "chalk";
 import { exec, spawn } from "child_process";
 import { TS_CONFIG_FILE, TYPESCRIPT_PACKAGE } from "./consts.js";
 import { findFileInDirectory } from "./helpers.js";
-import { PackageManager } from "./types.js";
+import { PackageManager, Toolchain } from "./types.js";
 
+// todo: validate that these are relative to the project root
 export function isValidSchemaPath(input: string): string | true {
+  if (!input) {
+    return "Required";
+  }
+
   if (!input.endsWith(".graphql")) {
     return `File needs to end in ${chalk.green(".graphql")}`;
   }
@@ -21,9 +26,15 @@ export function isValidSrcDirectory(input: string): string | true {
 }
 
 export function isValidArtifactDirectory(
-  input: string | undefined
+  input: string | undefined,
+  toolchain: Toolchain
 ): string | true {
   if (!input) {
+    if (toolchain === "next") {
+      return "Required";
+    }
+
+    // The artifactDirectory is optional.
     return true;
   }
 

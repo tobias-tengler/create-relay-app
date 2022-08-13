@@ -17,7 +17,7 @@ export class AddRelayEnvironmentTask extends TaskBase {
   }
 
   async run(): Promise<void> {
-    switch (this.settings.toolChain) {
+    switch (this.settings.toolchain) {
       case "vite":
         await this.configureVite();
         break;
@@ -25,13 +25,15 @@ export class AddRelayEnvironmentTask extends TaskBase {
         await this.configureNext();
         break;
       default:
-        throw new Error(`Unsupported toolchain: ${this.settings.toolChain}`);
+        throw new Error(`Unsupported toolchain: ${this.settings.toolchain}`);
     }
   }
 
   async configureNext() {
     // todo: use other path and create differently
     await this.addRelayEnvironmentFile(VITE_RELAY_ENV_FILE_NO_EXT);
+
+    // todo: configure _app
   }
 
   async configureVite() {

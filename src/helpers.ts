@@ -1,6 +1,6 @@
 import path from "path";
 import fs from "fs/promises";
-import { EnvArguments, ToolChain } from "./types.js";
+import { EnvArguments, Toolchain } from "./types.js";
 import {
   BABEL_RELAY_PACKAGE,
   PACKAGE_FILE,
@@ -126,7 +126,7 @@ export async function getPackageDetails(
 }
 
 export function getRelayDevDependencies(
-  toolChain: ToolChain,
+  toolchain: Toolchain,
   useTypescript: boolean
 ) {
   const relayDevDep = ["relay-compiler"];
@@ -136,11 +136,11 @@ export function getRelayDevDependencies(
     relayDevDep.push("@types/relay-runtime");
   }
 
-  if (toolChain === "cra" || toolChain === "vite") {
+  if (toolchain === "cra" || toolchain === "vite") {
     relayDevDep.push(BABEL_RELAY_PACKAGE);
   }
 
-  if (toolChain === "vite") {
+  if (toolchain === "vite") {
     relayDevDep.push(VITE_RELAY_PACKAGE);
   }
 

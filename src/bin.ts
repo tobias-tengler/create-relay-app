@@ -5,7 +5,7 @@ import { TaskRunner } from "./TaskRunner.js";
 import { AddGraphQlSchemaFileTask } from "./tasks/AddGraphQlSchemaFileTask.js";
 import chalk from "chalk";
 import { AddRelayConfigurationTask } from "./tasks/AddRelayConfigurationTask.js";
-import { ToolChain, EnvArguments, ProjectSettings } from "./types.js";
+import { Toolchain, EnvArguments, ProjectSettings } from "./types.js";
 import { InstallNpmPackagesTask } from "./tasks/InstallNpmPackagesTask.js";
 import { AddRelayPluginConfigurationTask } from "./tasks/AddRelayPluginConfigurationTask.js";
 import { AddRelayEnvironmentTask } from "./tasks/AddRelayEnvironmentTask.js";
@@ -110,7 +110,8 @@ if (srcDirValid !== true) {
 }
 
 const artifactDirValid = isValidArtifactDirectory(
-  completeArguments.artifactDirectoryPath
+  completeArguments.artifactDirectoryPath,
+  completeArguments.toolchain
 );
 
 if (artifactDirValid !== true) {
@@ -131,7 +132,7 @@ const settings: ProjectSettings = {
 
 const dependencies = ["react-relay"];
 const devDependencies = getRelayDevDependencies(
-  settings.toolChain,
+  settings.toolchain,
   settings.useTypescript
 );
 

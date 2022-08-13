@@ -1,6 +1,6 @@
 import { findFileInDirectory, getRelayCompilerLanguage } from "../helpers.js";
 import { TaskBase } from "../TaskBase.js";
-import { ProjectSettings, ToolChain } from "../types.js";
+import { ProjectSettings, Toolchain } from "../types.js";
 import fs from "fs/promises";
 import traverse from "@babel/traverse";
 import t from "@babel/types";
@@ -13,7 +13,7 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
   }
 
   async run(): Promise<void> {
-    switch (this.settings.toolChain) {
+    switch (this.settings.toolchain) {
       case "vite":
         await this.configureVite();
         break;
@@ -21,7 +21,7 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
         await this.configureNext();
         break;
       default:
-        throw new Error(`Unsupported toolchain: ${this.settings.toolChain}`);
+        throw new Error(`Unsupported toolchain: ${this.settings.toolchain}`);
     }
   }
 

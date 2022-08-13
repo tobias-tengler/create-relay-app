@@ -4,8 +4,8 @@ import {
   Optional,
   PackageManager,
   PackageManagerOptions,
-  ToolChain,
-  ToolChainOptions,
+  Toolchain,
+  ToolchainOptions,
 } from "./types.js";
 import { program } from "commander";
 import chalk from "chalk";
@@ -115,12 +115,12 @@ export async function promptForMissingCliArguments(
   // todo: handle error
   const answers = await inquirer.prompt<CliArguments>([
     {
-      name: "toolChain",
+      name: "toolchain",
       message: "Select the toolchain your project is using",
       type: "list",
-      default: defaults.toolChain,
-      choices: ToolChainOptions,
-      when: !existingArgs.toolChain,
+      default: defaults.toolchain,
+      choices: ToolchainOptions,
+      when: !existingArgs.toolchain,
     },
     {
       name: "useTypescript",
@@ -150,7 +150,8 @@ export async function promptForMissingCliArguments(
       message: "Select the artifactDirectory",
       type: "input",
       default: defaults.artifactDirectoryPath,
-      validate: isValidArtifactDirectory,
+      validate: (input: string, answers) =>
+        isValidArtifactDirectory(input, answers?.toolchain!),
       when: !existingArgs.artifactDirectoryPath,
     },
     {
@@ -170,7 +171,7 @@ export async function promptForMissingCliArguments(
 
 function parseCliArguments(args: RawCliArguments): Optional<CliArguments> {
   return {
-    toolChain: tryParseToolChain(args.toolchain),
+    toolchain: tryParseToolChain(args.toolchain),
     packageManager: tryParsePackageManager(args.packageManager),
     srcDirectoryPath: args.src || null,
     artifactDirectoryPath: args.artifactDirectory || null,
@@ -203,7 +204,7 @@ function tryParsePackageManager(rawInput?: string): PackageManager | null {
   throw invalidArgError(PACKAGE_MANAGER_ARG, input, PackageManagerOptions);
 }
 
-function tryParseToolChain(rawInput?: string): ToolChain | null {
+function tryParseToolChain(rawInput?: string): Toolchain | null {
   if (!rawInput) {
     return null;
   }
@@ -222,7 +223,7 @@ function tryParseToolChain(rawInput?: string): ToolChain | null {
     return "cra";
   }
 
-  throw invalidArgError(TOOLCHAIN_ARG, input, ToolChainOptions);
+  throw invalidArgError(TOOLCHAIN_ARG, input, ToolchainOptions);
 }
 
 function invalidArgError(

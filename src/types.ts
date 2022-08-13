@@ -2,14 +2,14 @@ export type Optional<T> = {
   [key in keyof T]: T[key] | null;
 };
 
-export const ToolChainOptions = ["cra", "next", "vite"] as const;
+export const ToolchainOptions = ["cra", "next", "vite"] as const;
 export const PackageManagerOptions = ["npm", "yarn", "pnpm"] as const;
 
-export type ToolChain = typeof ToolChainOptions[number];
+export type Toolchain = typeof ToolchainOptions[number];
 export type PackageManager = typeof PackageManagerOptions[number];
 
 export type CliArguments = Readonly<{
-  toolChain: ToolChain;
+  toolchain: Toolchain;
   useTypescript: boolean;
   schemaFilePath: string;
   srcDirectoryPath: string;

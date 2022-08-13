@@ -1,11 +1,12 @@
 import { execSync } from "child_process";
+import path from "path";
 import { findFileInDirectory } from "./helpers.js";
 import {
   CliArguments,
   EnvArguments,
   Optional,
   PackageManager,
-  ToolChain,
+  Toolchain,
 } from "./types.js";
 import {
   doesProjectUseTypescript,
@@ -20,27 +21,30 @@ export async function getDefaultCliArguments(
     existingArgs.packageManager ||
     (await getProjectPackageManager(env.projectRootDirectory));
 
-  const toolChain =
-    existingArgs.toolChain ||
-    (await getProjectToolChain(packageManager, env.projectRootDirectory));
+  const toolchain =
+    existingArgs.toolchain ||
+    (await getProjectToolchain(packageManager, env.projectRootDirectory));
 
   const useTypescript =
     existingArgs.useTypescript ||
     (await doesProjectUseTypescript(env.projectRootDirectory, packageManager));
 
-  // todo: use other defaults
-  const srcDirectoryPath = existingArgs.srcDirectoryPath || "./src";
-  const artifactDirectoryPath = existingArgs.artifactDirectoryPath || undefined;
+  const srcDirectoryPath =
+    existingArgs.srcDirectoryPath || getProjectSrcDirectory(toolchain);
+  const artifactDirectoryPath =
+    existingArgs.artifactDirectoryPath ||
+    getProjectArtifactDirectory(toolchain);
 
-  // todo: use the src directory as base once configurable
-  const schemaFilePath = existingArgs.schemaFilePath || "./schema.graphql";
+  const schemaFilePath =
+    existingArgs.schemaFilePath ||
+    getProjectSchemaFilepath(toolchain, srcDirectoryPath);
 
   const ignoreGitChanges = existingArgs.ignoreGitChanges || false;
   const skipPrompts = existingArgs.skipPrompts || false;
 
   return {
     packageManager,
-    toolChain,
+    toolchain: toolchain,
     useTypescript,
     schemaFilePath,
     srcDirectoryPath,
@@ -50,10 +54,41 @@ export async function getDefaultCliArguments(
   };
 }
 
-export async function getProjectToolChain(
+function getProjectSchemaFilepath(
+  toolchain: Toolchain,
+  srcDirectoryPath: string
+): string {
+  const filename = "schema.graphql";
+
+  if (toolchain === "next") {
+    return path.join(".", filename);
+  }
+
+  return path.join(srcDirectoryPath, filename);
+}
+
+function getProjectArtifactDirectory(toolchain: Toolchain): string | undefined {
+  if (toolchain === "next") {
+    // Artifacts need to be located outside the ./pages directory,
+    // or they will be treated as pages.
+    return "./__generated";
+  }
+
+  return undefined;
+}
+
+function getProjectSrcDirectory(toolchain: Toolchain): string {
+  if (toolchain === "next") {
+    return "./pages";
+  }
+
+  return "./src";
+}
+
+async function getProjectToolchain(
   manager: PackageManager,
   projectRootDirectory: string
-): Promise<ToolChain> {
+): Promise<Toolchain> {
   if (await isNpmPackageInstalled(manager, projectRootDirectory, "next")) {
     return "next";
   }
@@ -65,7 +100,7 @@ export async function getProjectToolChain(
   return "cra";
 }
 
-export async function getProjectPackageManager(
+async function getProjectPackageManager(
   projectRootDirectory: string
 ): Promise<PackageManager> {
   try {
