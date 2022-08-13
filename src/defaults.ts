@@ -4,7 +4,6 @@ import { findFileInDirectory, normalizePath } from "./helpers.js";
 import {
   CliArguments,
   EnvArguments,
-  Optional,
   PackageManager,
   Toolchain,
 } from "./types.js";
@@ -14,43 +13,40 @@ import {
 } from "./validation.js";
 
 export async function getDefaultCliArguments(
-  existingArgs: Optional<CliArguments>,
+  existing: Partial<CliArguments>,
   env: EnvArguments
 ): Promise<CliArguments> {
   const packageManager =
-    existingArgs.packageManager ||
+    existing.packageManager ||
     (await getProjectPackageManager(env.projectRootDirectory));
 
   const toolchain =
-    existingArgs.toolchain ||
+    existing.toolchain ||
     (await getProjectToolchain(packageManager, env.projectRootDirectory));
 
-  const useTypescript =
-    existingArgs.useTypescript ||
+  const typescript =
+    existing.typescript ||
     (await doesProjectUseTypescript(env.projectRootDirectory, packageManager));
 
-  const srcDirectoryPath =
-    existingArgs.srcDirectoryPath || getProjectSrcDirectory(toolchain);
-  const artifactDirectoryPath =
-    existingArgs.artifactDirectoryPath ||
-    getProjectArtifactDirectory(toolchain);
+  const src = existing.src || getProjectSrcDirectory(toolchain);
+  const artifactDirectory =
+    existing.artifactDirectory || getProjectArtifactDirectory(toolchain);
 
-  const schemaFilePath =
-    existingArgs.schemaFilePath ||
-    getProjectSchemaFilepath(toolchain, srcDirectoryPath);
+  const schemaFile =
+    existing.schemaFile || getProjectSchemaFilepath(toolchain, src);
 
-  const ignoreGitChanges = existingArgs.ignoreGitChanges || false;
-  const skipPrompts = existingArgs.skipPrompts || false;
+  const ignoreGitChanges = existing.ignoreGitChanges || false;
+  const yes = existing.yes || false;
 
   return {
     packageManager,
-    toolchain: toolchain,
-    useTypescript,
-    schemaFilePath,
-    srcDirectoryPath,
-    artifactDirectoryPath,
+    toolchain,
+    typescript,
+    schemaFile,
+    src,
+    artifactDirectory,
     ignoreGitChanges,
-    skipPrompts,
+    yes,
   };
 }
 
@@ -67,14 +63,14 @@ export function getProjectSchemaFilepath(
   return normalizePath(path.join(srcDirectoryPath, filename));
 }
 
-function getProjectArtifactDirectory(toolchain: Toolchain): string | undefined {
+function getProjectArtifactDirectory(toolchain: Toolchain): string | string {
   if (toolchain === "next") {
     // Artifacts need to be located outside the ./pages directory,
     // or they will be treated as pages.
     return "./__generated__";
   }
 
-  return undefined;
+  return "";
 }
 
 function getProjectSrcDirectory(toolchain: Toolchain): string {

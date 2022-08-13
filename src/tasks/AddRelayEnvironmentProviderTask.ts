@@ -4,9 +4,9 @@ import path from "path";
 import { TaskBase } from "../TaskBase.js";
 import t from "@babel/types";
 import { parseAst, insertNamedImport, printAst } from "../ast.js";
-import { isNextSettings, isViteSettings, ProjectSettings } from "../types.js";
+import { ProjectSettings } from "../types.js";
 import { REACT_RELAY_PACKAGE } from "../consts.js";
-import { normalizePath } from "../helpers.js";
+import { normalizePath, removeExtension } from "../helpers.js";
 
 const RELAY_ENV_PROVIDER = "RelayEnvironmentProvider";
 const RELAY_ENV = "RelayEnvironment";
@@ -30,14 +30,7 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
   }
 
   async configureNext() {
-    const tSettings = this.settings.toolchainSettings;
-
-    if (!isNextSettings(tSettings)) {
-      // todo: handle correctly
-      throw new Error();
-    }
-
-    const code = await fs.readFile(tSettings.appFilepath, "utf-8");
+    const code = await fs.readFile(this.settings.mainFilepath, "utf-8");
 
     const ast = parseAst(code);
 
@@ -49,7 +42,7 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
           return;
         }
 
-        this.wrapJsxInProvider(path, tSettings.appFilepath);
+        this.wrapJsxInProvider(path, this.settings.mainFilepath);
 
         providerWrapped = true;
 
@@ -59,18 +52,11 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
 
     const updatedCode = printAst(ast, code);
 
-    await fs.writeFile(tSettings.appFilepath, updatedCode, "utf-8");
+    await fs.writeFile(this.settings.mainFilepath, updatedCode, "utf-8");
   }
 
   async configureVite() {
-    const tSettings = this.settings.toolchainSettings;
-
-    if (!isViteSettings(tSettings)) {
-      // todo: handle correctly
-      throw new Error();
-    }
-
-    const code = await fs.readFile(tSettings.mainFilepath, "utf-8");
+    const code = await fs.readFile(this.settings.mainFilepath, "utf-8");
 
     const ast = parseAst(code);
 
@@ -94,7 +80,7 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
           return;
         }
 
-        this.wrapJsxInProvider(path, tSettings.mainFilepath);
+        this.wrapJsxInProvider(path, this.settings.mainFilepath);
 
         providerWrapped = true;
 
@@ -104,7 +90,7 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
 
     const updatedCode = printAst(ast, code);
 
-    await fs.writeFile(tSettings.mainFilepath, updatedCode, "utf-8");
+    await fs.writeFile(this.settings.mainFilepath, updatedCode, "utf-8");
   }
 
   private wrapJsxInProvider(
@@ -114,11 +100,9 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
     const relativeImportPath = normalizePath(
       path.relative(
         path.dirname(sourceFilepath),
-        this.settings.relayEnvFilepath // todo: remove ext
+        removeExtension(this.settings.relayEnvFilepath)
       )
     );
-
-    console.log({ relativeImportPath });
 
     const envId = insertNamedImport(jsxPath, RELAY_ENV, relativeImportPath);
 

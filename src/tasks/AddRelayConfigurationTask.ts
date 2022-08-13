@@ -30,9 +30,9 @@ export class AddRelayConfigurationTask extends TaskBase {
     if (!packageJson["relay"]) {
       // Add "relay" configuration section
       const relayConfig: Record<string, string | string[]> = {
-        src: this.settings.srcDirectoryPath,
+        src: this.settings.src,
         language: this.settings.compilerLanguage,
-        schema: this.settings.schemaFilePath,
+        schema: this.settings.schemaFile,
         exclude: [
           "**/node_modules/**",
           "**/__mocks__/**",
@@ -40,8 +40,8 @@ export class AddRelayConfigurationTask extends TaskBase {
         ],
       };
 
-      if (this.settings.artifactDirectoryPath) {
-        relayConfig.artifactDirectory = this.settings.artifactDirectoryPath;
+      if (this.settings.artifactDirectory) {
+        relayConfig.artifactDirectory = this.settings.artifactDirectory;
       }
 
       packageJson["relay"] = relayConfig;

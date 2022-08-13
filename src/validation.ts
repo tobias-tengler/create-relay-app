@@ -1,11 +1,13 @@
 import { exec, spawn } from "child_process";
 import path from "path";
 import { TS_CONFIG_FILE, TYPESCRIPT_PACKAGE } from "./consts.js";
-import { findFileInDirectory, highlight } from "./helpers.js";
+import { findFileInDirectory, highlight, isSubDirectory } from "./helpers.js";
 import { PackageManager, Toolchain } from "./types.js";
 
-// todo: validate that these are relative to the project root
-export function isValidSchemaPath(input: string): string | true {
+export function isValidSchemaPath(
+  input: string,
+  projectRootDirectory: string
+): string | true {
   if (!input) {
     return "Required";
   }
@@ -14,20 +16,32 @@ export function isValidSchemaPath(input: string): string | true {
     return `File needs to end in ${highlight(".graphql")}`;
   }
 
+  if (!isSubDirectory(projectRootDirectory, input)) {
+    return `Must be directory below ${highlight(projectRootDirectory)}`;
+  }
+
   return true;
 }
 
-export function isValidSrcDirectory(input: string): string | true {
+export function isValidSrcDirectory(
+  input: string,
+  projectRootDirectory: string
+): string | true {
   if (!input) {
     return `Required`;
+  }
+
+  if (!isSubDirectory(projectRootDirectory, input)) {
+    return `Must be directory below ${highlight(projectRootDirectory)}`;
   }
 
   return true;
 }
 
 export function isValidArtifactDirectory(
-  input: string | undefined,
-  toolchain: Toolchain
+  input: string | null,
+  toolchain: Toolchain,
+  projectRootDirectory: string
 ): string | true {
   if (!input) {
     if (toolchain === "next") {
@@ -42,6 +56,10 @@ export function isValidArtifactDirectory(
     return `Last directory segment should be called ${highlight(
       "__generated__"
     )}`;
+  }
+
+  if (!isSubDirectory(projectRootDirectory, input)) {
+    return `Must be directory below ${highlight(projectRootDirectory)}`;
   }
 
   return true;

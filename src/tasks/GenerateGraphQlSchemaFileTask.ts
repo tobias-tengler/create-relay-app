@@ -13,20 +13,16 @@ export class GenerateGraphQlSchemaFileTask extends TaskBase {
   }
 
   async run(): Promise<void> {
-    if (existsSync(this.settings.schemaFilePath)) {
+    if (existsSync(this.settings.schemaFile)) {
       this.skip("File exists");
     }
 
-    const dir = path.dirname(this.settings.schemaFilePath);
+    const dir = path.dirname(this.settings.schemaFile);
 
     // todo: handle error
     fs.mkdirSync(dir, { recursive: true });
 
     // todo: handle error
-    await fs.writeFile(
-      this.settings.schemaFilePath,
-      schemaGraphQLContent,
-      "utf-8"
-    );
+    await fs.writeFile(this.settings.schemaFile, schemaGraphQLContent, "utf-8");
   }
 }

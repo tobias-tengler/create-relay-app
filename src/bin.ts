@@ -5,7 +5,7 @@ import { TaskRunner } from "./TaskRunner.js";
 import { GenerateGraphQlSchemaFileTask } from "./tasks/GenerateGraphQlSchemaFileTask.js";
 import chalk from "chalk";
 import { AddRelayConfigurationTask } from "./tasks/AddRelayConfigurationTask.js";
-import { EnvArguments, ProjectSettings } from "./types.js";
+import { CliArguments, EnvArguments, ProjectSettings } from "./types.js";
 import { InstallNpmPackagesTask } from "./tasks/InstallNpmPackagesTask.js";
 import { ConfigureRelayGraphqlTransformTask } from "./tasks/ConfigureRelayGraphqlTransformTask.js";
 import { AddRelayEnvironmentProviderTask } from "./tasks/AddRelayEnvironmentProviderTask.js";
@@ -19,6 +19,7 @@ import {
   getToolchainSettings,
   getRelayEnvFilepath,
   normalizePath,
+  getRelativePath,
 } from "./helpers.js";
 import { exit } from "process";
 import {
@@ -69,75 +70,86 @@ const envArguments: EnvArguments = {
 
 // GET ARGUMENTS
 
-// todo: handle errors
-const cliArguments = await getCliArguments(envArguments);
+let cliArgs: CliArguments;
 
-if (!cliArguments.ignoreGitChanges) {
-  const hasUnsavedChanges = await hasUnsavedGitChanges(
-    envArguments.projectRootDirectory
-  );
+try {
+  const partialCliArguments = await getCliArguments(envArguments);
 
-  if (hasUnsavedChanges) {
-    printError(
-      `Please commit or discard all changes in the ${highlight(
-        envArguments.projectRootDirectory
-      )} directory before continuing.`
+  if (!partialCliArguments.ignoreGitChanges) {
+    const hasUnsavedChanges = await hasUnsavedGitChanges(
+      envArguments.projectRootDirectory
     );
-    exit(1);
+
+    if (hasUnsavedChanges) {
+      printError(
+        `Please commit or discard all changes in the ${highlight(
+          envArguments.projectRootDirectory
+        )} directory before continuing.`
+      );
+      exit(1);
+    }
   }
-}
 
-const completeArguments = await promptForMissingCliArguments(
-  cliArguments,
-  envArguments
-);
-
-// VALIDATE ARGUMENTS
-
-const schemaPathValid = isValidSchemaPath(completeArguments.schemaFilePath);
-
-if (schemaPathValid !== true) {
-  printInvalidArg(
-    SCHEMA_FILE_ARG,
-    schemaPathValid,
-    completeArguments.schemaFilePath
+  cliArgs = await promptForMissingCliArguments(
+    partialCliArguments,
+    envArguments
   );
+} catch (error) {
+  if (error instanceof Error) {
+    printError(error.message);
+  } else {
+    printError("Unexpected error while parsing CLI arguments");
+  }
+
   exit(1);
 }
 
-const srcDirValid = isValidSrcDirectory(completeArguments.srcDirectoryPath);
+// VALIDATE ARGUMENTS
+
+const schemaPathValid = isValidSchemaPath(
+  cliArgs.schemaFile,
+  envArguments.projectRootDirectory
+);
+
+if (schemaPathValid !== true) {
+  printInvalidArg(SCHEMA_FILE_ARG, schemaPathValid, cliArgs.schemaFile);
+  exit(1);
+}
+
+const srcDirValid = isValidSrcDirectory(
+  cliArgs.src,
+  envArguments.projectRootDirectory
+);
 
 if (srcDirValid !== true) {
-  printInvalidArg(SRC_DIR_ARG, srcDirValid, completeArguments.srcDirectoryPath);
+  printInvalidArg(SRC_DIR_ARG, srcDirValid, cliArgs.src);
 
   exit(1);
 }
 
 const artifactDirValid = isValidArtifactDirectory(
-  completeArguments.artifactDirectoryPath,
-  completeArguments.toolchain
+  cliArgs.artifactDirectory,
+  cliArgs.toolchain,
+  envArguments.projectRootDirectory
 );
 
 if (artifactDirValid !== true) {
   printInvalidArg(
     ARTIFACT_DIR_ARG,
     artifactDirValid,
-    completeArguments.artifactDirectoryPath
+    cliArgs.artifactDirectory
   );
   exit(1);
 }
 
-const toolchainSettings = await getToolchainSettings(
-  envArguments,
-  completeArguments
-);
+const toolchainSettings = await getToolchainSettings(envArguments, cliArgs);
 
 const settings: ProjectSettings = {
   ...envArguments,
-  ...completeArguments,
-  compilerLanguage: getRelayCompilerLanguage(completeArguments.useTypescript),
-  relayEnvFilepath: getRelayEnvFilepath(envArguments, completeArguments),
-  toolchainSettings,
+  ...cliArgs,
+  compilerLanguage: getRelayCompilerLanguage(cliArgs.typescript),
+  relayEnvFilepath: getRelayEnvFilepath(envArguments, cliArgs),
+  ...toolchainSettings,
 };
 
 console.log(settings);
@@ -147,11 +159,27 @@ console.log(settings);
 const dependencies = [REACT_RELAY_PACKAGE];
 const devDependencies = getRelayDevDependencies(
   settings.toolchain,
-  settings.useTypescript
+  settings.typescript
 );
 
-const relRelayEnvPath = normalizePath(
-  path.relative(settings.projectRootDirectory, settings.relayEnvFilepath)
+const relRelayEnvPath = getRelativePath(
+  settings.projectRootDirectory,
+  settings.relayEnvFilepath
+);
+
+const relMainPath = getRelativePath(
+  settings.projectRootDirectory,
+  settings.mainFilepath
+);
+
+const relConfigPath = getRelativePath(
+  settings.projectRootDirectory,
+  settings.configFilepath
+);
+
+const relSchemaPath = getRelativePath(
+  settings.projectRootDirectory,
+  settings.schemaFile
 );
 
 const runner = new TaskRunner([
@@ -172,7 +200,7 @@ const runner = new TaskRunner([
     task: new AddRelayConfigurationTask(settings),
   },
   {
-    title: "Configure Relay graphql transform",
+    title: `Configure Relay transform in ${highlight(relConfigPath)}`,
     task: new ConfigureRelayGraphqlTransformTask(settings),
   },
   {
@@ -181,19 +209,19 @@ const runner = new TaskRunner([
     task: new GenerateRelayEnvironmentTask(settings),
   },
   {
-    title: "Add RelayEnvironmentProvider",
+    title: `Add RelayEnvironmentProvider to ${highlight(relMainPath)}`,
     task: new AddRelayEnvironmentProviderTask(settings),
   },
   {
-    title: `Generate GraphQL schema file ${highlight(settings.schemaFilePath)}`,
+    title: `Generate GraphQL schema file ${highlight(relSchemaPath)}`,
     task: new GenerateGraphQlSchemaFileTask(settings),
   },
   {
     title: `Generate artifact directory ${highlight(
-      settings.artifactDirectoryPath!
+      settings.artifactDirectory!
     )}`,
     task: new GenerateArtifactDirectoryTask(settings),
-    when: !!settings.artifactDirectoryPath,
+    when: !!settings.artifactDirectory,
   },
 ]);
 
@@ -210,20 +238,19 @@ try {
 // DISPLAY RESULT
 
 console.log();
+console.log();
 
-console.log(chalk.yellow.bold("Next steps:"));
+console.log(chalk.cyan.bold.underline("Next steps"));
+console.log();
 
 console.log(
-  `1. Replace ${highlight(
-    settings.schemaFilePath
-  )} with your own GraphQL schema file.`
+  `1. Replace ${highlight(relSchemaPath)} with your own GraphQL schema file.`
 );
 
-// todo: get correct path to file
 console.log(
-  `2. Replace the value of the ${highlight(
-    "HOST"
-  )} variable in the RelayEnvironment.ts file.`
+  `2. Replace the value of the ${highlight("HOST")} variable in the ${highlight(
+    relRelayEnvPath
+  )} file.`
 );
 
 console.log();

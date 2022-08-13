@@ -1,14 +1,12 @@
 import {
   CliArguments,
   EnvArguments,
-  Optional,
   PackageManager,
   PackageManagerOptions,
   Toolchain,
   ToolchainOptions,
 } from "./types.js";
 import { program } from "commander";
-import chalk from "chalk";
 import inquirer from "inquirer";
 import { getPackageDetails, getSpecifiedProperties } from "./helpers.js";
 import {
@@ -32,20 +30,9 @@ import {
   YES_ARG,
 } from "./consts.js";
 
-type RawCliArguments = Partial<{
-  toolchain: string;
-  typescript: boolean;
-  schemaFile: string;
-  src: string;
-  artifactDirectory: string;
-  packageManager: string;
-  ignoreGitChanges: boolean;
-  yes: boolean;
-}>;
-
 export async function getCliArguments(
   env: EnvArguments
-): Promise<Optional<CliArguments>> {
+): Promise<Partial<CliArguments>> {
   const {
     name: PACKAGE_NAME,
     version: PACKAGE_VERSION,
@@ -61,7 +48,8 @@ export async function getCliArguments(
   program
     .option(
       `-t, ${TOOLCHAIN_ARG} <toolchain>`,
-      "the toolchain used to bundle / serve the project"
+      "the toolchain used to bundle / serve the project",
+      parseToolChain
     )
     .option(TYPESCRIPT_ARG, "use Typescript")
     .option(
@@ -78,7 +66,8 @@ export async function getCliArguments(
     )
     .option(
       `-p, ${PACKAGE_MANAGER_ARG} <manager>`,
-      "the package manager to use for installing packages"
+      "the package manager to use for installing packages",
+      parsePackageManager
     )
     .option(
       IGNORE_GIT_CHANGES_ARG,
@@ -88,26 +77,22 @@ export async function getCliArguments(
 
   program.parse();
 
-  const rawCliArguments = program.opts<RawCliArguments>();
-  const partialCliArguments = parseCliArguments(rawCliArguments);
-
-  // todo: normalize all paths
-  return partialCliArguments;
+  return program.opts<CliArguments>();
 }
 
 export async function promptForMissingCliArguments(
-  existingArgs: Optional<CliArguments>,
+  existingArgs: Partial<CliArguments>,
   env: EnvArguments
 ): Promise<CliArguments> {
   const defaults = await getDefaultCliArguments(existingArgs, env);
 
-  if (existingArgs.skipPrompts) {
+  if (existingArgs.yes) {
     return { ...defaults, ...getSpecifiedProperties(existingArgs) };
   }
 
   // todo: maybe handle subscription or @defer / @stream setup
   // todo: handle error
-  const answers = await inquirer.prompt<CliArguments>([
+  const answers = await inquirer.prompt<Partial<CliArguments>>([
     {
       name: "toolchain",
       message: "Select the toolchain your project is using",
@@ -117,43 +102,46 @@ export async function promptForMissingCliArguments(
       when: !existingArgs.toolchain,
     },
     {
-      name: "useTypescript",
+      name: "typescript",
       message: "Does your project use Typescript",
       type: "confirm",
-      default: defaults.useTypescript,
-      when: !existingArgs.useTypescript,
+      default: defaults.typescript,
+      when: !existingArgs.typescript,
     },
     {
-      name: "srcDirectoryPath",
+      name: "src",
       message: "Select the source directory",
       type: "input",
-      default: defaults.srcDirectoryPath,
-      validate: isValidSrcDirectory,
-      when: !existingArgs.srcDirectoryPath,
+      default: defaults.src,
+      validate: (input: string) =>
+        isValidSrcDirectory(input, env.projectRootDirectory),
+      when: !existingArgs.src,
     },
     {
-      name: "schemaFilePath",
+      name: "schemaFile",
       message: "Select the path to your GraphQL schema file",
       type: "input",
-      default: (answers: Partial<CliArguments>) =>
+      default: (answers: CliArguments) =>
         getProjectSchemaFilepath(
           answers.toolchain ?? defaults.toolchain,
-          answers.srcDirectoryPath ?? defaults.srcDirectoryPath
+          answers.src ?? defaults.src
         ),
-      validate: isValidSchemaPath,
-      when: !existingArgs.schemaFilePath,
+      validate: (input: string) =>
+        isValidSchemaPath(input, env.projectRootDirectory),
+      when: !existingArgs.schemaFile,
     },
     {
-      name: "artifactDirectoryPath",
+      name: "artifactDirectory",
       message: "Select the artifactDirectory",
       type: "input",
-      default: defaults.artifactDirectoryPath,
+      default: defaults.artifactDirectory,
       validate: (input: string, answers: Partial<CliArguments> | undefined) =>
         isValidArtifactDirectory(
           input,
-          answers?.toolchain ?? defaults.toolchain
+          answers?.toolchain ?? defaults.toolchain,
+          env.projectRootDirectory
         ),
-      when: !existingArgs.artifactDirectoryPath,
+      when: !existingArgs.artifactDirectory,
     },
     {
       name: "packageManager",
@@ -170,20 +158,7 @@ export async function promptForMissingCliArguments(
   return { ...defaults, ...answers };
 }
 
-function parseCliArguments(args: RawCliArguments): Optional<CliArguments> {
-  return {
-    toolchain: tryParseToolChain(args.toolchain),
-    packageManager: tryParsePackageManager(args.packageManager),
-    srcDirectoryPath: args.src || null,
-    artifactDirectoryPath: args.artifactDirectory || null,
-    schemaFilePath: args.schemaFile || null,
-    useTypescript: args.typescript || null,
-    skipPrompts: args.yes || null,
-    ignoreGitChanges: args.ignoreGitChanges || null,
-  };
-}
-
-function tryParsePackageManager(rawInput?: string): PackageManager | null {
+function parsePackageManager(rawInput?: string): PackageManager | null {
   if (!rawInput) {
     return null;
   }
@@ -205,7 +180,7 @@ function tryParsePackageManager(rawInput?: string): PackageManager | null {
   throw invalidArgError(PACKAGE_MANAGER_ARG, input, PackageManagerOptions);
 }
 
-function tryParseToolChain(rawInput?: string): Toolchain | null {
+function parseToolChain(rawInput?: string): Toolchain | null {
   if (!rawInput) {
     return null;
   }

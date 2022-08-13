@@ -3,11 +3,8 @@ import fs from "fs/promises";
 import {
   CliArguments,
   EnvArguments,
-  NextToolchainSettings,
-  Optional,
+  ProjectSettings,
   Toolchain,
-  ToolchainSettings,
-  ViteToolchainSettings,
 } from "./types.js";
 import {
   BABEL_RELAY_PACKAGE,
@@ -20,7 +17,7 @@ import chalk from "chalk";
 export function printInvalidArg(
   arg: string,
   validationMsg: string,
-  value?: string
+  value?: string | null
 ) {
   printError(`Invalid ${arg} specified: ${value} ${chalk.dim(validationMsg)}`);
 }
@@ -157,7 +154,7 @@ export function getRelayDevDependencies(
   return relayDevDep;
 }
 
-export function getSpecifiedProperties<T extends object>(obj: Optional<T>): T {
+export function getSpecifiedProperties<T extends object>(obj: Partial<T>): T {
   const keys = Object.keys(obj) as (keyof T)[];
 
   const newObj = {} as T;
@@ -173,8 +170,28 @@ export function getSpecifiedProperties<T extends object>(obj: Optional<T>): T {
   return newObj;
 }
 
+export function isSubDirectory(parent: string, dir: string): boolean {
+  const relative = path.relative(parent, dir);
+
+  return !!relative && !relative.startsWith("..") && !path.isAbsolute(relative);
+}
+
+export function getRelativePath(root: string, leave: string): string {
+  return normalizePath(path.relative(root, leave));
+}
+
 export function normalizePath(input: string): string {
-  return input.split(path.sep).join("/");
+  let unixPath = input.split(path.sep).join("/");
+
+  if (!unixPath.startsWith("..") && !unixPath.startsWith("./")) {
+    unixPath = "./" + unixPath;
+  }
+
+  return unixPath;
+}
+
+export function removeExtension(filename: string): string {
+  return filename.substring(0, filename.lastIndexOf(".")) || filename;
 }
 
 export function getRelayCompilerLanguage(
@@ -191,18 +208,19 @@ export function getRelayEnvFilepath(
   env: EnvArguments,
   args: CliArguments
 ): string {
-  const filename = "RelayEnvironment" + (args.useTypescript ? ".ts" : ".js");
+  const filename = "RelayEnvironment" + (args.typescript ? ".ts" : ".js");
 
-  const destDirectory = path.join(env.projectRootDirectory, "src");
-  return path.join(destDirectory, filename);
+  const directory = path.join(env.projectRootDirectory, "src");
+
+  return path.join(directory, filename);
 }
 
 export async function getToolchainSettings(
   env: EnvArguments,
   args: CliArguments
-): Promise<ToolchainSettings> {
+): Promise<Pick<ProjectSettings, "mainFilepath" | "configFilepath">> {
   if (args.toolchain === "vite") {
-    const configFilename = "vite.config" + (args.useTypescript ? ".ts" : ".js");
+    const configFilename = "vite.config" + (args.typescript ? ".ts" : ".js");
 
     const configFilepath = await findFileInDirectory(
       env.projectRootDirectory,
@@ -213,7 +231,7 @@ export async function getToolchainSettings(
       throw new Error(`${configFilename} not found`);
     }
 
-    const mainFilename = "main" + (args.useTypescript ? ".tsx" : ".jsx");
+    const mainFilename = "main" + (args.typescript ? ".tsx" : ".jsx");
 
     const searchDirectory = path.join(env.projectRootDirectory, "src");
 
@@ -226,13 +244,10 @@ export async function getToolchainSettings(
       throw new Error(`${mainFilename} not found`);
     }
 
-    const settings: ViteToolchainSettings = {
-      toolchain: "vite",
+    return {
       configFilepath,
       mainFilepath,
     };
-
-    return settings;
   } else if (args.toolchain === "next") {
     const configFilename = "next.config.js";
 
@@ -245,7 +260,7 @@ export async function getToolchainSettings(
       throw new Error(`${configFilename} not found`);
     }
 
-    const appFilename = "_app" + (args.useTypescript ? ".tsx" : ".jsx");
+    const appFilename = "_app" + (args.typescript ? ".tsx" : ".jsx");
 
     const searchDirectory = path.join(env.projectRootDirectory, "pages");
 
@@ -255,14 +270,11 @@ export async function getToolchainSettings(
       throw new Error(`${appFilename} not found`);
     }
 
-    const settings: NextToolchainSettings = {
-      toolchain: "next",
+    return {
       configFilepath: configFilepath,
-      appFilepath,
+      mainFilepath: appFilepath,
     };
-
-    return settings;
   }
 
-  return null!;
+  throw new Error(`Unsupported toolchain: ${args.toolchain}`);
 }

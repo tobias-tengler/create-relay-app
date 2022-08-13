@@ -18,7 +18,7 @@ export class TaskRunner {
 
       const spinner = ora(title);
 
-      task.setSpinner(spinner);
+      task.init(spinner);
 
       try {
         spinner.start();

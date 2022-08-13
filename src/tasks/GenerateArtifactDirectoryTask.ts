@@ -9,13 +9,13 @@ export class GenerateArtifactDirectoryTask extends TaskBase {
   }
 
   async run(): Promise<void> {
-    if (!this.settings.artifactDirectoryPath) {
+    if (!this.settings.artifactDirectory) {
       return;
     }
 
     const fullpath = path.join(
       this.settings.projectRootDirectory,
-      this.settings.artifactDirectoryPath
+      this.settings.artifactDirectory
     );
 
     // todo: handle error

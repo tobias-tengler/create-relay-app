@@ -17,7 +17,7 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
 
     let srcFile: string;
 
-    if (this.settings.useTypescript) {
+    if (this.settings.typescript) {
       srcFile = "./assets/env_ts";
     } else {
       srcFile = "./assets/env";

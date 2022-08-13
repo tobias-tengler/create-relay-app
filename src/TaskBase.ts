@@ -6,7 +6,7 @@ export abstract class TaskBase {
 
   abstract run(): Promise<void>;
 
-  setSpinner(spinner: Ora) {
+  init(spinner: Ora) {
     this.spinner = spinner;
   }
 

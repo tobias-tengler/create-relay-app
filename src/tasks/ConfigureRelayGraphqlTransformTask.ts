@@ -1,5 +1,5 @@
 import { TaskBase } from "../TaskBase.js";
-import { isNextSettings, isViteSettings, ProjectSettings } from "../types.js";
+import { ProjectSettings } from "../types.js";
 import fs from "fs/promises";
 import traverse from "@babel/traverse";
 import t from "@babel/types";
@@ -24,15 +24,8 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
   }
 
   private async configureNext() {
-    const tSettings = this.settings.toolchainSettings;
-
-    if (!isNextSettings(tSettings)) {
-      // todo: handle correctly
-      throw new Error();
-    }
-
     // todo: handle errors
-    const configCode = await fs.readFile(tSettings.configFilepath, "utf-8");
+    const configCode = await fs.readFile(this.settings.configFilepath, "utf-8");
 
     const ast = parseAst(configCode);
 
@@ -50,7 +43,7 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
           node.left.property.name !== "exports"
         ) {
           throw new Error(
-            `Expected to find a module.exports assignment that exports the Next.js configuration from ${tSettings.configFilepath}.`
+            `Expected to find a module.exports assignment that exports the Next.js configuration from ${this.settings.configFilepath}.`
           );
         }
 
@@ -69,7 +62,7 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
             !t.isObjectExpression(binding.path.node.init)
           ) {
             throw new Error(
-              `module.exports in ${tSettings.configFilepath} references a variable, which is not a valid object definition.`
+              `module.exports in ${this.settings.configFilepath} references a variable, which is not a valid object definition.`
             );
           }
 
@@ -78,7 +71,7 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
           objExp = node.right;
         } else {
           throw new Error(
-            `Expected to find a module.exports assignment that exports the Next.js configuration from ${tSettings.configFilepath}.`
+            `Expected to find a module.exports assignment that exports the Next.js configuration from ${this.settings.configFilepath}.`
           );
         }
 
@@ -101,7 +94,7 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
 
         if (!t.isObjectExpression(compilerProperty.value)) {
           throw new Error(
-            `Could not create or get a "compiler" property on the Next.js configuration object in ${tSettings.configFilepath}.`
+            `Could not create or get a "compiler" property on the Next.js configuration object in ${this.settings.configFilepath}.`
           );
         }
 
@@ -120,7 +113,7 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
         const objProperties: t.ObjectProperty[] = [
           t.objectProperty(
             t.identifier("src"),
-            t.stringLiteral(this.settings.srcDirectoryPath)
+            t.stringLiteral(this.settings.src)
           ),
           t.objectProperty(
             t.identifier("language"),
@@ -128,11 +121,11 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
           ),
         ];
 
-        if (this.settings.artifactDirectoryPath) {
+        if (this.settings.artifactDirectory) {
           objProperties.push(
             t.objectProperty(
               t.identifier("artifactDirectory"),
-              t.stringLiteral(this.settings.artifactDirectoryPath)
+              t.stringLiteral(this.settings.artifactDirectory)
             )
           );
         }
@@ -149,19 +142,16 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
 
     const updatedConfigCode = printAst(ast, configCode);
 
-    await fs.writeFile(tSettings.configFilepath, updatedConfigCode, "utf-8");
+    await fs.writeFile(
+      this.settings.configFilepath,
+      updatedConfigCode,
+      "utf-8"
+    );
   }
 
   private async configureVite() {
-    const tSettings = this.settings.toolchainSettings;
-
-    if (!isViteSettings(tSettings)) {
-      // todo: handle correctly
-      throw new Error();
-    }
-
     // todo: handle errors
-    const configCode = await fs.readFile(tSettings.configFilepath, "utf-8");
+    const configCode = await fs.readFile(this.settings.configFilepath, "utf-8");
 
     const ast = parseAst(configCode);
 
@@ -185,7 +175,7 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
           node.declaration.callee.name !== "defineConfig"
         ) {
           throw new Error(
-            `Expected a export default defineConfig({}) in ${tSettings.configFilepath}.`
+            `Expected a export default defineConfig({}) in ${this.settings.configFilepath}.`
           );
         }
 
@@ -193,7 +183,7 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
 
         if (!t.isObjectExpression(arg)) {
           throw new Error(
-            `Expected a export default defineConfig({}) in ${tSettings.configFilepath}.`
+            `Expected a export default defineConfig({}) in ${this.settings.configFilepath}.`
           );
         }
 
@@ -216,7 +206,7 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
 
         if (!t.isArrayExpression(pluginsProperty.value)) {
           throw new Error(
-            `Could not create or get a "plugins" property on the Vite configuration object in ${tSettings.configFilepath}.`
+            `Could not create or get a "plugins" property on the Vite configuration object in ${this.settings.configFilepath}.`
           );
         }
 
@@ -238,6 +228,10 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
 
     const updatedConfigCode = printAst(ast, configCode);
 
-    await fs.writeFile(tSettings.configFilepath, updatedConfigCode, "utf-8");
+    await fs.writeFile(
+      this.settings.configFilepath,
+      updatedConfigCode,
+      "utf-8"
+    );
   }
 }
