@@ -10,8 +10,11 @@ import {
 import { program } from "commander";
 import chalk from "chalk";
 import inquirer from "inquirer";
-import { getPackageDetails } from "./helpers.js";
-import { getDefaultCliArguments } from "./defaults.js";
+import { getPackageDetails, getSpecifiedProperties } from "./helpers.js";
+import {
+  getDefaultCliArguments,
+  getProjectSchemaFilepath,
+} from "./defaults.js";
 import {
   isValidArtifactDirectory,
   isValidSchemaPath,
@@ -97,20 +100,10 @@ export async function promptForMissingCliArguments(
 ): Promise<CliArguments> {
   const defaults = await getDefaultCliArguments(existingArgs, env);
 
-  // todo: re-implement
+  if (existingArgs.skipPrompts) {
+    return { ...defaults, ...getSpecifiedProperties(existingArgs) };
+  }
 
-  // const definedExistingArgs = { ...existingArgs };
-
-  // (Object.keys(definedExistingArgs) as (keyof CliArguments)[]).forEach(
-  //   (k) => definedExistingArgs[k] === null && delete definedExistingArgs[k]
-  // );
-
-  // // todo: find better way to skip prompts, but still show inquirer results
-  // if (existingArgs.skipPrompts) {
-  //   return { ...defaults, ...definedExistingArgs };
-  // }
-
-  // todo: handle artifact directory
   // todo: maybe handle subscription or @defer / @stream setup
   // todo: handle error
   const answers = await inquirer.prompt<CliArguments>([
@@ -129,14 +122,7 @@ export async function promptForMissingCliArguments(
       default: defaults.useTypescript,
       when: !existingArgs.useTypescript,
     },
-    {
-      name: "schemaFilePath",
-      message: "Select the path to your GraphQL schema file",
-      type: "input",
-      default: defaults.schemaFilePath,
-      validate: isValidSchemaPath,
-      when: !existingArgs.schemaFilePath,
-    },
+
     {
       name: "srcDirectoryPath",
       message: "Select the source directory",
@@ -146,12 +132,27 @@ export async function promptForMissingCliArguments(
       when: !existingArgs.srcDirectoryPath,
     },
     {
+      name: "schemaFilePath",
+      message: "Select the path to your GraphQL schema file",
+      type: "input",
+      default: (answers: Partial<CliArguments>) =>
+        getProjectSchemaFilepath(
+          answers.toolchain ?? defaults.toolchain,
+          answers.srcDirectoryPath ?? defaults.srcDirectoryPath
+        ),
+      validate: isValidSchemaPath,
+      when: !existingArgs.schemaFilePath,
+    },
+    {
       name: "artifactDirectoryPath",
       message: "Select the artifactDirectory",
       type: "input",
       default: defaults.artifactDirectoryPath,
-      validate: (input: string, answers) =>
-        isValidArtifactDirectory(input, answers?.toolchain!),
+      validate: (input: string, answers: Partial<CliArguments> | undefined) =>
+        isValidArtifactDirectory(
+          input,
+          answers?.toolchain ?? defaults.toolchain
+        ),
       when: !existingArgs.artifactDirectoryPath,
     },
     {
@@ -166,7 +167,7 @@ export async function promptForMissingCliArguments(
 
   console.log();
 
-  return { ...answers };
+  return { ...defaults, ...answers };
 }
 
 function parseCliArguments(args: RawCliArguments): Optional<CliArguments> {

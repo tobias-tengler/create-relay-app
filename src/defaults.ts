@@ -54,14 +54,14 @@ export async function getDefaultCliArguments(
   };
 }
 
-function getProjectSchemaFilepath(
+export function getProjectSchemaFilepath(
   toolchain: Toolchain,
   srcDirectoryPath: string
 ): string {
   const filename = "schema.graphql";
 
   if (toolchain === "next") {
-    return path.join(".", filename);
+    return filename;
   }
 
   return path.join(srcDirectoryPath, filename);

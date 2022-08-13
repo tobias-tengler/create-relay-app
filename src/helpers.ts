@@ -1,6 +1,6 @@
 import path from "path";
 import fs from "fs/promises";
-import { EnvArguments, Toolchain } from "./types.js";
+import { EnvArguments, Optional, Toolchain } from "./types.js";
 import {
   BABEL_RELAY_PACKAGE,
   PACKAGE_FILE,
@@ -145,4 +145,20 @@ export function getRelayDevDependencies(
   }
 
   return relayDevDep;
+}
+
+export function getSpecifiedProperties<T extends object>(obj: Optional<T>): T {
+  const keys = Object.keys(obj) as (keyof T)[];
+
+  const newObj = {} as T;
+
+  for (const key of keys) {
+    if (obj[key] === null) {
+      continue;
+    }
+
+    newObj[key] = obj[key]!;
+  }
+
+  return newObj;
 }
