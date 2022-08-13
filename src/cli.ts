@@ -54,7 +54,7 @@ export async function getCliArguments(
     .description(PACKAGE_DESCRIPTION)
     .version(PACKAGE_VERSION, `-v, ${VERSION_ARG}`);
 
-  // If you change argumemts, make to match up RawCliArguments as well.
+  // If you change argumemts, make sure to match up RawCliArguments as well.
   program
     .option(
       `-t, ${TOOLCHAIN_ARG} <toolchain>`,
@@ -143,6 +143,7 @@ export async function promptForMissingCliArguments(
       type: "input",
       default: defaults.srcDirectoryPath,
       validate: isValidSrcDirectory,
+      when: !existingArgs.srcDirectoryPath,
     },
     {
       name: "artifactDirectoryPath",
@@ -150,6 +151,7 @@ export async function promptForMissingCliArguments(
       type: "input",
       default: defaults.artifactDirectoryPath,
       validate: isValidArtifactDirectory,
+      when: !existingArgs.artifactDirectoryPath,
     },
     {
       name: "packageManager",

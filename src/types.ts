@@ -13,7 +13,7 @@ export type CliArguments = Readonly<{
   useTypescript: boolean;
   schemaFilePath: string;
   srcDirectoryPath: string;
-  artifactDirectoryPath: string | null;
+  artifactDirectoryPath: string | undefined;
   packageManager: PackageManager;
   ignoreGitChanges: boolean;
   skipPrompts: boolean;

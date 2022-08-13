@@ -30,7 +30,7 @@ export async function getDefaultCliArguments(
 
   // todo: use other defaults
   const srcDirectoryPath = existingArgs.srcDirectoryPath || "./src";
-  const artifactDirectoryPath = existingArgs.artifactDirectoryPath || null;
+  const artifactDirectoryPath = existingArgs.artifactDirectoryPath || undefined;
 
   // todo: use the src directory as base once configurable
   const schemaFilePath = existingArgs.schemaFilePath || "./schema.graphql";

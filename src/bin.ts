@@ -9,7 +9,11 @@ import { ToolChain, EnvArguments, ProjectSettings } from "./types.js";
 import { InstallNpmPackagesTask } from "./tasks/InstallNpmPackagesTask.js";
 import { AddRelayPluginConfigurationTask } from "./tasks/AddRelayPluginConfigurationTask.js";
 import { AddRelayEnvironmentTask } from "./tasks/AddRelayEnvironmentTask.js";
-import { traverseUpToFindFile, printError } from "./helpers.js";
+import {
+  traverseUpToFindFile,
+  printError,
+  getRelayDevDependencies,
+} from "./helpers.js";
 import { exit } from "process";
 import {
   ARTIFACT_DIR_ARG,
@@ -27,6 +31,8 @@ import {
   isValidSchemaPath,
   isValidSrcDirectory,
 } from "./validation.js";
+
+// INIT ENVIRONMENT
 
 const distDirectory = dirname(fileURLToPath(import.meta.url));
 const ownPackageDirectory = path.join(distDirectory, "..");
@@ -54,6 +60,8 @@ const envArguments: EnvArguments = {
   projectRootDirectory,
 };
 
+// GET ARGUMENTS
+
 // todo: handle errors
 const cliArguments = await getCliArguments(envArguments);
 
@@ -77,33 +85,49 @@ const completeArguments = await promptForMissingCliArguments(
   envArguments
 );
 
-const settings: ProjectSettings = {
-  ...envArguments,
-  ...completeArguments,
-};
+// VALIDATE ARGUMENTS
 
-const schemaPathValid = isValidSchemaPath(settings.schemaFilePath);
+const schemaPathValid = isValidSchemaPath(completeArguments.schemaFilePath);
 
 if (schemaPathValid !== true) {
-  printError(`Invalid ${SCHEMA_FILE_ARG} specified: ${schemaPathValid}`);
+  printError(
+    `Invalid ${SCHEMA_FILE_ARG} specified: ${
+      completeArguments.schemaFilePath
+    } ${chalk.dim(schemaPathValid)}`
+  );
   exit(1);
 }
 
-const srcDirValid = isValidSrcDirectory(settings.srcDirectoryPath);
+const srcDirValid = isValidSrcDirectory(completeArguments.srcDirectoryPath);
 
 if (srcDirValid !== true) {
-  printError(`Invalid ${SRC_DIR_ARG}  specified: ${srcDirValid}`);
+  printError(
+    `Invalid ${SRC_DIR_ARG}  specified:  ${
+      completeArguments.srcDirectoryPath
+    } ${chalk.dim(srcDirValid)}`
+  );
   exit(1);
 }
 
 const artifactDirValid = isValidArtifactDirectory(
-  settings.artifactDirectoryPath
+  completeArguments.artifactDirectoryPath
 );
 
 if (artifactDirValid !== true) {
-  printError(`Invalid ${ARTIFACT_DIR_ARG} specified: ${artifactDirValid}`);
+  printError(
+    `Invalid ${ARTIFACT_DIR_ARG} specified:  ${
+      completeArguments.artifactDirectoryPath
+    } ${chalk.dim(artifactDirValid)}`
+  );
   exit(1);
 }
+
+// EXECUTE TASKS
+
+const settings: ProjectSettings = {
+  ...envArguments,
+  ...completeArguments,
+};
 
 const dependencies = ["react-relay"];
 const devDependencies = getRelayDevDependencies(
@@ -148,9 +172,13 @@ try {
   await runner.run();
 } catch {
   console.log();
-  printError("Some of the tasks unexpectedly failed.");
+  printError("Some of the tasks failed unexpectedly.");
   exit(1);
+
+  // todo: if tasks fail, display ways to resovle the tasks manually
 }
+
+// DISPLAY RESULT
 
 console.log();
 
@@ -170,22 +198,3 @@ console.log(
 );
 
 console.log();
-
-function getRelayDevDependencies(toolChain: ToolChain, useTypescript: boolean) {
-  const relayDevDep = ["relay-compiler"];
-
-  if (useTypescript) {
-    relayDevDep.push("@types/react-relay");
-    relayDevDep.push("@types/relay-runtime");
-  }
-
-  if (toolChain === "cra" || toolChain === "vite") {
-    relayDevDep.push(BABEL_RELAY_PACKAGE);
-  }
-
-  if (toolChain === "vite") {
-    relayDevDep.push(VITE_RELAY_PACKAGE);
-  }
-
-  return relayDevDep;
-}

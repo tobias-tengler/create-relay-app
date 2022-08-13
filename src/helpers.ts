@@ -1,7 +1,11 @@
 import path from "path";
 import fs from "fs/promises";
-import { EnvArguments } from "./types.js";
-import { PACKAGE_FILE } from "./consts.js";
+import { EnvArguments, ToolChain } from "./types.js";
+import {
+  BABEL_RELAY_PACKAGE,
+  PACKAGE_FILE,
+  VITE_RELAY_PACKAGE,
+} from "./consts.js";
 import glob from "glob";
 import chalk from "chalk";
 
@@ -119,4 +123,26 @@ export async function getPackageDetails(
   }
 
   return { name, version, description };
+}
+
+export function getRelayDevDependencies(
+  toolChain: ToolChain,
+  useTypescript: boolean
+) {
+  const relayDevDep = ["relay-compiler"];
+
+  if (useTypescript) {
+    relayDevDep.push("@types/react-relay");
+    relayDevDep.push("@types/relay-runtime");
+  }
+
+  if (toolChain === "cra" || toolChain === "vite") {
+    relayDevDep.push(BABEL_RELAY_PACKAGE);
+  }
+
+  if (toolChain === "vite") {
+    relayDevDep.push(VITE_RELAY_PACKAGE);
+  }
+
+  return relayDevDep;
 }

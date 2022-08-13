@@ -20,7 +20,9 @@ export function isValidSrcDirectory(input: string): string | true {
   return true;
 }
 
-export function isValidArtifactDirectory(input: string | null): string | true {
+export function isValidArtifactDirectory(
+  input: string | undefined
+): string | true {
   if (!input) {
     return true;
   }
