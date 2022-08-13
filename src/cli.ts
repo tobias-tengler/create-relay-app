@@ -68,7 +68,138 @@ function parseCliArguments(args: RawCliArguments): Partial<CliArguments> {
     packageManager: tryParsePackageManager(args.packageManager),
     schemaFilePath: args.schemaFile,
     useTypescript: args.typescript,
+    skipPrompts: args.yes,
   };
+}
+
+async function getDefaultCliArguments(
+  existingArgs: Partial<CliArguments>,
+  env: EnvArguments
+): Promise<CliArguments> {
+  const packageManager =
+    existingArgs.packageManager ||
+    (await getProjectPackageManager(env.projectRootDirectory));
+
+  const toolChain =
+    existingArgs.toolChain ||
+    (await getProjectToolChain(env.projectRootDirectory));
+
+  const useTypescript =
+    existingArgs.useTypescript ||
+    (await doesProjectUseTypescript(env.projectRootDirectory, packageManager));
+
+  const schemaFilePath = existingArgs.schemaFilePath || "./schema.graphql";
+
+  const skipPrompts = existingArgs.skipPrompts || false;
+
+  return {
+    packageManager,
+    toolChain,
+    useTypescript,
+    schemaFilePath,
+    skipPrompts,
+  };
+}
+
+async function promptForMissingCliArguments(
+  existingArgs: Partial<CliArguments>,
+  env: EnvArguments
+): Promise<CliArguments> {
+  const defaults = await getDefaultCliArguments(existingArgs, env);
+
+  const definedExistingArgs = { ...existingArgs };
+
+  (Object.keys(definedExistingArgs) as (keyof CliArguments)[]).forEach(
+    (k) => definedExistingArgs[k] === undefined && delete definedExistingArgs[k]
+  );
+
+  // todo: find better way to skip prompts, but still show inquirer results
+  if (existingArgs.skipPrompts) {
+    return { ...defaults, ...definedExistingArgs };
+  }
+
+  // todo: handle artifact directory
+  // todo: maybe handle subscription or @defer / @stream setup
+  // todo: handle error
+  const answers = await inquirer.prompt<CliArguments>([
+    {
+      name: "toolChain",
+      message: "Select the toolchain your project is using",
+      type: "list",
+      default: defaults.toolChain,
+      choices: ToolChainOptions,
+      when: !existingArgs.toolChain,
+    },
+    {
+      name: "useTypescript",
+      message: "Does your project use Typescript",
+      type: "confirm",
+      default: defaults.useTypescript,
+      when: !existingArgs.useTypescript,
+    },
+    {
+      name: "schemaFilePath",
+      message: "Select the path to your GraphQL schema file",
+      type: "input",
+      default: defaults.schemaFilePath,
+      // todo: also have this validation for cli args
+      // todo: validate that it's inside project dir
+      validate: (input: string) => {
+        if (!input.endsWith(".graphql")) {
+          return `File needs to end in ${chalk.green(".graphql")}`;
+        }
+
+        return true;
+      },
+      when: !existingArgs.schemaFilePath,
+    },
+    {
+      name: "packageManager",
+      message: "Select the package manager you wish to use to install packages",
+      type: "list",
+      default: defaults.packageManager,
+      choices: PackageManagerOptions,
+      when: !existingArgs.packageManager,
+    },
+  ]);
+
+  console.log();
+
+  return { ...answers, ...definedExistingArgs };
+}
+
+type PackageDetails = Readonly<{
+  name: string;
+  version: string;
+  description: string;
+}>;
+
+async function getPackageDetails(env: EnvArguments): Promise<PackageDetails> {
+  const ownPackageJsonFile = path.join(env.ownPackageDirectory, PACKAGE_FILE);
+
+  const packageJsonContent = await fs.readFile(ownPackageJsonFile, "utf8");
+
+  const packageJson = JSON.parse(packageJsonContent);
+
+  const name = packageJson?.name;
+
+  if (!name) {
+    throw new Error(`Could not determine name in ${ownPackageJsonFile}`);
+  }
+
+  const version = packageJson?.version;
+
+  if (!version) {
+    throw new Error(`Could not determine version in ${ownPackageJsonFile}`);
+  }
+
+  const description = packageJson?.description;
+
+  if (!description) {
+    throw new Error(`Could not determine description in ${ownPackageJsonFile}`);
+  }
+
+  return { name, version, description };
 }
 
 function tryParsePackageManager(rawInput?: string): PackageManager | undefined {
@@ -130,120 +261,4 @@ function invalidArgError(
 
 function getNormalizedCliString(input?: string): string {
   return input?.toLowerCase().trim() || "";
-}
-
-async function getDefaultCliArguments(
-  existingArgs: Partial<CliArguments>,
-  env: EnvArguments
-): Promise<CliArguments> {
-  const packageManager =
-    existingArgs.packageManager ||
-    (await getProjectPackageManager(env.projectRootDirectory));
-
-  const toolChain =
-    existingArgs.toolChain ||
-    (await getProjectToolChain(env.projectRootDirectory));
-
-  const useTypescript =
-    existingArgs.useTypescript ||
-    (await doesProjectUseTypescript(env.projectRootDirectory, packageManager));
-
-  const schemaFilePath = existingArgs.schemaFilePath || "./schema.graphql";
-
-  return {
-    packageManager,
-    toolChain,
-    useTypescript,
-    schemaFilePath,
-  };
-}
-
-async function promptForMissingCliArguments(
-  existingArgs: Partial<CliArguments>,
-  env: EnvArguments
-): Promise<CliArguments> {
-  const defaults = await getDefaultCliArguments(existingArgs, env);
-
-  // todo: handle artifact directory
-  // todo: maybe handle subscription or @defer / @stream setup
-  // todo: handle error
-  const answers = await inquirer.prompt<CliArguments>([
-    {
-      name: "toolChain",
-      message: "Select the toolchain your project is using",
-      type: "list",
-      default: defaults.toolChain,
-      choices: ToolChainOptions,
-      when: !existingArgs.toolChain,
-    },
-    {
-      name: "useTypescript",
-      message: "Does your project use Typescript",
-      type: "confirm",
-      default: defaults.useTypescript,
-      when: !existingArgs.useTypescript,
-    },
-    {
-      name: "schemaFilePath",
-      message: "Select the path to your GraphQL schema file",
-      type: "input",
-      default: defaults.schemaFilePath,
-      // todo: also have this validation for cli args
-      // todo: validate that it's inside project dir
-      validate: (input: string) => {
-        if (!input.endsWith(".graphql")) {
-          return `File needs to end in ${chalk.green(".graphql")}`;
-        }
-
-        return true;
-      },
-      when: !existingArgs.schemaFilePath,
-    },
-    {
-      name: "packageManager",
-      message: "Select the package manager you wish to use to install packages",
-      type: "list",
-      default: defaults.packageManager,
-      choices: PackageManagerOptions,
-      when: !existingArgs.packageManager,
-    },
-  ]);
-
-  console.log();
-
-  return { ...existingArgs, ...answers };
-}
-
-type PackageDetails = Readonly<{
-  name: string;
-  version: string;
-  description: string;
-}>;
-
-async function getPackageDetails(env: EnvArguments): Promise<PackageDetails> {
-  const ownPackageJsonFile = path.join(env.ownPackageDirectory, PACKAGE_FILE);
-
-  const packageJsonContent = await fs.readFile(ownPackageJsonFile, "utf8");
-
-  const packageJson = JSON.parse(packageJsonContent);
-
-  const name = packageJson?.name;
-
-  if (!name) {
-    throw new Error(`Could not determine name in ${ownPackageJsonFile}`);
-  }
-
-  const version = packageJson?.version;
-
-  if (!version) {
-    throw new Error(`Could not determine version in ${ownPackageJsonFile}`);
-  }
-
-  const description = packageJson?.description;
-
-  if (!description) {
-    throw new Error(`Could not determine description in ${ownPackageJsonFile}`);
-  }
-
-  return { name, version, description };
 }

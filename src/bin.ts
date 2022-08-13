@@ -88,6 +88,8 @@ const settings: ProjectSettings = {
   srcDirectory: "./src",
 };
 
+console.log(settings);
+
 const dependencies = ["react-relay"];
 const devDependencies = getRelayDevDependencies(
   settings.toolChain,

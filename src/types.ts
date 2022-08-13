@@ -9,6 +9,7 @@ export type CliArguments = Readonly<{
   useTypescript: boolean;
   schemaFilePath: string;
   packageManager: PackageManager;
+  skipPrompts: boolean;
 }>;
 
 export type EnvArguments = Readonly<{
