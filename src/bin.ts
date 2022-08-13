@@ -22,6 +22,7 @@ import {
 import { exit } from "process";
 import {
   ARTIFACT_DIR_ARG,
+  BABEL_RELAY_PACKAGE,
   PACKAGE_FILE,
   REACT_RELAY_PACKAGE,
   SCHEMA_FILE_ARG,
@@ -199,15 +200,16 @@ const runner = new TaskRunner([
   {
     title: `Configure Relay transform in ${highlight(relConfigPath)}`,
     task: new ConfigureRelayGraphqlTransformTask(settings),
+    when: !!settings.configFilepath, // todo: remove once cra is fully supported
   },
   {
-    // todo: path is not relative
     title: `Generate Relay environment ${highlight(relRelayEnvPath)}`,
     task: new GenerateRelayEnvironmentTask(settings),
   },
   {
     title: `Add RelayEnvironmentProvider to ${highlight(relMainPath)}`,
     task: new AddRelayEnvironmentProviderTask(settings),
+    when: !!settings.configFilepath, // todo: remove once cra is fully supported
   },
   {
     title: `Generate GraphQL schema file ${highlight(relSchemaPath)}`,
@@ -248,6 +250,13 @@ console.log(
   `2. Replace the value of the ${highlight("HOST")} variable in the ${highlight(
     relRelayEnvPath
   )} file.`
+);
+
+// todo: remove once cra is fully supported
+console.log(
+  `3. Setup ${highlight(
+    BABEL_RELAY_PACKAGE
+  )} to conform to your project. ${chalk.dim("(This will soon be automated!)")}`
 );
 
 console.log();

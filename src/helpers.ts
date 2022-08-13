@@ -258,21 +258,40 @@ export async function getToolchainSettings(
       throw new Error(`${configFilename} not found`);
     }
 
-    const appFilename = "_app" + (args.typescript ? ".tsx" : ".jsx");
+    const mainFilename = "_app" + (args.typescript ? ".tsx" : ".jsx");
 
     const searchDirectory = path.join(env.projectRootDirectory, "pages");
 
-    const appFilepath = await findFileInDirectory(searchDirectory, appFilename);
+    const mainFilepath = await findFileInDirectory(
+      searchDirectory,
+      mainFilename
+    );
 
-    if (!appFilepath) {
-      throw new Error(`${appFilename} not found`);
+    if (!mainFilepath) {
+      throw new Error(`${mainFilename} not found`);
     }
 
     return {
-      configFilepath: configFilepath,
-      mainFilepath: appFilepath,
+      configFilepath,
+      mainFilepath,
+    };
+  } else {
+    const mainFilename = "index" + (args.typescript ? ".tsx" : ".jsx");
+
+    const searchDirectory = path.join(env.projectRootDirectory, "src");
+
+    const mainFilepath = await findFileInDirectory(
+      searchDirectory,
+      mainFilename
+    );
+
+    if (!mainFilepath) {
+      throw new Error(`${mainFilename} not found`);
+    }
+
+    return {
+      configFilepath: "",
+      mainFilepath,
     };
   }
-
-  throw new Error(`Unsupported toolchain: ${args.toolchain}`);
 }
