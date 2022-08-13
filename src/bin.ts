@@ -7,36 +7,38 @@ import chalk from "chalk";
 import { AddRelayConfigurationTask } from "./tasks/AddRelayConfigurationTask.js";
 import inquirer from "inquirer";
 import {
-  ProjectSettings,
+  CliArguments,
   ToolChainOptions,
-  LanguageOptions,
   PackageManagerOptions,
   ToolChain,
-  CodeLanguage,
+  EnvArguments,
+  ProjectSettings,
 } from "./types.js";
 import { InstallNpmPackagesTask } from "./tasks/InstallNpmPackagesTask.js";
 import { AddRelayPluginConfigurationTask } from "./tasks/AddRelayPluginConfigurationTask.js";
 import { AddRelayEnvironmentTask } from "./tasks/AddRelayEnvironmentTask.js";
 import {
   traverseUpToFindFile,
-  getPackageManagerToUse,
+  getProjectPackageManager as getProjectPackageManager,
   getProjectToolChain,
-  getProjectLanguage,
+  doesProjectUseTypescript,
   hasUnsavedGitChanges,
   printError,
 } from "./helpers.js";
 import { exit } from "process";
-import { PACKAGE_FILE, VITE_RELAY_PACKAGE } from "./consts.js";
+import {
+  BABEL_RELAY_PACKAGE,
+  PACKAGE_FILE,
+  VITE_RELAY_PACKAGE,
+} from "./consts.js";
 import { fileURLToPath } from "url";
+import { OptionValues, program } from "commander";
+import fs from "fs/promises";
+import { getCliArguments } from "./cli.js";
 
-const packageDirectory = path.join(
-  dirname(fileURLToPath(import.meta.url)),
-  ".."
-);
+const distDirectory = dirname(fileURLToPath(import.meta.url));
+const ownPackageDirectory = path.join(distDirectory, "..");
 const workingDirectory = process.cwd();
-
-// FIND package.json FILE
-
 const packageJsonFile = await traverseUpToFindFile(
   workingDirectory,
   PACKAGE_FILE
@@ -53,26 +55,43 @@ if (!packageJsonFile) {
 
 const projectRootDirectory = path.dirname(packageJsonFile);
 
+const envArguments: EnvArguments = {
+  workingDirectory,
+  ownPackageDirectory,
+  packageJsonFile,
+  projectRootDirectory,
+};
+
 // CHECK REPO FOR UNSAVED CHANGES
+const skipChangesCheck = true;
 
-// const hasUnsavedChanges = await hasUnsavedGitChanges(projectRootDirectory);
+if (!skipChangesCheck) {
+  const hasUnsavedChanges = await hasUnsavedGitChanges(
+    envArguments.projectRootDirectory
+  );
 
-// if (hasUnsavedChanges) {
-//   printError(
-//     `Please commit or discard all changes in the ${workingDirectory} before continuing.`
-//   );
-//   exit(1);
-// }
+  if (hasUnsavedChanges) {
+    printError(
+      `Please commit or discard all changes in the ${envArguments.projectRootDirectory} before continuing.`
+    );
+    exit(1);
+  }
+}
 
-// const settings = await readProjectSettings();
-const settings = await getDefaultProjectSettings();
+// todo: handle errors
+const cliArguments = await getCliArguments(envArguments);
 
-console.log();
+const settings: ProjectSettings = {
+  ...envArguments,
+  ...cliArguments,
+  // todo: determine based on toolchain
+  srcDirectory: "./src",
+};
 
 const dependencies = ["react-relay"];
 const devDependencies = getRelayDevDependencies(
   settings.toolChain,
-  settings.language
+  settings.useTypescript
 );
 
 const runner = new TaskRunner([
@@ -80,53 +99,31 @@ const runner = new TaskRunner([
     title: `Add Relay dependencies: ${dependencies
       .map((d) => chalk.cyan.bold(d))
       .join(" ")}`,
-    task: new InstallNpmPackagesTask(
-      dependencies,
-      settings.packageManager,
-      projectRootDirectory
-    ),
+    task: new InstallNpmPackagesTask(dependencies, false, settings),
   },
   {
     title: `Add Relay devDependencies: ${devDependencies
       .map((d) => chalk.cyan.bold(d))
       .join(" ")}`,
-    task: new InstallNpmPackagesTask(
-      devDependencies,
-      settings.packageManager,
-      projectRootDirectory,
-      true
-    ),
+    task: new InstallNpmPackagesTask(devDependencies, true, settings),
   },
   {
     title: "Add Relay configuration to package.json",
-    task: new AddRelayConfigurationTask(
-      packageJsonFile,
-      settings.schemaFilePath,
-      settings.language
-    ),
+    task: new AddRelayConfigurationTask(settings),
   },
   {
     title: "Add Relay plugin configuration",
-    task: new AddRelayPluginConfigurationTask(
-      projectRootDirectory,
-      settings.toolChain,
-      settings.language
-    ),
+    task: new AddRelayPluginConfigurationTask(settings),
   },
   {
     title: "Add Relay environment",
-    task: new AddRelayEnvironmentTask(
-      projectRootDirectory,
-      packageDirectory,
-      settings.toolChain,
-      settings.language
-    ),
+    task: new AddRelayEnvironmentTask(settings),
   },
   {
     title: `Generate GraphQL schema file (${chalk.cyan.bold(
       settings.schemaFilePath
     )})`,
-    task: new AddGraphQlSchemaFileTask(settings.schemaFilePath),
+    task: new AddGraphQlSchemaFileTask(settings),
   },
 ]);
 
@@ -157,90 +154,20 @@ console.log(
 
 console.log();
 
-// todo: add integration tests
+function getRelayDevDependencies(toolChain: ToolChain, useTypescript: boolean) {
+  const relayDevDep = ["relay-compiler"];
 
-async function getDefaultProjectSettings(): Promise<ProjectSettings> {
-  const defaultPackageManager = getPackageManagerToUse();
-  const defaultToolChain = await getProjectToolChain(
-    projectRootDirectory,
-    defaultPackageManager
-  );
-  const defaultLanguage = await getProjectLanguage(
-    projectRootDirectory,
-    defaultPackageManager
-  );
-
-  return {
-    packageManager: defaultPackageManager,
-    toolChain: defaultToolChain,
-    language: defaultLanguage,
-    schemaFilePath: "./schema.graphql",
-  };
-}
-
-async function readProjectSettings(): Promise<ProjectSettings> {
-  const defaults = await getDefaultProjectSettings();
-
-  // todo: handle artifact directory
-  // todo: maybe handle subscription or @defer / @stream setup
-  // todo: handle error
-  return await inquirer.prompt<ProjectSettings>([
-    {
-      name: "toolChain",
-      message: "Select the toolchain your project is using",
-      type: "list",
-      default: defaults.toolChain,
-      choices: ToolChainOptions,
-    },
-    {
-      name: "language",
-      message: "Select the language of your project",
-      type: "list",
-      default: defaults.language,
-      choices: LanguageOptions,
-    },
-    {
-      // todo: validate that it's inside project dir
-      name: "schemaFilePath",
-      message: "Select the path to your GraphQL schema file",
-      type: "input",
-      default: defaults.schemaFilePath,
-      validate: (input: string) => {
-        if (!input.endsWith(".graphql")) {
-          return `File needs to end in ${chalk.green(".graphql")}`;
-        }
-
-        return true;
-      },
-    },
-    {
-      name: "packageManager",
-      message: "Select the package manager you wish to use to install packages",
-      type: "list",
-      default: defaults.packageManager,
-      choices: PackageManagerOptions,
-    },
-  ]);
-}
-
-export function getRelayDevDependencies(
-  toolChain: ToolChain,
-  language: CodeLanguage
-) {
-  let relayDevDep = ["relay-compiler"];
-
-  if (toolChain === "Create-React-App") {
-    relayDevDep = relayDevDep.concat(["babel-plugin-relay", "graphql"]);
-  } else if (toolChain === "Vite") {
-    relayDevDep = relayDevDep.concat([
-      VITE_RELAY_PACKAGE,
-      "babel-plugin-relay",
-      "graphql",
-    ]);
+  if (useTypescript) {
+    relayDevDep.push("@types/react-relay");
+    relayDevDep.push("@types/relay-runtime");
   }
 
-  if (language === "Typescript") {
-    relayDevDep = relayDevDep.concat(["@types/react-relay"]);
+  if (toolChain === "cra" || toolChain === "vite") {
+    relayDevDep.push(BABEL_RELAY_PACKAGE);
+  }
+
+  if (toolChain === "vite") {
+    relayDevDep.push(VITE_RELAY_PACKAGE);
   }
 
   return relayDevDep;

@@ -1,6 +1,7 @@
 {
   "name": "@tobiastengler/create-relay-app",
   "version": "0.1.0",
+  "description": "Easy configuration of Relay for existing projects",
   "homepage": "https://github.com/tobias-tengler/create-relay-app#readme",
   "license": "MIT",
   "author": {
@@ -45,6 +46,7 @@
     "@babel/parser": "^7.18.11",
     "@babel/traverse": "^7.18.11",
     "chalk": "^5.0.1",
+    "commander": "^9.4.0",
     "glob": "^8.0.3",
     "inquirer": "^9.1.0",
     "ora": "^6.1.2",

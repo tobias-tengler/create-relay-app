@@ -5,34 +5,25 @@ import {
   printAst,
 } from "../helpers.js";
 import { TaskBase } from "../TaskBase.js";
-import { CodeLanguage, ToolChain } from "../types.js";
+import { ProjectSettings, ToolChain } from "../types.js";
 import fs from "fs/promises";
 import traverse from "@babel/traverse";
 import t from "@babel/types";
-import {
-  NEXTJS_CONFIG_FILE,
-  VITE_CONFIG_FILE_NO_EXT,
-  VITE_RELAY_PACKAGE,
-} from "../consts.js";
+import { NEXTJS_CONFIG_FILE, VITE_CONFIG_FILE_NO_EXT } from "../consts.js";
 
 export class AddRelayPluginConfigurationTask extends TaskBase {
-  constructor(
-    private workingDirectory: string,
-    private toolChain: ToolChain,
-    private language: CodeLanguage
-  ) {
+  constructor(private settings: ProjectSettings) {
     super();
   }
 
   async run(): Promise<void> {
-    switch (this.toolChain) {
-      case "Vite":
+    switch (this.settings.toolChain) {
+      case "vite":
         await this.configureVite();
         break;
-      case "Next.js":
+      case "next":
         await this.configureNext();
         break;
-      // todo: implement CRA
       default:
         throw new Error("Unsupported toolchain");
     }
@@ -40,7 +31,7 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
 
   private async configureNext() {
     const configFilepath = await findFileInDirectory(
-      this.workingDirectory,
+      this.settings.projectRootDirectory,
       NEXTJS_CONFIG_FILE
     );
 
@@ -141,11 +132,13 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
             t.objectExpression([
               t.objectProperty(
                 t.identifier("src"),
-                t.stringLiteral("./src") // todo: get through config
+                t.stringLiteral(this.settings.srcDirectory)
               ),
               t.objectProperty(
                 t.identifier("language"),
-                t.stringLiteral(getRelayCompilerLanguage(this.language))
+                t.stringLiteral(
+                  getRelayCompilerLanguage(this.settings.useTypescript)
+                )
               ),
               // todo: add artifact directory
             ])
@@ -163,11 +156,10 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
     const relayImportName = "relay";
 
     const configFilename =
-      VITE_CONFIG_FILE_NO_EXT +
-      (this.language === "Typescript" ? ".ts" : ".js");
+      VITE_CONFIG_FILE_NO_EXT + (this.settings.useTypescript ? ".ts" : ".js");
 
     const configFilepath = await findFileInDirectory(
-      this.workingDirectory,
+      this.settings.projectRootDirectory,
       configFilename
     );
 

@@ -1,18 +1,26 @@
-export const ToolChainOptions = [
-  "Create-React-App",
-  "Next.js",
-  "Vite",
-] as const;
-export const LanguageOptions = ["Typescript", "JavaScript"] as const;
+export const ToolChainOptions = ["cra", "next", "vite"] as const;
 export const PackageManagerOptions = ["npm", "yarn", "pnpm"] as const;
 
 export type ToolChain = typeof ToolChainOptions[number];
-export type CodeLanguage = typeof LanguageOptions[number];
 export type PackageManager = typeof PackageManagerOptions[number];
 
-export type ProjectSettings = {
+export type CliArguments = Readonly<{
   toolChain: ToolChain;
-  language: CodeLanguage;
+  useTypescript: boolean;
   schemaFilePath: string;
   packageManager: PackageManager;
-};
+}>;
+
+export type EnvArguments = Readonly<{
+  workingDirectory: string;
+  ownPackageDirectory: string;
+  projectRootDirectory: string;
+  packageJsonFile: string;
+}>;
+
+export type ProjectSettings = Readonly<
+  CliArguments &
+    EnvArguments & {
+      srcDirectory: string;
+    }
+>;

@@ -1,7 +1,7 @@
 import { exec, execSync, spawn } from "child_process";
 import path from "path";
 import fs from "fs/promises";
-import { CodeLanguage, PackageManager, ToolChain } from "./types.js";
+import { PackageManager, ToolChain } from "./types.js";
 import {
   NEXTJS_CONFIG_FILE,
   TS_CONFIG_FILE,
@@ -70,13 +70,12 @@ export function printAst(ast: ParseResult<t.File>, oldCode: string): string {
 }
 
 export function getRelayCompilerLanguage(
-  language: CodeLanguage
+  useTypescript: boolean
 ): "typescript" | "javascript" {
-  switch (language) {
-    case "Typescript":
-      return "typescript";
-    default:
-      return "javascript";
+  if (useTypescript) {
+    return "typescript";
+  } else {
+    return "javascript";
   }
 }
 
@@ -101,59 +100,58 @@ export async function hasUnsavedGitChanges(dir: string): Promise<boolean> {
 }
 
 export async function getProjectToolChain(
-  workingDirectory: string,
-  manager: PackageManager
+  projectRootDirectory: string
 ): Promise<ToolChain> {
   const nextjsConfigFile = await findFileInDirectory(
-    workingDirectory,
+    projectRootDirectory,
     NEXTJS_CONFIG_FILE
   );
 
   if (!!nextjsConfigFile) {
-    return "Next.js";
+    return "next";
   }
 
   const viteConfigFiles = await searchFilesInDirectory(
-    workingDirectory,
+    projectRootDirectory,
     "vite.config.*"
   );
 
   if (viteConfigFiles.some((f) => !!f)) {
-    return "Vite";
+    return "vite";
   }
 
-  return "Create-React-App";
+  return "cra";
 }
 
-export async function getProjectLanguage(
-  workingDirectory: string,
+export async function doesProjectUseTypescript(
+  projectRootDirectory: string,
   manager: PackageManager
-): Promise<CodeLanguage> {
+): Promise<boolean> {
   const tsconfigFile = await findFileInDirectory(
-    workingDirectory,
+    projectRootDirectory,
     TS_CONFIG_FILE
   );
 
   if (!!tsconfigFile) {
-    return "Typescript";
+    return true;
   }
 
   const typescriptInstalled = await isNpmPackageInstalled(
     manager,
-    workingDirectory,
+    projectRootDirectory,
     TYPESCRIPT_PACKAGE
   );
 
   if (typescriptInstalled) {
-    return "Typescript";
+    return true;
   }
 
-  return "JavaScript";
+  return false;
 }
 
 export async function isNpmPackageInstalled(
   manager: PackageManager,
-  workingDirectory: string,
+  projectRootDirectory: string,
   packageName: string
 ): Promise<boolean> {
   const command = manager;
@@ -170,7 +168,7 @@ export async function isNpmPackageInstalled(
   return new Promise((resolve) => {
     const child = spawn(command, args, {
       // stdio: "inherit",
-      cwd: workingDirectory,
+      cwd: projectRootDirectory,
       env: process.env,
       shell: true,
     });
@@ -189,10 +187,14 @@ export async function isNpmPackageInstalled(
   });
 }
 
-export function getPackageManagerToUse(): PackageManager {
+export async function getProjectPackageManager(
+  projectRootDirectory: string
+): Promise<PackageManager> {
   try {
     const userAgent = process.env.npm_config_user_agent;
 
+    // If this script is being run by a specific manager,
+    // we use this mananger.
     if (userAgent) {
       if (userAgent.startsWith("yarn")) {
         return "yarn";
@@ -204,15 +206,31 @@ export function getPackageManagerToUse(): PackageManager {
     try {
       execSync("yarn --version", { stdio: "ignore" });
 
-      return "yarn";
+      const hasLockfile = await findFileInDirectory(
+        projectRootDirectory,
+        "yarn.lock"
+      );
+
+      if (hasLockfile) {
+        // Yarn is installed and the project contains a yarn.lock file.
+        return "yarn";
+      }
     } catch {
       execSync("pnpm --version", { stdio: "ignore" });
 
-      return "pnpm";
+      const hasLockfile = await findFileInDirectory(
+        projectRootDirectory,
+        "pnpm-lock.yaml"
+      );
+
+      if (hasLockfile) {
+        // pnpm is installed and the project contains a pnpm-lock.yml file.
+        return "pnpm";
+      }
     }
-  } catch {
-    return "npm";
-  }
+  } catch {}
+
+  return "npm";
 }
 
 export async function traverseUpToFindFile(

@@ -12,22 +12,17 @@ import {
   printAst,
 } from "../helpers.js";
 import { TaskBase } from "../TaskBase.js";
-import { ToolChain, CodeLanguage } from "../types.js";
+import { ProjectSettings, ToolChain } from "../types.js";
 import t from "@babel/types";
 
 export class AddRelayEnvironmentTask extends TaskBase {
-  constructor(
-    private workingDirectory: string,
-    private packageDirectory: string,
-    private toolChain: ToolChain,
-    private language: CodeLanguage
-  ) {
+  constructor(private settings: ProjectSettings) {
     super();
   }
 
   async run(): Promise<void> {
-    switch (this.toolChain) {
-      case "Vite":
+    switch (this.settings.toolChain) {
+      case "vite":
         await this.configureVite();
         break;
       // todo: implement CRA and Next.js
@@ -40,11 +35,10 @@ export class AddRelayEnvironmentTask extends TaskBase {
     await this.addRelayEnvironmentFile(VITE_RELAY_ENV_FILE_NO_EXT);
 
     const relativeMainFilepath =
-      VITE_MAIN_FILE_NO_EXT +
-      (this.language === "Typescript" ? ".tsx" : ".jsx");
+      VITE_MAIN_FILE_NO_EXT + (this.settings.useTypescript ? ".tsx" : ".jsx");
 
     const searchDirectory = path.dirname(
-      path.join(this.workingDirectory, relativeMainFilepath)
+      path.join(this.settings.projectRootDirectory, relativeMainFilepath)
     );
 
     const mainFilename = path.basename(relativeMainFilepath);
@@ -118,25 +112,23 @@ export class AddRelayEnvironmentTask extends TaskBase {
   }
 
   async addRelayEnvironmentFile(filepathNoExt: string) {
-    const isTypescript = this.language === "Typescript";
-
     const relativeRelayEnvFilepath =
-      filepathNoExt + (isTypescript ? ".ts" : ".js");
+      filepathNoExt + (this.settings.useTypescript ? ".ts" : ".js");
 
     const relayEnvFilepath = path.join(
-      this.workingDirectory,
+      this.settings.projectRootDirectory,
       relativeRelayEnvFilepath
     );
 
     let srcFile: string;
 
-    if (isTypescript) {
+    if (this.settings.useTypescript) {
       srcFile = "./assets/env_ts";
     } else {
       srcFile = "./assets/env";
     }
 
-    const srcFilepath = path.join(this.packageDirectory, srcFile);
+    const srcFilepath = path.join(this.settings.ownPackageDirectory, srcFile);
 
     // todo: handle error
     await fs.copyFile(srcFilepath, relayEnvFilepath);

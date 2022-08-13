@@ -1,24 +1,21 @@
 import { TaskBase } from "../TaskBase.js";
 import fs from "fs/promises";
-import { CodeLanguage } from "../types.js";
+import { ProjectSettings } from "../types.js";
 import { getRelayCompilerLanguage } from "../helpers.js";
 
 export class AddRelayConfigurationTask extends TaskBase {
-  constructor(
-    private packageJsonFile: string,
-    private schemaFilePath: string,
-    private language: CodeLanguage
-  ) {
+  constructor(private settings: ProjectSettings) {
     super();
   }
 
   async run(): Promise<void> {
-    const compilerLanguage = getRelayCompilerLanguage(this.language);
-
     // todo: handle error
-    const packageJsonContent = await fs.readFile(this.packageJsonFile, {
-      encoding: "utf-8",
-    });
+    const packageJsonContent = await fs.readFile(
+      this.settings.packageJsonFile,
+      {
+        encoding: "utf-8",
+      }
+    );
 
     const packageJson = JSON.parse(packageJsonContent);
 
@@ -34,10 +31,9 @@ export class AddRelayConfigurationTask extends TaskBase {
     if (!packageJson["relay"]) {
       // Add "relay" configuration section
       packageJson["relay"] = {
-        // todo: this should probably be different for the Next.js project
-        src: "./src",
-        language: compilerLanguage,
-        schema: this.schemaFilePath,
+        src: this.settings.srcDirectory,
+        language: getRelayCompilerLanguage(this.settings.useTypescript),
+        schema: this.settings.schemaFilePath,
         exclude: [
           "**/node_modules/**",
           "**/__mocks__/**",
@@ -49,6 +45,10 @@ export class AddRelayConfigurationTask extends TaskBase {
     const serializedPackageJson = JSON.stringify(packageJson, null, 2);
 
     // todo: handle error
-    await fs.writeFile(this.packageJsonFile, serializedPackageJson, "utf-8");
+    await fs.writeFile(
+      this.settings.packageJsonFile,
+      serializedPackageJson,
+      "utf-8"
+    );
   }
 }
