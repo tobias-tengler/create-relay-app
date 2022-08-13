@@ -1,6 +1,6 @@
 import { execSync } from "child_process";
 import path from "path";
-import { findFileInDirectory, normalizePath } from "./helpers.js";
+import { findFileInDirectory, prettifyPath } from "./helpers.js";
 import {
   CliArguments,
   EnvArguments,
@@ -60,7 +60,7 @@ export function getProjectSchemaFilepath(
     return filename;
   }
 
-  return normalizePath(path.join(srcDirectoryPath, filename));
+  return prettifyPath(path.join(srcDirectoryPath, filename));
 }
 
 function getProjectArtifactDirectory(toolchain: Toolchain): string | string {

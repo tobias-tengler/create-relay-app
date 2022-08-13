@@ -176,18 +176,27 @@ export function isSubDirectory(parent: string, dir: string): boolean {
   return !!relative && !relative.startsWith("..") && !path.isAbsolute(relative);
 }
 
-export function getRelativePath(root: string, leave: string): string {
-  return normalizePath(path.relative(root, leave));
+export function prettifyRelativePath(
+  parentPath: string,
+  childPath: string
+): string {
+  const relativePath = path.relative(parentPath, childPath);
+
+  return prettifyPath(relativePath);
+}
+
+export function prettifyPath(input: string): string {
+  let normalizedPath = normalizePath(input);
+
+  if (!normalizedPath.startsWith("..") && !normalizedPath.startsWith("./")) {
+    normalizedPath = "./" + normalizedPath;
+  }
+
+  return normalizedPath;
 }
 
 export function normalizePath(input: string): string {
-  let unixPath = input.split(path.sep).join("/");
-
-  if (!unixPath.startsWith("..") && !unixPath.startsWith("./")) {
-    unixPath = "./" + unixPath;
-  }
-
-  return unixPath;
+  return input.split(path.sep).join("/");
 }
 
 export function removeExtension(filename: string): string {

@@ -18,8 +18,7 @@ import {
   printInvalidArg,
   getToolchainSettings,
   getRelayEnvFilepath,
-  normalizePath,
-  getRelativePath,
+  prettifyRelativePath,
 } from "./helpers.js";
 import { exit } from "process";
 import {
@@ -152,8 +151,6 @@ const settings: ProjectSettings = {
   ...toolchainSettings,
 };
 
-console.log(settings);
-
 // EXECUTE TASKS
 
 const dependencies = [REACT_RELAY_PACKAGE];
@@ -162,22 +159,22 @@ const devDependencies = getRelayDevDependencies(
   settings.typescript
 );
 
-const relRelayEnvPath = getRelativePath(
+const relRelayEnvPath = prettifyRelativePath(
   settings.projectRootDirectory,
   settings.relayEnvFilepath
 );
 
-const relMainPath = getRelativePath(
+const relMainPath = prettifyRelativePath(
   settings.projectRootDirectory,
   settings.mainFilepath
 );
 
-const relConfigPath = getRelativePath(
+const relConfigPath = prettifyRelativePath(
   settings.projectRootDirectory,
   settings.configFilepath
 );
 
-const relSchemaPath = getRelativePath(
+const relSchemaPath = prettifyRelativePath(
   settings.projectRootDirectory,
   settings.schemaFile
 );

@@ -8,7 +8,12 @@ import {
 } from "./types.js";
 import { program } from "commander";
 import inquirer from "inquirer";
-import { getPackageDetails, getSpecifiedProperties } from "./helpers.js";
+import {
+  getPackageDetails,
+  getSpecifiedProperties,
+  prettifyPath,
+  prettifyRelativePath,
+} from "./helpers.js";
 import {
   getDefaultCliArguments,
   getProjectSchemaFilepath,
@@ -87,7 +92,7 @@ export async function promptForMissingCliArguments(
   const defaults = await getDefaultCliArguments(existingArgs, env);
 
   if (existingArgs.yes) {
-    return { ...defaults, ...getSpecifiedProperties(existingArgs) };
+    return buildFinalArgs(defaults, {});
   }
 
   // todo: maybe handle subscription or @defer / @stream setup
@@ -155,7 +160,21 @@ export async function promptForMissingCliArguments(
 
   console.log();
 
-  return { ...defaults, ...answers };
+  return buildFinalArgs(defaults, answers);
+}
+
+function buildFinalArgs(
+  defaults: CliArguments,
+  answers: Partial<CliArguments>
+): CliArguments {
+  const combined: CliArguments = { ...defaults, ...answers };
+
+  return {
+    ...combined,
+    src: prettifyPath(combined.src),
+    schemaFile: prettifyPath(combined.schemaFile),
+    artifactDirectory: prettifyPath(combined.artifactDirectory),
+  };
 }
 
 function parsePackageManager(rawInput?: string): PackageManager | null {

@@ -6,7 +6,7 @@ import t from "@babel/types";
 import { parseAst, insertNamedImport, printAst } from "../ast.js";
 import { ProjectSettings } from "../types.js";
 import { REACT_RELAY_PACKAGE } from "../consts.js";
-import { normalizePath, removeExtension } from "../helpers.js";
+import { prettifyRelativePath, removeExtension } from "../helpers.js";
 
 const RELAY_ENV_PROVIDER = "RelayEnvironmentProvider";
 const RELAY_ENV = "RelayEnvironment";
@@ -97,11 +97,9 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
     jsxPath: NodePath<t.JSXElement>,
     sourceFilepath: string
   ) {
-    const relativeImportPath = normalizePath(
-      path.relative(
-        path.dirname(sourceFilepath),
-        removeExtension(this.settings.relayEnvFilepath)
-      )
+    const relativeImportPath = prettifyRelativePath(
+      path.dirname(sourceFilepath),
+      removeExtension(this.settings.relayEnvFilepath)
     );
 
     const envId = insertNamedImport(jsxPath, RELAY_ENV, relativeImportPath);
