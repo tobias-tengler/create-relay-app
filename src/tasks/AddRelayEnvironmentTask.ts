@@ -4,9 +4,13 @@ import path from "path";
 import {
   VITE_MAIN_FILE_NO_EXT,
   VITE_RELAY_ENV_FILE_NO_EXT,
-  VITE_SRC_DIR,
 } from "../consts.js";
-import { findFileInDirectory, parseAst, printAst } from "../helpers.js";
+import {
+  findFileInDirectory,
+  insertNamedImport,
+  parseAst,
+  printAst,
+} from "../helpers.js";
 import { TaskBase } from "../TaskBase.js";
 import { ToolChain, CodeLanguage } from "../types.js";
 import t from "@babel/types";
@@ -61,14 +65,10 @@ export class AddRelayEnvironmentTask extends TaskBase {
     const RELAY_ENV_PROVIDER = "RelayEnvironmentProvider";
 
     traverse.default(ast, {
-      JSXElement: (path, node) => {
+      JSXElement: (path) => {
         const parent = path.parentPath.node;
 
-        // todo: import env provider
-        // todo: import export env
-
-        // todo: check if env provider already exists
-
+        // Find ReactDOM.render(...)
         if (
           !t.isCallExpression(parent) ||
           !t.isMemberExpression(parent.callee) ||
@@ -78,12 +78,32 @@ export class AddRelayEnvironmentTask extends TaskBase {
           return;
         }
 
+        const envId = insertNamedImport(
+          path,
+          "RelayEnvironment",
+          "./RelayEnvironment"
+        );
+        const envProviderId = t.jsxIdentifier(
+          insertNamedImport(path, RELAY_ENV_PROVIDER, "react-relay").name
+        );
+
+        if (
+          t.isJSXIdentifier(path.node.openingElement.name) &&
+          path.node.openingElement.name.name === envProviderId.name
+        ) {
+          // JSX has already been wrapped.
+          return;
+        }
+
+        const test = t.jsxExpressionContainer(envId);
+
+        // Wrap JSX inside render() into RelayEnvironmentProvider.
         path.replaceWith(
           t.jsxElement(
-            t.jsxOpeningElement(t.jsxIdentifier(RELAY_ENV_PROVIDER), [
-              t.jsxAttribute(t.jsxIdentifier("environment")),
+            t.jsxOpeningElement(envProviderId, [
+              t.jsxAttribute(t.jsxIdentifier("environment"), test),
             ]),
-            t.jsxClosingElement(t.jsxIdentifier(RELAY_ENV_PROVIDER)),
+            t.jsxClosingElement(envProviderId),
             [path.node]
           )
         );

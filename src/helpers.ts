@@ -14,9 +14,43 @@ import { parse } from "@babel/parser";
 import generate from "@babel/generator";
 import { format } from "prettier";
 import chalk from "chalk";
+import { NodePath } from "@babel/traverse";
 
 export function printError(message: string) {
   console.log(chalk.red("✖") + " " + message);
+}
+
+export function insertNamedImport(
+  path: NodePath,
+  importName: string,
+  packageName: string
+): t.Identifier {
+  const importIdentifier = t.identifier(importName);
+
+  const program = path.findParent((p) => p.isProgram()) as NodePath<t.Program>;
+
+  const existingImport = program.node.body.find(
+    (s) =>
+      t.isImportDeclaration(s) &&
+      s.source.value === packageName &&
+      s.specifiers.some(
+        (sp) => t.isImportSpecifier(sp) && sp.local.name === importName
+      )
+  );
+
+  if (!!existingImport) {
+    return importIdentifier;
+  }
+
+  const importDeclaration = t.importDeclaration(
+    [t.importSpecifier(t.cloneNode(importIdentifier), importIdentifier)],
+    t.stringLiteral(packageName)
+  );
+
+  // Insert import at start of file.
+  program.node.body.unshift(importDeclaration);
+
+  return importIdentifier;
 }
 
 export function parseAst(code: string): ParseResult<t.File> {
