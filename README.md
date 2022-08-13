@@ -9,6 +9,10 @@
   </a>
 </p>
 
+<p align="center">
+  <img src="./showcase.gif" alt="Showcase" />
+</p>
+
 ## Motivation
 
 Setting up Relay can be quite time consuming. The goal of this project is to automate all of the manual setup steps involved, to give you a fast and consistent configuration experience across the most popular React toolchains.
