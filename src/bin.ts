@@ -253,10 +253,15 @@ console.log(
 );
 
 // todo: remove once cra is fully supported
-console.log(
-  `3. Setup ${highlight(
-    BABEL_RELAY_PACKAGE
-  )} to conform to your project. ${chalk.dim("(This will soon be automated!)")}`
-);
+
+if (settings.toolchain === "cra") {
+  console.log(
+    `3. Setup ${highlight(
+      BABEL_RELAY_PACKAGE
+    )} to conform to your project. ${chalk.dim(
+      "(This will soon be automated!)"
+    )}`
+  );
+}
 
 console.log();
