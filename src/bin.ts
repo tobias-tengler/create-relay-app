@@ -2,12 +2,12 @@
 
 import path, { dirname } from "path";
 import { TaskRunner } from "./TaskRunner.js";
-import { AddGraphQlSchemaFileTask } from "./tasks/AddGraphQlSchemaFileTask.js";
+import { GenerateGraphQlSchemaFileTask } from "./tasks/GenerateGraphQlSchemaFileTask.js";
 import chalk from "chalk";
 import { AddRelayConfigurationTask } from "./tasks/AddRelayConfigurationTask.js";
 import { EnvArguments, ProjectSettings } from "./types.js";
 import { InstallNpmPackagesTask } from "./tasks/InstallNpmPackagesTask.js";
-import { AddRelayPluginConfigurationTask } from "./tasks/AddRelayPluginConfigurationTask.js";
+import { ConfigureRelayGraphqlTransformTask } from "./tasks/ConfigureRelayGraphqlTransformTask.js";
 import { AddRelayEnvironmentProviderTask } from "./tasks/AddRelayEnvironmentProviderTask.js";
 import {
   traverseUpToFindFile,
@@ -18,6 +18,7 @@ import {
   printInvalidArg,
   getToolchainSettings,
   getRelayEnvFilepath,
+  normalizePath,
 } from "./helpers.js";
 import { exit } from "process";
 import {
@@ -149,6 +150,10 @@ const devDependencies = getRelayDevDependencies(
   settings.useTypescript
 );
 
+const relRelayEnvPath = normalizePath(
+  path.relative(settings.projectRootDirectory, settings.relayEnvFilepath)
+);
+
 const runner = new TaskRunner([
   {
     title: `Add Relay dependencies: ${dependencies
@@ -163,17 +168,16 @@ const runner = new TaskRunner([
     task: new InstallNpmPackagesTask(devDependencies, true, settings),
   },
   {
-    title: "Add Relay configuration to package.json",
+    title: `Add Relay configuration to ${highlight(PACKAGE_FILE)}`,
     task: new AddRelayConfigurationTask(settings),
   },
   {
-    // todo: better name
-    title: "Add Relay plugin configuration",
-    task: new AddRelayPluginConfigurationTask(settings),
+    title: "Configure Relay graphql transform",
+    task: new ConfigureRelayGraphqlTransformTask(settings),
   },
   {
     // todo: path is not relative
-    title: `Generate Relay environment ${highlight(settings.relayEnvFilepath)}`,
+    title: `Generate Relay environment ${highlight(relRelayEnvPath)}`,
     task: new GenerateRelayEnvironmentTask(settings),
   },
   {
@@ -181,10 +185,8 @@ const runner = new TaskRunner([
     task: new AddRelayEnvironmentProviderTask(settings),
   },
   {
-    title: `Generate GraphQL schema file (${highlight(
-      settings.schemaFilePath
-    )})`,
-    task: new AddGraphQlSchemaFileTask(settings),
+    title: `Generate GraphQL schema file ${highlight(settings.schemaFilePath)}`,
+    task: new GenerateGraphQlSchemaFileTask(settings),
   },
   {
     title: `Generate artifact directory ${highlight(

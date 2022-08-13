@@ -5,7 +5,7 @@ import traverse from "@babel/traverse";
 import t from "@babel/types";
 import { insertDefaultImport, parseAst, printAst } from "../ast.js";
 
-export class AddRelayPluginConfigurationTask extends TaskBase {
+export class ConfigureRelayGraphqlTransformTask extends TaskBase {
   constructor(private settings: ProjectSettings) {
     super();
   }
@@ -160,8 +160,6 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
       throw new Error();
     }
 
-    const relayImportName = "relay";
-
     // todo: handle errors
     const configCode = await fs.readFile(tSettings.configFilepath, "utf-8");
 
@@ -171,7 +169,11 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
       ExportDefaultDeclaration: (path) => {
         // todo: replace with VITE_RELAY_PACKAGE,
         // once it no longer has the explict version
-        insertDefaultImport(path, relayImportName, "vite-plugin-relay");
+        const relayImportId = insertDefaultImport(
+          path,
+          "relay",
+          "vite-plugin-relay"
+        );
 
         const node = path.node;
 
@@ -222,17 +224,15 @@ export class AddRelayPluginConfigurationTask extends TaskBase {
 
         if (
           vitePlugins.some(
-            (p) => t.isIdentifier(p) && p.name === relayImportName
+            (p) => t.isIdentifier(p) && p.name === relayImportId.name
           )
         ) {
           // A "relay" entry already exists.
           return;
         }
 
-        const relayPlugin = t.identifier(relayImportName);
-
         // Add the "relay" import to the "plugins".
-        vitePlugins.push(relayPlugin);
+        vitePlugins.push(relayImportId);
       },
     });
 

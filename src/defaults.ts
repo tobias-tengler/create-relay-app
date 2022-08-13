@@ -1,6 +1,6 @@
 import { execSync } from "child_process";
 import path from "path";
-import { findFileInDirectory } from "./helpers.js";
+import { findFileInDirectory, normalizePath } from "./helpers.js";
 import {
   CliArguments,
   EnvArguments,
@@ -64,14 +64,14 @@ export function getProjectSchemaFilepath(
     return filename;
   }
 
-  return path.join(srcDirectoryPath, filename);
+  return normalizePath(path.join(srcDirectoryPath, filename));
 }
 
 function getProjectArtifactDirectory(toolchain: Toolchain): string | undefined {
   if (toolchain === "next") {
     // Artifacts need to be located outside the ./pages directory,
     // or they will be treated as pages.
-    return "./__generated";
+    return "./__generated__";
   }
 
   return undefined;

@@ -91,6 +91,7 @@ export async function getCliArguments(
   const rawCliArguments = program.opts<RawCliArguments>();
   const partialCliArguments = parseCliArguments(rawCliArguments);
 
+  // todo: normalize all paths
   return partialCliArguments;
 }
 
@@ -122,7 +123,6 @@ export async function promptForMissingCliArguments(
       default: defaults.useTypescript,
       when: !existingArgs.useTypescript,
     },
-
     {
       name: "srcDirectoryPath",
       message: "Select the source directory",

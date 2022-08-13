@@ -173,6 +173,10 @@ export function getSpecifiedProperties<T extends object>(obj: Optional<T>): T {
   return newObj;
 }
 
+export function normalizePath(input: string): string {
+  return input.split(path.sep).join("/");
+}
+
 export function getRelayCompilerLanguage(
   useTypescript: boolean
 ): "typescript" | "javascript" {

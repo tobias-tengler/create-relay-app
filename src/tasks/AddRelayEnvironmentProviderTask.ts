@@ -6,6 +6,7 @@ import t from "@babel/types";
 import { parseAst, insertNamedImport, printAst } from "../ast.js";
 import { isNextSettings, isViteSettings, ProjectSettings } from "../types.js";
 import { REACT_RELAY_PACKAGE } from "../consts.js";
+import { normalizePath } from "../helpers.js";
 
 const RELAY_ENV_PROVIDER = "RelayEnvironmentProvider";
 const RELAY_ENV = "RelayEnvironment";
@@ -107,23 +108,27 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
   }
 
   private wrapJsxInProvider(
-    path: NodePath<t.JSXElement>,
+    jsxPath: NodePath<t.JSXElement>,
     sourceFilepath: string
   ) {
-    const envId = insertNamedImport(
-      path,
-      RELAY_ENV,
-      // todo: get relative path
-      "./RelayEnvironment"
+    const relativeImportPath = normalizePath(
+      path.relative(
+        path.dirname(sourceFilepath),
+        this.settings.relayEnvFilepath // todo: remove ext
+      )
     );
 
+    console.log({ relativeImportPath });
+
+    const envId = insertNamedImport(jsxPath, RELAY_ENV, relativeImportPath);
+
     const envProviderId = t.jsxIdentifier(
-      insertNamedImport(path, RELAY_ENV_PROVIDER, REACT_RELAY_PACKAGE).name
+      insertNamedImport(jsxPath, RELAY_ENV_PROVIDER, REACT_RELAY_PACKAGE).name
     );
 
     if (
-      t.isJSXIdentifier(path.node.openingElement.name) &&
-      path.node.openingElement.name.name === envProviderId.name
+      t.isJSXIdentifier(jsxPath.node.openingElement.name) &&
+      jsxPath.node.openingElement.name.name === envProviderId.name
     ) {
       // JSX has already been wrapped.
       return;
@@ -132,13 +137,13 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
     const test = t.jsxExpressionContainer(envId);
 
     // Wrap JSX inside render() into RelayEnvironmentProvider.
-    path.replaceWith(
+    jsxPath.replaceWith(
       t.jsxElement(
         t.jsxOpeningElement(envProviderId, [
           t.jsxAttribute(t.jsxIdentifier("environment"), test),
         ]),
         t.jsxClosingElement(envProviderId),
-        [path.node]
+        [jsxPath.node]
       )
     );
   }
