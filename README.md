@@ -15,7 +15,11 @@
 
 ## Motivation
 
-Setting up Relay can be quite time consuming. The goal of this project is to automate all of the manual setup steps involved, to give you a fast and consistent configuration experience across the most popular React toolchains.
+Setting up Relay can be quite time consuming, since there are _many_ setup steps that might differ, depending on the toolchain you use. 
+
+The goal of this project is to automate the setup process as much as possible and give you a fast and consistent configuration experience across the most popular React toolchains.
+
+Contrary to many existing tools that aim to solve similiar use cases, this project isn't simply scaffolding a pre-configured boilerplate. We actually analyze your existing code and only insert the necessary Relay configuration pieces.
 
 ## Supported toolchains
 
@@ -27,15 +31,20 @@ Setting up Relay can be quite time consuming. The goal of this project is to aut
 
 ## Usage
 
-Once you have scaffolded a project using your preferred toolchain of choice, simply execute the `@tobiastengler/create-relay-app` script in the directory of your project:
+1. Scaffold a new project using the toolchain of your choice (as long as [it's supported](#supported-toolchains)
+   - Next.js: `yarn create next-app --typescript`
+   - Vite.js: `yarn create vite --template react-ts`
+   - Create React App: `yarn create react-app <new-project-directory> --template typescript`
+2. Install all the packages and ensure that the template is functioning. If it comes with a Git repository, ensure your working directory is clean, by commiting or discarding any changes.
+3. Run the script inside of the scaffolded directory:
 
 ```bash
-npx @tobiastengler/create-relay-app@experimental
+npx -y @tobiastengler/create-relay-app
 ```
 
 > Note: We are working on getting the `create-relay-app` name!
 
-This will prompt you for a bunch of questions around your project setup. If you do not want to specify these options interactively, you can also specify them through the [CLI arguments](#cli-arguments). Passing `-y` will infer all settings based on your project.
+This will prompt you for a bunch of questions around your project setup. If you do not want to specify these options interactively, you can also specify them through the [CLI arguments](#cli-arguments). Passing `-y` will [infer all arguments](#default-values) based on your project.
 
 ## CLI arguments
 
