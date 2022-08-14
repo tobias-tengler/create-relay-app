@@ -36,6 +36,14 @@ export class ToolchainArgument extends ArgumentBase<"toolchain"> {
     );
   }
 
+  isValid(
+    value: Toolchain,
+    existingArgs: Partial<CliArguments>,
+    env: EnvArguments
+  ): true | string {
+    return true;
+  }
+
   async getDefaultValue(
     existingArgs: Partial<CliArguments>,
     env: EnvArguments

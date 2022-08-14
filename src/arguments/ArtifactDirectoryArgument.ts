@@ -1,5 +1,7 @@
 import { Command } from "commander";
+import path from "path";
 import { CliArguments, EnvArguments } from "../types.js";
+import { highlight, isSubDirectory } from "../utils/index.js";
 import { ArgumentBase } from "./ArgumentBase.js";
 
 export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory"> {
@@ -31,6 +33,45 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
       existingArgs,
       env
     );
+  }
+
+  isValid(
+    value: string,
+    existingArgs: Partial<CliArguments>,
+    env: EnvArguments
+  ): true | string {
+    if (!value) {
+      if (existingArgs.toolchain === "next") {
+        return "Required";
+      }
+
+      // The artifactDirectory is optional.
+      return true;
+    }
+
+    if (path.basename(value) !== "__generated__") {
+      return `Last directory segment should be called ${highlight(
+        "__generated__"
+      )}`;
+    }
+
+    if (!isSubDirectory(env.projectRootDirectory, value)) {
+      return `Must be directory below ${highlight(env.projectRootDirectory)}`;
+    }
+
+    if (existingArgs.toolchain === "next") {
+      const relativePagesDir = "./pages";
+      const pagesDirectory = path.join(
+        env.projectRootDirectory,
+        relativePagesDir
+      );
+
+      if (isSubDirectory(pagesDirectory, value)) {
+        return `Can not be under ${highlight(relativePagesDir)}`;
+      }
+    }
+
+    return true;
   }
 
   async getDefaultValue(

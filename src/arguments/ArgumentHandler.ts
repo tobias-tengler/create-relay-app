@@ -1,7 +1,8 @@
 import { ArgumentBase } from "./ArgumentBase.js";
 import { CliArguments, EnvArguments } from "../types.js";
 import { program } from "commander";
-import { prettifyPath } from "../utils/index.js";
+import { prettifyPath, printError } from "../utils/index.js";
+import { exit } from "process";
 
 export class ArgumentHandler {
   private readonly argumentDefinitions: ArgumentBase<keyof CliArguments>[];
@@ -50,7 +51,6 @@ export class ArgumentHandler {
         continue;
       }
 
-      // todo: get rid of tsignores
       if (!parsedArgs.yes) {
         const answer = await argumentDefinition.promptForValue(allArgs, env);
 
@@ -76,7 +76,21 @@ export class ArgumentHandler {
       }
     }
 
-    // todo: implement validation
+    for (const argumentDefinition of this.argumentDefinitions) {
+      const value = allArgs[argumentDefinition.name];
+
+      if (value === undefined) {
+        continue;
+      }
+
+      const valid = argumentDefinition.isValid(value, allArgs, env);
+
+      if (valid === true) {
+        continue;
+      }
+
+      throw argumentDefinition.getInvalidArgError(value, undefined, valid);
+    }
 
     return {
       ...allArgs,

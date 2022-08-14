@@ -23,6 +23,12 @@ export abstract class ArgumentBase<TName extends keyof CliArguments> {
     env: EnvArguments
   ): Promise<CliArguments[TName]>;
 
+  abstract isValid(
+    value: CliArguments[TName],
+    existingArgs: Partial<CliArguments>,
+    env: EnvArguments
+  ): true | string;
+
   protected getCliFlags(shorthand?: string, argument?: string) {
     let flags: string = "";
 
@@ -39,20 +45,27 @@ export abstract class ArgumentBase<TName extends keyof CliArguments> {
     return flags;
   }
 
-  protected getInvalidArgError(
-    value: string,
-    validValues: readonly CliArguments[TName][] | CliArguments[TName]
+  getInvalidArgError(
+    value: any,
+    validValues?: readonly CliArguments[TName][] | CliArguments[TName],
+    reason?: string
   ): Error {
-    const validValue: string =
-      validValues instanceof Array
-        ? validValues.join(", ")
-        : typeof validValues === "string"
-        ? validValues
-        : validValues.toString();
+    let msg = `Received an invalid value for --${this.name}: \"${value}\".`;
 
-    return new Error(
-      `Received an invalid value for --${this.name}. Valid values are: ${validValue}. Received: ${value}`
-    );
+    if (validValues) {
+      const validValueString: string =
+        validValues instanceof Array
+          ? validValues.join(", ")
+          : typeof validValues === "string"
+          ? validValues
+          : validValues.toString();
+
+      msg += " Valid values are: " + validValueString + ".";
+    } else if (reason) {
+      msg += " " + reason;
+    }
+
+    return new InvalidArgError(msg);
   }
 
   // todo: support path completion for path inputs
@@ -76,3 +89,5 @@ export abstract class ArgumentBase<TName extends keyof CliArguments> {
 export function getNormalizedCliString(input?: string): string {
   return input?.toLowerCase().trim() || "";
 }
+
+export class InvalidArgError extends Error {}

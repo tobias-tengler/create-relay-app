@@ -27,6 +27,14 @@ export class TypescriptArgument extends ArgumentBase<"typescript"> {
     );
   }
 
+  isValid(
+    value: boolean,
+    existingArgs: Partial<CliArguments>,
+    env: EnvArguments
+  ): true | string {
+    return true;
+  }
+
   async getDefaultValue(
     existingArgs: Partial<CliArguments>,
     env: EnvArguments

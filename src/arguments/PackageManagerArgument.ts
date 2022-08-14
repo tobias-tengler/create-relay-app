@@ -38,6 +38,14 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
     );
   }
 
+  isValid(
+    value: PackageManager,
+    existingArgs: Partial<CliArguments>,
+    env: EnvArguments
+  ): true | string {
+    return true;
+  }
+
   async getDefaultValue(
     existingArgs: Partial<CliArguments>,
     env: EnvArguments

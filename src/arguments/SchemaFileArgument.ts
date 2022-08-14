@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import path from "path";
 import { CliArguments, EnvArguments } from "../types.js";
-import { prettifyPath } from "../utils/index.js";
+import { highlight, isSubDirectory, prettifyPath } from "../utils/index.js";
 import { ArgumentBase } from "./ArgumentBase.js";
 
 export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
@@ -28,6 +28,26 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
       existingArgs,
       env
     );
+  }
+
+  isValid(
+    value: string,
+    existingArgs: Partial<CliArguments>,
+    env: EnvArguments
+  ): true | string {
+    if (!value) {
+      return "Required";
+    }
+
+    if (!value.endsWith(".graphql")) {
+      return `File needs to end in ${highlight(".graphql")}`;
+    }
+
+    if (!isSubDirectory(env.projectRootDirectory, value)) {
+      return `Must be directory below ${highlight(env.projectRootDirectory)}`;
+    }
+
+    return true;
   }
 
   async getDefaultValue(

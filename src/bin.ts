@@ -3,6 +3,7 @@
 import path, { dirname } from "path";
 import { exit } from "process";
 import { fileURLToPath } from "url";
+import { InvalidArgError } from "./arguments/ArgumentBase.js";
 import {
   ArgumentHandler,
   ArtifactDirectoryArgument,
@@ -23,6 +24,7 @@ import {
   getProjectRelayEnvFilepath,
   getRelayDevDependencies,
   getEnvironment,
+  hasUnsavedGitChanges,
 } from "./helpers.js";
 import {
   GenerateArtifactDirectoryTask,
@@ -42,7 +44,6 @@ import {
   prettifyRelativePath,
   printError,
 } from "./utils/index.js";
-import { hasUnsavedGitChanges } from "./validation.js";
 
 // INIT ENVIRONMENT
 
@@ -89,7 +90,9 @@ try {
 
   console.log();
 } catch (error) {
-  if (error instanceof Error) {
+  if (error instanceof InvalidArgError) {
+    printError(error.message);
+  } else if (error instanceof Error) {
     printError("Error while parsing CLI arguments: " + error.message);
   } else {
     printError("Unexpected error while parsing CLI arguments");

@@ -1,5 +1,6 @@
 import { Command } from "commander";
 import { CliArguments, EnvArguments } from "../types.js";
+import { highlight, isSubDirectory } from "../utils/index.js";
 import { ArgumentBase } from "./ArgumentBase.js";
 
 export class SrcArgument extends ArgumentBase<"src"> {
@@ -25,6 +26,22 @@ export class SrcArgument extends ArgumentBase<"src"> {
       existingArgs,
       env
     );
+  }
+
+  isValid(
+    value: string,
+    existingArgs: Partial<CliArguments>,
+    env: EnvArguments
+  ): true | string {
+    if (!value) {
+      return `Required`;
+    }
+
+    if (!isSubDirectory(env.projectRootDirectory, value)) {
+      return `Must be directory below ${highlight(env.projectRootDirectory)}`;
+    }
+
+    return true;
   }
 
   async getDefaultValue(
