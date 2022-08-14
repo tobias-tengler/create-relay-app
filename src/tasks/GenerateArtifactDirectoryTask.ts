@@ -1,7 +1,7 @@
 import { TaskBase } from "./TaskBase.js";
 import { ProjectSettings } from "../types.js";
 import path from "path";
-import { createDirectory } from "../utils/fs.js";
+import { createDirectory } from "../utils/index.js";
 
 export class GenerateArtifactDirectoryTask extends TaskBase {
   constructor(private settings: ProjectSettings) {

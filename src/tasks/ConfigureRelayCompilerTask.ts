@@ -1,6 +1,6 @@
 import { TaskBase } from "./TaskBase.js";
 import { ProjectSettings } from "../types.js";
-import { readFromFile, writeToFile } from "../utils/fs.js";
+import { readFromFile, writeToFile } from "../utils/index.js";
 
 const validateRelayArtifactsScript = "relay-compiler --validate";
 

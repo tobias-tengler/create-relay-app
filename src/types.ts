@@ -18,6 +18,7 @@ export type CliArguments = {
 };
 
 export type EnvArguments = Readonly<{
+  launcher: PackageManager;
   workingDirectory: string;
   ownPackageDirectory: string;
   ownPackageName: string;

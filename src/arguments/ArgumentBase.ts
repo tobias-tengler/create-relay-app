@@ -1,6 +1,6 @@
 import { Command } from "commander";
 import inquirer from "inquirer";
-import { CliArguments } from "../types.js";
+import { CliArguments, EnvArguments } from "../types.js";
 
 type PromptOptions<TName extends keyof CliArguments> = {
   message: string;
@@ -13,9 +13,15 @@ export abstract class ArgumentBase<TName extends keyof CliArguments> {
 
   abstract registerCliOption(command: Command): void;
 
-  abstract promptForValue(): Promise<CliArguments[TName]>;
+  abstract promptForValue(
+    existingArgs: Partial<CliArguments>,
+    env: EnvArguments
+  ): Promise<CliArguments[TName]>;
 
-  abstract getDefaultValue(): Promise<CliArguments[TName]>;
+  abstract getDefaultValue(
+    existingArgs: Partial<CliArguments>,
+    env: EnvArguments
+  ): Promise<CliArguments[TName]>;
 
   protected getCliFlags(shorthand?: string, argument?: string) {
     let flags: string = "";
@@ -49,12 +55,17 @@ export abstract class ArgumentBase<TName extends keyof CliArguments> {
     );
   }
 
+  // todo: support path completion for path inputs
   protected async showInquirerPrompt(
-    options: PromptOptions<TName>
+    options: PromptOptions<TName>,
+    existingArgs: Partial<CliArguments>,
+    env: EnvArguments
   ): Promise<CliArguments[TName]> {
+    const defaultValue = await this.getDefaultValue(existingArgs, env);
+
     const answer = await inquirer.prompt({
       name: this.name,
-      default: await this.getDefaultValue(),
+      default: defaultValue,
       ...options,
     });
 

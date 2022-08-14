@@ -1,5 +1,11 @@
 import { Command } from "commander";
-import { Toolchain, ToolchainOptions } from "../types.js";
+import {
+  CliArguments,
+  EnvArguments,
+  Toolchain,
+  ToolchainOptions,
+} from "../types.js";
+import { isNpmPackageInstalled } from "../utils/index.js";
 import { ArgumentBase, getNormalizedCliString } from "./ArgumentBase.js";
 
 export class ToolchainArgument extends ArgumentBase<"toolchain"> {
@@ -15,24 +21,44 @@ export class ToolchainArgument extends ArgumentBase<"toolchain"> {
     );
   }
 
-  promptForValue(): Promise<Toolchain> {
-    return this.showInquirerPrompt({
-      message: "Select the toolchain your project was setup with",
-      type: "list",
-      choices: ToolchainOptions,
-    });
+  promptForValue(
+    existingArgs: Partial<CliArguments>,
+    env: EnvArguments
+  ): Promise<Toolchain> {
+    return this.showInquirerPrompt(
+      {
+        message: "Select the toolchain your project was setup with",
+        type: "list",
+        choices: ToolchainOptions,
+      },
+      existingArgs,
+      env
+    );
   }
 
-  async getDefaultValue(): Promise<Toolchain> {
-    // todo: implement isNpmPackageInstalled to look in the packagejson
+  async getDefaultValue(
+    existingArgs: Partial<CliArguments>,
+    env: EnvArguments
+  ): Promise<Toolchain> {
+    if (
+      await isNpmPackageInstalled(
+        env.launcher,
+        env.projectRootDirectory,
+        "next"
+      )
+    ) {
+      return "next";
+    }
 
-    // if (await isNpmPackageInstalled(manager, projectRootDirectory, "next")) {
-    //   return "next";
-    // }
-
-    // if (await isNpmPackageInstalled(manager, projectRootDirectory, "vite")) {
-    //   return "vite";
-    // }
+    if (
+      await isNpmPackageInstalled(
+        env.launcher,
+        env.projectRootDirectory,
+        "vite"
+      )
+    ) {
+      return "vite";
+    }
 
     return "cra";
   }

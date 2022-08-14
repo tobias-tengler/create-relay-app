@@ -7,7 +7,7 @@ import {
   Toolchain,
 } from "./types.js";
 import { BABEL_RELAY_PACKAGE, VITE_RELAY_PACKAGE } from "./consts.js";
-import { findFileInDirectory } from "./utils/fs.js";
+import { findFileInDirectory } from "./utils/index.js";
 
 // todo: seperate this into meaningful files
 
@@ -31,22 +31,6 @@ export function getRelayDevDependencies(
   }
 
   return relayDevDep;
-}
-
-export function getSpecifiedProperties<T extends object>(obj: Partial<T>): T {
-  const keys = Object.keys(obj) as (keyof T)[];
-
-  const newObj = {} as T;
-
-  for (const key of keys) {
-    if (obj[key] === null) {
-      continue;
-    }
-
-    newObj[key] = obj[key]!;
-  }
-
-  return newObj;
 }
 
 export function getRelayCompilerLanguage(

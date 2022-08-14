@@ -1,39 +1,50 @@
 #!/usr/bin/env node
 
 import path, { dirname } from "path";
-import { TaskRunner } from "./tasks/TaskRunner.js";
-import { GenerateGraphQlSchemaFileTask } from "./tasks/GenerateGraphQlSchemaFileTask.js";
-import { AddRelayConfigurationTask } from "./tasks/AddRelayConfigurationTask.js";
-import { CliArguments, EnvArguments, ProjectSettings } from "./types.js";
-import { InstallNpmPackagesTask } from "./tasks/InstallNpmPackagesTask.js";
-import { ConfigureRelayGraphqlTransformTask } from "./tasks/ConfigureRelayGraphqlTransformTask.js";
-import { AddRelayEnvironmentProviderTask } from "./tasks/AddRelayEnvironmentProviderTask.js";
-import {
-  getRelayDevDependencies,
-  getRelayCompilerLanguage,
-  getToolchainSettings,
-  getProjectRelayEnvFilepath,
-} from "./helpers.js";
 import { exit } from "process";
+import { fileURLToPath } from "url";
 import {
-  BABEL_RELAY_PACKAGE,
+  ArgumentHandler,
+  ArtifactDirectoryArgument,
+  PackageManagerArgument,
+  SchemaFileArgument,
+  SrcArgument,
+  ToolchainArgument,
+  TypescriptArgument,
+} from "./arguments/index.js";
+import {
   PACKAGE_FILE,
   REACT_RELAY_PACKAGE,
+  BABEL_RELAY_PACKAGE,
 } from "./consts.js";
-import { fileURLToPath } from "url";
+import {
+  getToolchainSettings,
+  getRelayCompilerLanguage,
+  getProjectRelayEnvFilepath,
+  getRelayDevDependencies,
+} from "./helpers.js";
+import {
+  GenerateArtifactDirectoryTask,
+  AddRelayEnvironmentProviderTask,
+  GenerateRelayEnvironmentTask,
+  GenerateGraphQlSchemaFileTask,
+  InstallNpmPackagesTask,
+  TaskRunner,
+  ConfigureRelayCompilerTask,
+  ConfigureRelayGraphqlTransformTask,
+} from "./tasks/index.js";
+import { EnvArguments, CliArguments, ProjectSettings } from "./types.js";
+import {
+  dim,
+  getPackageDetails,
+  headline,
+  highlight,
+  inferPackageManager,
+  prettifyRelativePath,
+  printError,
+  traverseUpToFindFile,
+} from "./utils/index.js";
 import { hasUnsavedGitChanges } from "./validation.js";
-import { GenerateRelayEnvironmentTask } from "./tasks/GenerateRelayEnvironmentTask.js";
-import { GenerateArtifactDirectoryTask } from "./tasks/GenerateArtifactDirectoryTask.js";
-import { ToolchainArgument } from "./arguments/ToolchainArgument.js";
-import { TypescriptArgument } from "./arguments/TypescriptArgument.js";
-import { SrcArgument } from "./arguments/SrcArgument.js";
-import { ArtifactDirectoryArgument } from "./arguments/ArtifactDirectoryArgument.js";
-import { SchemaFileArgument } from "./arguments/SchemaFileArgument.js";
-import { PackageManagerArgument } from "./arguments/PackageManagerArgument.js";
-import { ArgumentHandler } from "./arguments/ArgumentHandler.js";
-import { dim, headline, highlight, printError } from "./utils/cli.js";
-import { traverseUpToFindFile, prettifyRelativePath } from "./utils/fs.js";
-import { getPackageDetails, inferPackageManager } from "./utils/packages.js";
 
 // INIT ENVIRONMENT
 
@@ -42,6 +53,7 @@ const ownPackageDirectory = path.join(distDirectory, "..");
 const workingDirectory = process.cwd();
 
 // todo: handle error
+const pacMan = inferPackageManager();
 const packageDetails = await getPackageDetails(ownPackageDirectory);
 
 const packageJsonFile = await traverseUpToFindFile(
@@ -56,7 +68,6 @@ if (!packageJsonFile) {
     )} directory.`
   );
 
-  const pacMan = inferPackageManager();
   const pacManCreate = pacMan + " create ";
 
   console.log();
@@ -93,6 +104,7 @@ if (!packageJsonFile) {
 const projectRootDirectory = path.dirname(packageJsonFile);
 
 const envArguments: EnvArguments = {
+  launcher: pacMan,
   workingDirectory,
   ownPackageDirectory,
   packageJsonFile,
@@ -120,8 +132,6 @@ try {
 
   const partialCliArguments = await argumentHandler.parse(envArguments);
 
-  console.log({ partialCliArguments });
-
   // todo: this is kind of awkward here
   if (!partialCliArguments.ignoreGitChanges) {
     const hasUnsavedChanges = await hasUnsavedGitChanges(
@@ -138,10 +148,17 @@ try {
     }
   }
 
-  cliArgs = await argumentHandler.promptForMissing(partialCliArguments);
+  cliArgs = await argumentHandler.promptForMissing(
+    partialCliArguments,
+    envArguments
+  );
+
+  console.log();
+
+  console.log({ cliArgs });
 } catch (error) {
   if (error instanceof Error) {
-    printError(error.message);
+    printError("Error while parsing CLI arguments: " + error.message);
   } else {
     printError("Unexpected error while parsing CLI arguments");
   }

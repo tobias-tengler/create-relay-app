@@ -1,7 +1,7 @@
 import path from "path";
 import { TaskBase } from "./TaskBase.js";
 import { ProjectSettings } from "../types.js";
-import { copyFile, createDirectory } from "../utils/fs.js";
+import { copyFile, createDirectory } from "../utils/index.js";
 
 export class GenerateRelayEnvironmentTask extends TaskBase {
   constructor(private settings: ProjectSettings) {

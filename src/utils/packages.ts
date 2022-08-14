@@ -1,7 +1,94 @@
+import { spawn } from "child_process";
 import path from "path";
 import { PACKAGE_FILE } from "../consts.js";
 import { PackageManager } from "../types.js";
 import { readFromFile } from "./fs.js";
+
+// todo: implement to look in the packagejson
+export async function isNpmPackageInstalled(
+  manager: PackageManager,
+  projectRootDirectory: string,
+  packageName: string
+): Promise<boolean> {
+  const command = manager;
+  const useYarn = manager === "yarn";
+
+  let args: string[] = [];
+
+  if (useYarn) {
+    args = ["list", "--depth=0", "--pattern", packageName];
+  } else {
+    args = ["ls", "--depth=0", packageName];
+  }
+
+  return new Promise((resolve) => {
+    const child = spawn(command, args, {
+      // stdio: "inherit",
+      cwd: projectRootDirectory,
+      env: process.env,
+      shell: true,
+    });
+
+    child.stdout.on("data", (data) => {
+      const stringData = data.toString() as string;
+
+      if (new RegExp(`\x20${packageName}@\\w`, "m").test(stringData)) {
+        resolve(true);
+      }
+    });
+
+    child.on("close", () => {
+      resolve(false);
+    });
+  });
+}
+
+export function installNpmPackages(
+  manager: PackageManager,
+  projectRootDirectory: string,
+  packages: string[],
+  isDevDependency: boolean
+) {
+  const command = manager;
+  const useYarn = command === "yarn";
+  let args: string[] = [];
+
+  if (useYarn) {
+    args = ["add", "--exact", "--cwd", projectRootDirectory];
+
+    if (isDevDependency) {
+      args.push("--dev");
+    }
+
+    args.push(...packages);
+  } else {
+    args = [
+      "install",
+      "--save-exact",
+      isDevDependency ? "--save-dev" : "--save",
+    ];
+
+    args.push(...packages);
+  }
+
+  return new Promise<void>((resolve, reject) => {
+    const child = spawn(command, args, {
+      // stdio: "inherit",
+      cwd: projectRootDirectory,
+      env: process.env,
+      shell: true,
+    });
+
+    child.on("close", (code) => {
+      if (code !== 0) {
+        reject({ command: `${command} ${args.join(" ")}` });
+        return;
+      }
+
+      resolve();
+    });
+  });
+}
 
 type PackageDetails = Readonly<{
   name: string;

@@ -2,15 +2,17 @@ import traverse, { NodePath } from "@babel/traverse";
 import path from "path";
 import { TaskBase } from "./TaskBase.js";
 import t from "@babel/types";
-import { parseAst, insertNamedImport, printAst } from "../utils/ast.js";
 import { ProjectSettings } from "../types.js";
 import { REACT_RELAY_PACKAGE } from "../consts.js";
 import {
+  insertNamedImport,
+  parseAst,
   prettifyRelativePath,
+  printAst,
   readFromFile,
   removeExtension,
   writeToFile,
-} from "../utils/fs.js";
+} from "../utils/index.js";
 
 const RELAY_ENV_PROVIDER = "RelayEnvironmentProvider";
 const RELAY_ENV = "RelayEnvironment";

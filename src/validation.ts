@@ -1,9 +1,9 @@
-import { exec, spawn } from "child_process";
+import { exec } from "child_process";
 import path from "path";
-import { TS_CONFIG_FILE, TYPESCRIPT_PACKAGE } from "./consts.js";
-import { PackageManager, Toolchain } from "./types.js";
-import { highlight } from "./utils/cli.js";
-import { isSubDirectory, findFileInDirectory } from "./utils/fs.js";
+import { Toolchain } from "./types.js";
+import { highlight, isSubDirectory } from "./utils/index.js";
+
+// todo: inline into specific arguments
 
 export function isValidSchemaPath(
   input: string,
@@ -73,32 +73,6 @@ export function isValidArtifactDirectory(
   return true;
 }
 
-export async function doesProjectUseTypescript(
-  projectRootDirectory: string,
-  manager: PackageManager
-): Promise<boolean> {
-  const tsconfigFile = await findFileInDirectory(
-    projectRootDirectory,
-    TS_CONFIG_FILE
-  );
-
-  if (!!tsconfigFile) {
-    return true;
-  }
-
-  const typescriptInstalled = await isNpmPackageInstalled(
-    manager,
-    projectRootDirectory,
-    TYPESCRIPT_PACKAGE
-  );
-
-  if (typescriptInstalled) {
-    return true;
-  }
-
-  return false;
-}
-
 export async function hasUnsavedGitChanges(dir: string): Promise<boolean> {
   const isPartOfGitRepo = await new Promise<boolean>((resolve) => {
     exec("git rev-parse --is-inside-work-tree", { cwd: dir }, (error) => {
@@ -117,42 +91,4 @@ export async function hasUnsavedGitChanges(dir: string): Promise<boolean> {
   });
 
   return hasUnsavedChanges;
-}
-
-export async function isNpmPackageInstalled(
-  manager: PackageManager,
-  projectRootDirectory: string,
-  packageName: string
-): Promise<boolean> {
-  const command = manager;
-  const useYarn = manager === "yarn";
-
-  let args: string[] = [];
-
-  if (useYarn) {
-    args = ["list", "--depth=0", "--pattern", packageName];
-  } else {
-    args = ["ls", "--depth=0", packageName];
-  }
-
-  return new Promise((resolve) => {
-    const child = spawn(command, args, {
-      // stdio: "inherit",
-      cwd: projectRootDirectory,
-      env: process.env,
-      shell: true,
-    });
-
-    child.stdout.on("data", (data) => {
-      const stringData = data.toString() as string;
-
-      if (new RegExp(`\x20${packageName}@\\w`, "m").test(stringData)) {
-        resolve(true);
-      }
-    });
-
-    child.on("close", () => {
-      resolve(false);
-    });
-  });
 }

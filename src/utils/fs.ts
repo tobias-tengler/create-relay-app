@@ -1,7 +1,7 @@
 import glob from "glob";
 import path from "path";
 import fs from "fs/promises";
-import { mkdir } from "fs-extra";
+import fsExtra from "fs-extra";
 import { existsSync } from "fs";
 
 export function copyFile(src: string, dest: string): Promise<void> {
@@ -21,7 +21,7 @@ export function writeToFile(filepath: string, content: string): Promise<void> {
 }
 
 export function createDirectory(directoryPath: string): Promise<void> {
-  return mkdir(directoryPath, { recursive: true });
+  return fsExtra.mkdir(directoryPath, { recursive: true });
 }
 
 export async function traverseUpToFindFile(

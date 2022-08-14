@@ -1,5 +1,5 @@
 import { Ora } from "ora";
-import { dim } from "../utils/cli.js";
+import { dim } from "../utils/index.js";
 
 export abstract class TaskBase {
   private spinner?: Ora;

@@ -1,4 +1,5 @@
 import { Command } from "commander";
+import { CliArguments, EnvArguments } from "../types.js";
 import { ArgumentBase } from "./ArgumentBase.js";
 
 export class SrcArgument extends ArgumentBase<"src"> {
@@ -10,19 +11,29 @@ export class SrcArgument extends ArgumentBase<"src"> {
     command.option(flags, "root directory of your application code");
   }
 
-  promptForValue(): Promise<string> {
-    return this.showInquirerPrompt({
-      message: "Select the root directory of your application code",
-      type: "input",
-      //    validate: (input: string) =>
-      //     isValidSrcDirectory(input, env.projectRootDirectory),
-    });
+  promptForValue(
+    existingArgs: Partial<CliArguments>,
+    env: EnvArguments
+  ): Promise<string> {
+    return this.showInquirerPrompt(
+      {
+        message: "Select the root directory of your application code",
+        type: "input",
+        //    validate: (input: string) =>
+        //     isValidSrcDirectory(input, env.projectRootDirectory),
+      },
+      existingArgs,
+      env
+    );
   }
 
-  async getDefaultValue(): Promise<string> {
-    //      if (toolchain === "next") {
-    //     return "./";
-    //   }
+  async getDefaultValue(
+    existingArgs: Partial<CliArguments>,
+    env: EnvArguments
+  ): Promise<string> {
+    if (existingArgs.toolchain === "next") {
+      return "./";
+    }
 
     return "./src";
   }

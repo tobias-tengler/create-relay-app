@@ -2,8 +2,13 @@ import { TaskBase } from "./TaskBase.js";
 import { ProjectSettings } from "../types.js";
 import traverse from "@babel/traverse";
 import t from "@babel/types";
-import { insertDefaultImport, parseAst, printAst } from "../utils/ast.js";
-import { readFromFile, writeToFile } from "../utils/fs.js";
+import {
+  insertDefaultImport,
+  parseAst,
+  printAst,
+  readFromFile,
+  writeToFile,
+} from "../utils/index.js";
 
 export class ConfigureRelayGraphqlTransformTask extends TaskBase {
   constructor(private settings: ProjectSettings) {

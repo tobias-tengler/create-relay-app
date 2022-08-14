@@ -1,4 +1,7 @@
 import { Command } from "commander";
+import { TS_CONFIG_FILE, TYPESCRIPT_PACKAGE } from "../consts.js";
+import { CliArguments, EnvArguments } from "../types.js";
+import { isNpmPackageInstalled, findFileInDirectory } from "../utils/index.js";
 import { ArgumentBase } from "./ArgumentBase.js";
 
 export class TypescriptArgument extends ArgumentBase<"typescript"> {
@@ -10,32 +13,42 @@ export class TypescriptArgument extends ArgumentBase<"typescript"> {
     command.option(flags, "use Typescript");
   }
 
-  promptForValue(): Promise<boolean> {
-    return this.showInquirerPrompt({
-      message: "Does your project use Typescript",
-      type: "confirm",
-    });
+  promptForValue(
+    existingArgs: Partial<CliArguments>,
+    env: EnvArguments
+  ): Promise<boolean> {
+    return this.showInquirerPrompt(
+      {
+        message: "Does your project use Typescript",
+        type: "confirm",
+      },
+      existingArgs,
+      env
+    );
   }
 
-  async getDefaultValue(): Promise<boolean> {
-    // const tsconfigFile = await findFileInDirectory(
-    //   projectRootDirectory,
-    //   TS_CONFIG_FILE
-    // );
+  async getDefaultValue(
+    existingArgs: Partial<CliArguments>,
+    env: EnvArguments
+  ): Promise<boolean> {
+    const tsconfigFile = await findFileInDirectory(
+      env.projectRootDirectory,
+      TS_CONFIG_FILE
+    );
 
-    // if (!!tsconfigFile) {
-    //   return true;
-    // }
+    if (!!tsconfigFile) {
+      return true;
+    }
 
-    // const typescriptInstalled = await isNpmPackageInstalled(
-    //   manager,
-    //   projectRootDirectory,
-    //   TYPESCRIPT_PACKAGE
-    // );
+    const typescriptInstalled = await isNpmPackageInstalled(
+      env.launcher,
+      env.projectRootDirectory,
+      TYPESCRIPT_PACKAGE
+    );
 
-    // if (typescriptInstalled) {
-    //   return true;
-    // }
+    if (typescriptInstalled) {
+      return true;
+    }
 
     return false;
   }
