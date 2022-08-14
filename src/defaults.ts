@@ -1,6 +1,10 @@
 import { execSync } from "child_process";
 import path from "path";
-import { findFileInDirectory, prettifyPath } from "./helpers.js";
+import {
+  findFileInDirectory,
+  inferPackageManager,
+  prettifyPath,
+} from "./helpers.js";
 import {
   CliArguments,
   EnvArguments,
@@ -112,22 +116,14 @@ async function getProjectToolchain(
 }
 
 export async function getProjectPackageManager(
-  projectRootDirectory?: string
+  projectRootDirectory: string
 ): Promise<PackageManager> {
   try {
-    const userAgent = process.env.npm_config_user_agent;
+    const inferred = inferPackageManager();
 
-    // If this script is being run by a specific manager,
-    // we use this mananger.
-    if (userAgent) {
-      if (userAgent.startsWith("yarn")) {
-        return "yarn";
-      } else if (userAgent.startsWith("pnpm")) {
-        return "pnpm";
-      }
-    }
-
-    if (projectRootDirectory) {
+    // If we have the default package manager,
+    // we do another round of checks on the project directory.
+    if (inferred === "npm") {
       try {
         execSync("yarn --version", { stdio: "ignore" });
 

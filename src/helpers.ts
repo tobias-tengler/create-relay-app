@@ -3,6 +3,7 @@ import fs from "fs/promises";
 import {
   CliArguments,
   EnvArguments,
+  PackageManager,
   ProjectSettings,
   RelayCompilerLanguage,
   Toolchain,
@@ -14,7 +15,6 @@ import {
 } from "./consts.js";
 import glob from "glob";
 import chalk from "chalk";
-import { getProjectPackageManager } from "./defaults.js";
 
 export function printInvalidArg(
   arg: string,
@@ -36,12 +36,20 @@ export function highlight(message: string): string {
   return chalk.cyan.bold(message);
 }
 
-export async function getPackageManagerCreateCommand(
-  packageName: string
-): Promise<string> {
-  const packageManager = await getProjectPackageManager();
+export function inferPackageManager(): PackageManager {
+  const userAgent = process.env.npm_config_user_agent;
 
-  return packageManager + " create " + packageName;
+  // If this script is being run by a specific manager,
+  // we use this mananger.
+  if (userAgent) {
+    if (userAgent.startsWith("yarn")) {
+      return "yarn";
+    } else if (userAgent.startsWith("pnpm")) {
+      return "pnpm";
+    }
+  }
+
+  return "npm";
 }
 
 export async function traverseUpToFindFile(
@@ -221,10 +229,18 @@ export function getRelayCompilerLanguage(
   useTypescript: boolean,
   toolchain: Toolchain
 ): RelayCompilerLanguage {
-  // Next does not support 'javascript' as an option,
-  // only typescript or flow. So we opt for typescript
-  // since it's more wide spread.
-  if (useTypescript || toolchain === "next") {
+  if (
+    useTypescript ||
+    // Next does not support 'javascript' as an option,
+    // only typescript or flow. So we opt for typescript
+    // since it's more wide spread.
+    toolchain === "next" ||
+    // When generating as Javascript, artifacts contain
+    // module.exports = node;, which Vite can not handle correctly.
+    // We also force typescript here, since it will produce
+    // export default node;
+    toolchain === "vite"
+  ) {
     return "typescript";
   } else {
     return "javascript";

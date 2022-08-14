@@ -20,7 +20,7 @@ import {
   prettifyRelativePath,
   headline,
   getPackageDetails,
-  getPackageManagerCreateCommand as getPacManCreateCmd,
+  inferPackageManager,
 } from "./helpers.js";
 import { exit } from "process";
 import {
@@ -67,34 +67,36 @@ if (!packageJsonFile) {
     )} directory.`
   );
 
+  const pacMan = inferPackageManager();
+  const pacManCreate = pacMan + " create ";
+
   console.log();
   console.log(headline("Correct usage"));
   console.log();
 
   console.log("1. Remember to first scaffold a project using:");
   console.log(
-    "   Next.js: " +
-      highlight(await getPacManCreateCmd("next-app --typescript"))
+    "   Next.js: " + highlight(pacManCreate + "next-app --typescript")
   );
   console.log(
-    "   Vite.js: " +
-      highlight(await getPacManCreateCmd("vite --template react-ts"))
+    "   Vite.js: " + highlight(pacManCreate + "vite --template react-ts")
   );
   console.log(
     "   Create React App: " +
       highlight(
-        await getPacManCreateCmd(
-          "react-app <new-project-directory> --template typescript"
-        )
+        pacManCreate + "react-app <new-project-directory> --template typescript"
       )
   );
   console.log();
   console.log("2. Move into the scaffolded directory:");
-  console.log("   cd " + highlight("<new-project-directory>"));
+  console.log("   " + highlight("cd <new-project-directory>"));
   console.log();
-  console.log(`3. Run the ${highlight(ownPackageName)} script again:`);
-  // todo: use getPacManCreateCmd once we hopefully have the create-relay-app name
-  console.log(`   npx -y ${ownPackageName}`);
+  console.log("3. Install the referenced packages:");
+  console.log("   " + highlight(pacMan + " install"));
+  console.log();
+  console.log(`4. Run the ${ownPackageName} script again:`);
+  // todo: use pacManCreate once we hopefully have the create-relay-app name
+  console.log("   " + highlight("npx -y " + ownPackageName));
 
   exit(1);
 }
