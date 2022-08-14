@@ -6,3 +6,4 @@ export * from "./ConfigureRelayGraphqlTransformTask.js";
 export * from "./GenerateArtifactDirectoryTask.js";
 export * from "./GenerateGraphQlSchemaFileTask.js";
 export * from "./GenerateRelayEnvironmentTask.js";
+export * from "./AddBabelMacroTypeDefinitionsTask.js";

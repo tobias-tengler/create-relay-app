@@ -35,6 +35,7 @@ import {
   TaskRunner,
   ConfigureRelayCompilerTask,
   ConfigureRelayGraphqlTransformTask,
+  AddBabelMacroTypeDefinitionsTask,
 } from "./tasks/index.js";
 import { CliArguments, ProjectSettings } from "./types.js";
 import {
@@ -166,6 +167,11 @@ const runner = new TaskRunner([
     title: `Configure Relay transform in ${highlight(relConfigPath)}`,
     task: new ConfigureRelayGraphqlTransformTask(settings),
     when: settings.toolchain !== "cra",
+  },
+  {
+    title: `Add ${highlight(BABEL_RELAY_PACKAGE + "/macro")} type definitions`,
+    task: new AddBabelMacroTypeDefinitionsTask(settings),
+    when: settings.toolchain === "cra" && settings.typescript,
   },
   {
     title: `Generate Relay environment ${highlight(relRelayEnvPath)}`,

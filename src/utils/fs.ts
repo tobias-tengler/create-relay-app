@@ -20,6 +20,10 @@ export function writeToFile(filepath: string, content: string): Promise<void> {
   return fs.writeFile(filepath, content, "utf-8");
 }
 
+export function appendToFile(filepath: string, content: string): Promise<void> {
+  return fs.appendFile(filepath, content, "utf-8");
+}
+
 export function createDirectory(directoryPath: string): Promise<void> {
   return fsExtra.mkdir(directoryPath, { recursive: true });
 }

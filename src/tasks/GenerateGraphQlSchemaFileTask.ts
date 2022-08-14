@@ -1,10 +1,12 @@
 import path from "path";
-import { EOL } from "os";
 import { TaskBase } from "./TaskBase.js";
 import { ProjectSettings } from "../types.js";
 import { createDirectory, writeToFile, doesExist } from "../utils/index.js";
 
-const schemaGraphQLContent = `# Replace this with your own GraphQL schema file!${EOL}type Query {${EOL}  field: String${EOL}}${EOL}`;
+const schemaGraphQLContent = `# Replace this with your own GraphQL schema file!
+type Query {
+  field: String
+}`;
 
 export class GenerateGraphQlSchemaFileTask extends TaskBase {
   constructor(private settings: ProjectSettings) {
