@@ -271,7 +271,7 @@ export async function getToolchainSettings(
       throw new Error(`${configFilename} not found`);
     }
 
-    const mainFilename = "_app" + (args.typescript ? ".tsx" : ".jsx");
+    const mainFilename = "_app" + (args.typescript ? ".tsx" : ".js");
 
     const searchDirectory = path.join(env.projectRootDirectory, "pages");
 

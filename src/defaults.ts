@@ -90,7 +90,7 @@ function getProjectArtifactDirectory(toolchain: Toolchain): string {
 
 function getProjectSrcDirectory(toolchain: Toolchain): string {
   if (toolchain === "next") {
-    return "./pages";
+    return "./";
   }
 
   return "./src";

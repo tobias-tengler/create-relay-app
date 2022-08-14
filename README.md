@@ -165,7 +165,7 @@ If we can't determine which package manger has run the script, we choose:
 
 ### --src
 
-If the [toolchain](#t---toolchain-lttoolchaingt) is `next`, `./pages`, otherwise `./src`, unless specified otherwise.
+If the [toolchain](#t---toolchain-lttoolchaingt) is `next`, `./`, otherwise `./src`, unless specified otherwise.
 
 ### --schema-file
 
