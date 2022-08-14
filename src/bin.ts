@@ -220,11 +220,6 @@ console.log(
     "HTTP_ENDPOINT"
   )} variable in the ${highlight(relRelayEnvPath)} file.`
 );
-console.log(
-  `3. Add a ${highlight("Suspense")} boundary and ${highlight(
-    "ErrorBoundary"
-  )} to ${highlight(relMainPath)}.`
-);
 
 if (settings.toolchain === "cra") {
   console.log();

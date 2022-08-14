@@ -3,6 +3,7 @@ import { ProjectSettings } from "../types.js";
 import traverse from "@babel/traverse";
 import t from "@babel/types";
 import {
+  highlight,
   insertDefaultImport,
   parseAst,
   printAst,
@@ -176,7 +177,9 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
           node.declaration.callee.name !== "defineConfig"
         ) {
           throw new Error(
-            `Expected a export default defineConfig({}) in ${this.settings.configFilepath}.`
+            `Expected a export default defineConfig({}) in ${highlight(
+              this.settings.configFilepath
+            )}.`
           );
         }
 
@@ -184,7 +187,9 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
 
         if (!t.isObjectExpression(arg)) {
           throw new Error(
-            `Expected a export default defineConfig({}) in ${this.settings.configFilepath}.`
+            `Expected a export default defineConfig({}) in ${highlight(
+              this.settings.configFilepath
+            )}.`
           );
         }
 
@@ -207,7 +212,9 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
 
         if (!t.isArrayExpression(pluginsProperty.value)) {
           throw new Error(
-            `Could not create or get a "plugins" property on the Vite configuration object in ${this.settings.configFilepath}.`
+            `Could not create or get a "plugins" property on the Vite configuration object in ${highlight(
+              this.settings.configFilepath
+            )}.`
           );
         }
 
@@ -222,8 +229,8 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
           return;
         }
 
-        // Add the "relay" import to the "plugins".
-        vitePlugins.push(relayImportId);
+        // Add the "relay" import to the beginning of "plugins".
+        vitePlugins.splice(0, 0, relayImportId);
       },
     });
 
