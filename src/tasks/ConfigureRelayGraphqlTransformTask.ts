@@ -158,11 +158,11 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
 
     traverse.default(ast, {
       ExportDefaultDeclaration: (path) => {
-        // todo: replace with VITE_RELAY_PACKAGE,
-        // once it no longer has the explict version
         const relayImportId = insertDefaultImport(
           path,
           "relay",
+          // todo: replace with VITE_RELAY_PACKAGE,
+          // once it no longer has the explict version
           "vite-plugin-relay"
         );
 

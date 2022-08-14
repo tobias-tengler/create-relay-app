@@ -90,10 +90,7 @@ export async function getEnvironment(
     console.log("2. Move into the scaffolded directory:");
     console.log("   " + highlight("cd <new-project-directory>"));
     console.log();
-    console.log("3. Install the referenced packages:");
-    console.log("   " + highlight(pacMan + " install"));
-    console.log();
-    console.log(`4. Run the ${packageDetails.name} script again:`);
+    console.log(`3. Run the ${packageDetails.name} script again:`);
     // todo: use pacManCreate once we hopefully have the create-relay-app name
     console.log("   " + highlight("npx -y " + packageDetails.name));
 

@@ -18,8 +18,8 @@ export abstract class TaskBase {
     throw new TaskSkippedError();
   }
 
-  error(message: string): void {
-    this.spinner?.fail(this.spinner.text + "   " + dim(message));
+  error(): void {
+    this.spinner?.fail();
   }
 
   complete(): void {

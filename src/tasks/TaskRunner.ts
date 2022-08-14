@@ -31,7 +31,7 @@ export class TaskRunner {
           return;
         }
 
-        let errorMsg: string;
+        let errorMsg: string | undefined = undefined;
 
         if (!!error) {
           if (typeof error === "string") {
@@ -41,9 +41,13 @@ export class TaskRunner {
           }
         }
 
-        errorMsg ??= "Unexpected error";
+        task.error();
 
-        task.error(errorMsg);
+        if (errorMsg) {
+          console.log();
+          console.log("  " + errorMsg);
+          console.log();
+        }
       }
     }
   }
