@@ -2,6 +2,8 @@ import { TaskBase } from "../TaskBase.js";
 import fs from "fs/promises";
 import { ProjectSettings } from "../types.js";
 
+const validateRelayArtifactsScript = "relay-compiler --validate";
+
 export class AddRelayConfigurationTask extends TaskBase {
   constructor(private settings: ProjectSettings) {
     super();
@@ -23,29 +25,36 @@ export class AddRelayConfigurationTask extends TaskBase {
     if (!scriptsSection["relay"]) {
       // Add "relay" script
       scriptsSection["relay"] = "relay-compiler";
-
-      packageJson["scripts"] = scriptsSection;
     }
 
-    if (!packageJson["relay"]) {
-      // Add "relay" configuration section
-      const relayConfig: Record<string, string | string[]> = {
-        src: this.settings.src,
-        language: this.settings.compilerLanguage,
-        schema: this.settings.schemaFile,
-        exclude: [
-          "**/node_modules/**",
-          "**/__mocks__/**",
-          "**/__generated__/**",
-        ],
-      };
+    const buildScript = scriptsSection["build"];
 
-      if (this.settings.artifactDirectory) {
-        relayConfig.artifactDirectory = this.settings.artifactDirectory;
-      }
-
-      packageJson["relay"] = relayConfig;
+    if (
+      buildScript &&
+      typeof buildScript === "string" &&
+      !buildScript.includes(validateRelayArtifactsScript)
+    ) {
+      // There is an existing build script.
+      scriptsSection["build"] =
+        validateRelayArtifactsScript + " && " + buildScript;
     }
+
+    const relaySection = packageJson["relay"] ?? {};
+
+    relaySection["src"] = this.settings.src;
+    relaySection["language"] = this.settings.compilerLanguage;
+    relaySection["schema"] = this.settings.schemaFile;
+    relaySection["exclude"] = [
+      "**/node_modules/**",
+      "**/__mocks__/**",
+      "**/__generated__/**",
+    ];
+
+    if (this.settings.artifactDirectory) {
+      relaySection["artifactDirectory"] = this.settings.artifactDirectory;
+    }
+
+    packageJson["relay"] = relaySection;
 
     const serializedPackageJson = JSON.stringify(packageJson, null, 2);
 
