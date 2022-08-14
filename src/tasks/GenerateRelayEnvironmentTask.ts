@@ -1,6 +1,6 @@
 import path from "path";
 import fs from "fs-extra";
-import { TaskBase } from "../TaskBase.js";
+import { TaskBase } from "./TaskBase.js";
 import { ProjectSettings } from "../types.js";
 
 export class GenerateRelayEnvironmentTask extends TaskBase {

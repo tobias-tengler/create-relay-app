@@ -1,5 +1,5 @@
 import { spawn } from "child_process";
-import { TaskBase } from "../TaskBase.js";
+import { TaskBase } from "./TaskBase.js";
 import { ProjectSettings } from "../types.js";
 
 export class InstallNpmPackagesTask extends TaskBase {

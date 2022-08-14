@@ -1,4 +1,4 @@
-import { TaskBase } from "../TaskBase.js";
+import { TaskBase } from "./TaskBase.js";
 import fs from "fs/promises";
 import { ProjectSettings } from "../types.js";
 

@@ -1,7 +1,7 @@
 import traverse, { NodePath } from "@babel/traverse";
 import fs from "fs-extra";
 import path from "path";
-import { TaskBase } from "../TaskBase.js";
+import { TaskBase } from "./TaskBase.js";
 import t from "@babel/types";
 import { parseAst, insertNamedImport, printAst } from "../ast.js";
 import { ProjectSettings } from "../types.js";
@@ -19,7 +19,8 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
   async run(): Promise<void> {
     switch (this.settings.toolchain) {
       case "vite":
-        await this.configureVite();
+      case "cra":
+        await this.configureViteOrCra();
         break;
       case "next":
         await this.configureNext();
@@ -55,7 +56,7 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
     await fs.writeFile(this.settings.mainFilepath, updatedCode, "utf-8");
   }
 
-  async configureVite() {
+  async configureViteOrCra() {
     const code = await fs.readFile(this.settings.mainFilepath, "utf-8");
 
     const ast = parseAst(code);

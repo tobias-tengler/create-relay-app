@@ -2,7 +2,7 @@ import { existsSync } from "fs";
 import fs from "fs-extra";
 import path from "path";
 import { EOL } from "os";
-import { TaskBase } from "../TaskBase.js";
+import { TaskBase } from "./TaskBase.js";
 import { ProjectSettings } from "../types.js";
 
 const schemaGraphQLContent = `# Replace this with your own GraphQL schema file!${EOL}type Query {${EOL}  field: String${EOL}}${EOL}`;

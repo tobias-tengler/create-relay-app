@@ -1,5 +1,5 @@
 import ora from "ora";
-import { TaskBase, TaskSkippedError } from "./TaskBase.js";
+import { TaskBase, TaskSkippedError } from "./tasks/TaskBase.js";
 
 type TaskDefinition = {
   title: string;

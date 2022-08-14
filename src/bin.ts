@@ -15,7 +15,6 @@ import {
   getRelayDevDependencies,
   getRelayCompilerLanguage,
   highlight,
-  printInvalidArg,
   getToolchainSettings,
   prettifyRelativePath,
   headline,
@@ -24,36 +23,31 @@ import {
 } from "./helpers.js";
 import { exit } from "process";
 import {
-  ARTIFACT_DIR_ARG,
   BABEL_RELAY_PACKAGE,
   PACKAGE_FILE,
   REACT_RELAY_PACKAGE,
-  SCHEMA_FILE_ARG,
-  SRC_DIR_ARG,
 } from "./consts.js";
 import { fileURLToPath } from "url";
-import { getCliArguments, promptForMissingCliArguments } from "./cli.js";
-import {
-  hasUnsavedGitChanges,
-  isValidArtifactDirectory,
-  isValidSchemaPath,
-  isValidSrcDirectory,
-} from "./validation.js";
+import { hasUnsavedGitChanges } from "./validation.js";
 import { GenerateRelayEnvironmentTask } from "./tasks/GenerateRelayEnvironmentTask.js";
 import { GenerateArtifactDirectoryTask } from "./tasks/GenerateArtifactDirectoryTask.js";
 import { getProjectRelayEnvFilepath } from "./defaults.js";
+import { ToolchainArgument } from "./arguments/ToolchainArgument.js";
+import { TypescriptArgument } from "./arguments/TypescriptArgument.js";
+import { SrcArgument } from "./arguments/SrcArgument.js";
+import { ArtifactDirectoryArgument } from "./arguments/ArtifactDirectoryArgument.js";
+import { SchemaFileArgument } from "./arguments/SchemaFileArgument.js";
+import { PackageManagerArgument } from "./arguments/PackageManagerArgument.js";
+import { ArgumentHandler } from "./ArgumentHandler.js";
 
 // INIT ENVIRONMENT
 
 const distDirectory = dirname(fileURLToPath(import.meta.url));
 const ownPackageDirectory = path.join(distDirectory, "..");
 const workingDirectory = process.cwd();
+
 // todo: handle error
-const {
-  name: ownPackageName,
-  version: ownPackageVersion,
-  description: ownPackageDescription,
-} = await getPackageDetails(ownPackageDirectory);
+const packageDetails = await getPackageDetails(ownPackageDirectory);
 
 const packageJsonFile = await traverseUpToFindFile(
   workingDirectory,
@@ -94,9 +88,9 @@ if (!packageJsonFile) {
   console.log("3. Install the referenced packages:");
   console.log("   " + highlight(pacMan + " install"));
   console.log();
-  console.log(`4. Run the ${ownPackageName} script again:`);
+  console.log(`4. Run the ${packageDetails.name} script again:`);
   // todo: use pacManCreate once we hopefully have the create-relay-app name
-  console.log("   " + highlight("npx -y " + ownPackageName));
+  console.log("   " + highlight("npx -y " + packageDetails.name));
 
   exit(1);
 }
@@ -108,18 +102,32 @@ const envArguments: EnvArguments = {
   ownPackageDirectory,
   packageJsonFile,
   projectRootDirectory,
-  ownPackageName,
-  ownPackageDescription,
-  ownPackageVersion,
+  ownPackageName: packageDetails.name,
+  ownPackageDescription: packageDetails.description,
+  ownPackageVersion: packageDetails.version,
 };
 
 // GET ARGUMENTS
 
+const argumentDefinitions = [
+  new ToolchainArgument(),
+  new TypescriptArgument(),
+  new SrcArgument(),
+  new SchemaFileArgument(),
+  new ArtifactDirectoryArgument(),
+  new PackageManagerArgument(),
+];
+
 let cliArgs: CliArguments;
 
 try {
-  const partialCliArguments = await getCliArguments(envArguments);
+  const argumentHandler = new ArgumentHandler(argumentDefinitions);
 
+  const partialCliArguments = await argumentHandler.parse(envArguments);
+
+  console.log({ partialCliArguments });
+
+  // todo: this is kind of awkward here
   if (!partialCliArguments.ignoreGitChanges) {
     const hasUnsavedChanges = await hasUnsavedGitChanges(
       envArguments.projectRootDirectory
@@ -135,10 +143,7 @@ try {
     }
   }
 
-  cliArgs = await promptForMissingCliArguments(
-    partialCliArguments,
-    envArguments
-  );
+  cliArgs = await argumentHandler.promptForMissing(partialCliArguments);
 } catch (error) {
   if (error instanceof Error) {
     printError(error.message);
@@ -146,44 +151,6 @@ try {
     printError("Unexpected error while parsing CLI arguments");
   }
 
-  exit(1);
-}
-
-// VALIDATE ARGUMENTS
-
-const schemaPathValid = isValidSchemaPath(
-  cliArgs.schemaFile,
-  envArguments.projectRootDirectory
-);
-
-if (schemaPathValid !== true) {
-  printInvalidArg(SCHEMA_FILE_ARG, schemaPathValid, cliArgs.schemaFile);
-  exit(1);
-}
-
-const srcDirValid = isValidSrcDirectory(
-  cliArgs.src,
-  envArguments.projectRootDirectory
-);
-
-if (srcDirValid !== true) {
-  printInvalidArg(SRC_DIR_ARG, srcDirValid, cliArgs.src);
-
-  exit(1);
-}
-
-const artifactDirValid = isValidArtifactDirectory(
-  cliArgs.artifactDirectory,
-  cliArgs.toolchain,
-  envArguments.projectRootDirectory
-);
-
-if (artifactDirValid !== true) {
-  printInvalidArg(
-    ARTIFACT_DIR_ARG,
-    artifactDirValid,
-    cliArgs.artifactDirectory
-  );
   exit(1);
 }
 
