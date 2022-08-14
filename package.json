@@ -16,7 +16,18 @@
   "bugs": {
     "url": "https://github.com/tobias-tengler/create-relay-app/issues"
   },
-  "keywords": [],
+  "keywords": [
+    "create-relay-app",
+    "relay",
+    "relay.js",
+    "react",
+    "vite",
+    "vite.js",
+    "next",
+    "next.js",
+    "cra",
+    "create react app"
+  ],
   "files": [
     "./dist",
     "./assets"
