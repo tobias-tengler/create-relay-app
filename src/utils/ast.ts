@@ -4,6 +4,22 @@ import { NodePath } from "@babel/traverse";
 import { format } from "prettier";
 import t from "@babel/types";
 
+export function parseAst(code: string): ParseResult<t.File> {
+  return parse(code, {
+    sourceType: "module",
+    plugins: ["typescript", "jsx"],
+  });
+}
+
+export function printAst(ast: ParseResult<t.File>, oldCode: string): string {
+  const newCode = generate.default(ast, { retainLines: true }, oldCode).code;
+
+  return format(newCode, {
+    bracketSameLine: false,
+    parser: "babel-ts",
+  });
+}
+
 export function insertNamedImport(
   path: NodePath,
   importName: string,
@@ -85,20 +101,4 @@ export function getDefaultImport(
         (sp) => t.isImportDefaultSpecifier(sp) && sp.local.name === importName
       )
   ) as t.ImportDeclaration;
-}
-
-export function parseAst(code: string): ParseResult<t.File> {
-  return parse(code, {
-    sourceType: "module",
-    plugins: ["typescript", "jsx"],
-  });
-}
-
-export function printAst(ast: ParseResult<t.File>, oldCode: string): string {
-  const newCode = generate.default(ast, { retainLines: true }, oldCode).code;
-
-  return format(newCode, {
-    bracketSameLine: false,
-    parser: "babel-ts",
-  });
 }

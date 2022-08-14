@@ -1,7 +1,7 @@
 import { TaskBase } from "./TaskBase.js";
 import { ProjectSettings } from "../types.js";
-import fs from "fs-extra";
 import path from "path";
+import { createDirectory } from "../utils/fs.js";
 
 export class GenerateArtifactDirectoryTask extends TaskBase {
   constructor(private settings: ProjectSettings) {
@@ -19,6 +19,6 @@ export class GenerateArtifactDirectoryTask extends TaskBase {
     );
 
     // todo: handle error
-    fs.mkdirSync(fullpath, { recursive: true });
+    createDirectory(fullpath);
   }
 }

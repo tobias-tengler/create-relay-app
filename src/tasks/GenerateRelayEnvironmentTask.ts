@@ -1,7 +1,7 @@
 import path from "path";
-import fs from "fs-extra";
 import { TaskBase } from "./TaskBase.js";
 import { ProjectSettings } from "../types.js";
+import { copyFile, createDirectory } from "../utils/fs.js";
 
 export class GenerateRelayEnvironmentTask extends TaskBase {
   constructor(private settings: ProjectSettings) {
@@ -26,9 +26,9 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
     const srcFilepath = path.join(this.settings.ownPackageDirectory, srcFile);
 
     // todo: handle error
-    fs.mkdirSync(destDirectory, { recursive: true });
+    createDirectory(destDirectory);
 
     // todo: handle error
-    await fs.copyFile(srcFilepath, this.settings.relayEnvFilepath);
+    await copyFile(srcFilepath, this.settings.relayEnvFilepath);
   }
 }

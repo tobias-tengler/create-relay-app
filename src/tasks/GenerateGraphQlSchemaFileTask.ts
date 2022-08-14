@@ -1,9 +1,8 @@
-import { existsSync } from "fs";
-import fs from "fs-extra";
 import path from "path";
 import { EOL } from "os";
 import { TaskBase } from "./TaskBase.js";
 import { ProjectSettings } from "../types.js";
+import { createDirectory, writeToFile, doesExist } from "../utils/fs.js";
 
 const schemaGraphQLContent = `# Replace this with your own GraphQL schema file!${EOL}type Query {${EOL}  field: String${EOL}}${EOL}`;
 
@@ -13,16 +12,16 @@ export class GenerateGraphQlSchemaFileTask extends TaskBase {
   }
 
   async run(): Promise<void> {
-    if (existsSync(this.settings.schemaFile)) {
+    if (doesExist(this.settings.schemaFile)) {
       this.skip("File exists");
     }
 
     const dir = path.dirname(this.settings.schemaFile);
 
     // todo: handle error
-    fs.mkdirSync(dir, { recursive: true });
+    createDirectory(dir);
 
     // todo: handle error
-    await fs.writeFile(this.settings.schemaFile, schemaGraphQLContent, "utf-8");
+    await writeToFile(this.settings.schemaFile, schemaGraphQLContent);
   }
 }

@@ -1,8 +1,9 @@
 import { exec, spawn } from "child_process";
 import path from "path";
 import { TS_CONFIG_FILE, TYPESCRIPT_PACKAGE } from "./consts.js";
-import { findFileInDirectory, highlight, isSubDirectory } from "./helpers.js";
 import { PackageManager, Toolchain } from "./types.js";
+import { highlight } from "./utils/cli.js";
+import { isSubDirectory, findFileInDirectory } from "./utils/fs.js";
 
 export function isValidSchemaPath(
   input: string,

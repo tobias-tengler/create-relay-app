@@ -1,6 +1,6 @@
 import { TaskBase } from "./TaskBase.js";
-import fs from "fs/promises";
 import { ProjectSettings } from "../types.js";
+import { readFromFile, writeToFile } from "../utils/fs.js";
 
 const validateRelayArtifactsScript = "relay-compiler --validate";
 
@@ -11,11 +11,8 @@ export class AddRelayConfigurationTask extends TaskBase {
 
   async run(): Promise<void> {
     // todo: handle error
-    const packageJsonContent = await fs.readFile(
-      this.settings.packageJsonFile,
-      {
-        encoding: "utf-8",
-      }
+    const packageJsonContent = await readFromFile(
+      this.settings.packageJsonFile
     );
 
     const packageJson = JSON.parse(packageJsonContent);
@@ -59,10 +56,6 @@ export class AddRelayConfigurationTask extends TaskBase {
     const serializedPackageJson = JSON.stringify(packageJson, null, 2);
 
     // todo: handle error
-    await fs.writeFile(
-      this.settings.packageJsonFile,
-      serializedPackageJson,
-      "utf-8"
-    );
+    await writeToFile(this.settings.packageJsonFile, serializedPackageJson);
   }
 }

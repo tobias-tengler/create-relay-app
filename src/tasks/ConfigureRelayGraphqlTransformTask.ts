@@ -1,9 +1,9 @@
 import { TaskBase } from "./TaskBase.js";
 import { ProjectSettings } from "../types.js";
-import fs from "fs/promises";
 import traverse from "@babel/traverse";
 import t from "@babel/types";
-import { insertDefaultImport, parseAst, printAst } from "../ast.js";
+import { insertDefaultImport, parseAst, printAst } from "../utils/ast.js";
+import { readFromFile, writeToFile } from "../utils/fs.js";
 
 export class ConfigureRelayGraphqlTransformTask extends TaskBase {
   constructor(private settings: ProjectSettings) {
@@ -25,7 +25,7 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
 
   private async configureNext() {
     // todo: handle errors
-    const configCode = await fs.readFile(this.settings.configFilepath, "utf-8");
+    const configCode = await readFromFile(this.settings.configFilepath);
 
     const ast = parseAst(configCode);
 
@@ -142,16 +142,12 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
 
     const updatedConfigCode = printAst(ast, configCode);
 
-    await fs.writeFile(
-      this.settings.configFilepath,
-      updatedConfigCode,
-      "utf-8"
-    );
+    await writeToFile(this.settings.configFilepath, updatedConfigCode);
   }
 
   private async configureVite() {
     // todo: handle errors
-    const configCode = await fs.readFile(this.settings.configFilepath, "utf-8");
+    const configCode = await readFromFile(this.settings.configFilepath);
 
     const ast = parseAst(configCode);
 
@@ -228,10 +224,6 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
 
     const updatedConfigCode = printAst(ast, configCode);
 
-    await fs.writeFile(
-      this.settings.configFilepath,
-      updatedConfigCode,
-      "utf-8"
-    );
+    await writeToFile(this.settings.configFilepath, updatedConfigCode);
   }
 }

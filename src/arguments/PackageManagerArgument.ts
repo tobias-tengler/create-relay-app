@@ -1,6 +1,6 @@
 import { Command } from "commander";
-import { inferPackageManager } from "../helpers.js";
 import { PackageManager, PackageManagerOptions } from "../types.js";
+import { inferPackageManager } from "../utils/packages.js";
 import { ArgumentBase, getNormalizedCliString } from "./ArgumentBase.js";
 
 export class PackageManagerArgument extends ArgumentBase<"packageManager"> {

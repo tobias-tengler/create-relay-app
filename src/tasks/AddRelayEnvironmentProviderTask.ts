@@ -1,12 +1,16 @@
 import traverse, { NodePath } from "@babel/traverse";
-import fs from "fs-extra";
 import path from "path";
 import { TaskBase } from "./TaskBase.js";
 import t from "@babel/types";
-import { parseAst, insertNamedImport, printAst } from "../ast.js";
+import { parseAst, insertNamedImport, printAst } from "../utils/ast.js";
 import { ProjectSettings } from "../types.js";
 import { REACT_RELAY_PACKAGE } from "../consts.js";
-import { prettifyRelativePath, removeExtension } from "../helpers.js";
+import {
+  prettifyRelativePath,
+  readFromFile,
+  removeExtension,
+  writeToFile,
+} from "../utils/fs.js";
 
 const RELAY_ENV_PROVIDER = "RelayEnvironmentProvider";
 const RELAY_ENV = "RelayEnvironment";
@@ -31,7 +35,7 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
   }
 
   async configureNext() {
-    const code = await fs.readFile(this.settings.mainFilepath, "utf-8");
+    const code = await readFromFile(this.settings.mainFilepath);
 
     const ast = parseAst(code);
 
@@ -53,11 +57,11 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
 
     const updatedCode = printAst(ast, code);
 
-    await fs.writeFile(this.settings.mainFilepath, updatedCode, "utf-8");
+    await writeToFile(this.settings.mainFilepath, updatedCode);
   }
 
   async configureViteOrCra() {
-    const code = await fs.readFile(this.settings.mainFilepath, "utf-8");
+    const code = await readFromFile(this.settings.mainFilepath);
 
     const ast = parseAst(code);
 
@@ -91,7 +95,7 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
 
     const updatedCode = printAst(ast, code);
 
-    await fs.writeFile(this.settings.mainFilepath, updatedCode, "utf-8");
+    await writeToFile(this.settings.mainFilepath, updatedCode);
   }
 
   private wrapJsxInProvider(

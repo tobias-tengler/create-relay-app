@@ -1,6 +1,7 @@
-import { ArgumentBase } from "./arguments/ArgumentBase.js";
-import { CliArguments, EnvArguments } from "./types.js";
+import { ArgumentBase } from "./ArgumentBase.js";
+import { CliArguments, EnvArguments } from "../types.js";
 import { program } from "commander";
+import { prettifyPath } from "../utils/fs.js";
 
 export class ArgumentHandler {
   private readonly argumentDefinitions: ArgumentBase<keyof CliArguments>[];
@@ -38,4 +39,20 @@ export class ArgumentHandler {
   promptForMissing(parsedArgs: Partial<CliArguments>): Promise<CliArguments> {
     return null!;
   }
+}
+
+function buildFinalArgs(
+  defaults: CliArguments,
+  answers: Partial<CliArguments>
+): CliArguments {
+  const combined: CliArguments = { ...defaults, ...answers };
+
+  return {
+    ...combined,
+    src: prettifyPath(combined.src),
+    schemaFile: prettifyPath(combined.schemaFile),
+    artifactDirectory: combined.artifactDirectory
+      ? prettifyPath(combined.artifactDirectory)
+      : "",
+  };
 }

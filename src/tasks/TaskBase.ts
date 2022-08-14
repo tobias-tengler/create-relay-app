@@ -1,5 +1,5 @@
-import chalk from "chalk";
 import { Ora } from "ora";
+import { dim } from "../utils/cli.js";
 
 export abstract class TaskBase {
   private spinner?: Ora;
@@ -13,15 +13,13 @@ export abstract class TaskBase {
   skip(message?: string): void {
     const reason = message ? ": " + message : undefined;
 
-    this.spinner?.warn(
-      this.spinner.text + " " + chalk.dim(`[Skipped${reason}]`)
-    );
+    this.spinner?.warn(this.spinner.text + " " + dim(`[Skipped${reason}]`));
 
     throw new TaskSkippedError();
   }
 
   error(message: string): void {
-    this.spinner?.fail(this.spinner.text + "   " + chalk.dim(message));
+    this.spinner?.fail(this.spinner.text + "   " + dim(message));
   }
 
   complete(): void {

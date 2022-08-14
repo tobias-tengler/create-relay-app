@@ -1,25 +1,18 @@
 #!/usr/bin/env node
 
 import path, { dirname } from "path";
-import { TaskRunner } from "./TaskRunner.js";
+import { TaskRunner } from "./tasks/TaskRunner.js";
 import { GenerateGraphQlSchemaFileTask } from "./tasks/GenerateGraphQlSchemaFileTask.js";
-import chalk from "chalk";
 import { AddRelayConfigurationTask } from "./tasks/AddRelayConfigurationTask.js";
 import { CliArguments, EnvArguments, ProjectSettings } from "./types.js";
 import { InstallNpmPackagesTask } from "./tasks/InstallNpmPackagesTask.js";
 import { ConfigureRelayGraphqlTransformTask } from "./tasks/ConfigureRelayGraphqlTransformTask.js";
 import { AddRelayEnvironmentProviderTask } from "./tasks/AddRelayEnvironmentProviderTask.js";
 import {
-  traverseUpToFindFile,
-  printError,
   getRelayDevDependencies,
   getRelayCompilerLanguage,
-  highlight,
   getToolchainSettings,
-  prettifyRelativePath,
-  headline,
-  getPackageDetails,
-  inferPackageManager,
+  getProjectRelayEnvFilepath,
 } from "./helpers.js";
 import { exit } from "process";
 import {
@@ -31,14 +24,16 @@ import { fileURLToPath } from "url";
 import { hasUnsavedGitChanges } from "./validation.js";
 import { GenerateRelayEnvironmentTask } from "./tasks/GenerateRelayEnvironmentTask.js";
 import { GenerateArtifactDirectoryTask } from "./tasks/GenerateArtifactDirectoryTask.js";
-import { getProjectRelayEnvFilepath } from "./defaults.js";
 import { ToolchainArgument } from "./arguments/ToolchainArgument.js";
 import { TypescriptArgument } from "./arguments/TypescriptArgument.js";
 import { SrcArgument } from "./arguments/SrcArgument.js";
 import { ArtifactDirectoryArgument } from "./arguments/ArtifactDirectoryArgument.js";
 import { SchemaFileArgument } from "./arguments/SchemaFileArgument.js";
 import { PackageManagerArgument } from "./arguments/PackageManagerArgument.js";
-import { ArgumentHandler } from "./ArgumentHandler.js";
+import { ArgumentHandler } from "./arguments/ArgumentHandler.js";
+import { dim, headline, highlight, printError } from "./utils/cli.js";
+import { traverseUpToFindFile, prettifyRelativePath } from "./utils/fs.js";
+import { getPackageDetails, inferPackageManager } from "./utils/packages.js";
 
 // INIT ENVIRONMENT
 
@@ -273,9 +268,7 @@ if (settings.toolchain === "cra") {
   console.log(
     `3. Setup ${highlight(
       BABEL_RELAY_PACKAGE
-    )} to conform to your project. ${chalk.dim(
-      "(This will soon be automated!)"
-    )}`
+    )} to conform to your project. ${dim("(This will soon be automated!)")}`
   );
 }
 

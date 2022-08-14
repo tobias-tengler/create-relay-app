@@ -1,7 +1,4 @@
 import { Command } from "commander";
-import { TS_CONFIG_FILE, TYPESCRIPT_PACKAGE } from "../consts.js";
-import { findFileInDirectory } from "../helpers.js";
-import { isNpmPackageInstalled } from "../validation.js";
 import { ArgumentBase } from "./ArgumentBase.js";
 
 export class TypescriptArgument extends ArgumentBase<"typescript"> {
