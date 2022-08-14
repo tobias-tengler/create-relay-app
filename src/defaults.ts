@@ -111,8 +111,8 @@ async function getProjectToolchain(
   return "cra";
 }
 
-async function getProjectPackageManager(
-  projectRootDirectory: string
+export async function getProjectPackageManager(
+  projectRootDirectory?: string
 ): Promise<PackageManager> {
   try {
     const userAgent = process.env.npm_config_user_agent;
@@ -127,29 +127,31 @@ async function getProjectPackageManager(
       }
     }
 
-    try {
-      execSync("yarn --version", { stdio: "ignore" });
+    if (projectRootDirectory) {
+      try {
+        execSync("yarn --version", { stdio: "ignore" });
 
-      const hasLockfile = await findFileInDirectory(
-        projectRootDirectory,
-        "yarn.lock"
-      );
+        const hasLockfile = await findFileInDirectory(
+          projectRootDirectory,
+          "yarn.lock"
+        );
 
-      if (hasLockfile) {
-        // Yarn is installed and the project contains a yarn.lock file.
-        return "yarn";
-      }
-    } catch {
-      execSync("pnpm --version", { stdio: "ignore" });
+        if (hasLockfile) {
+          // Yarn is installed and the project contains a yarn.lock file.
+          return "yarn";
+        }
+      } catch {
+        execSync("pnpm --version", { stdio: "ignore" });
 
-      const hasLockfile = await findFileInDirectory(
-        projectRootDirectory,
-        "pnpm-lock.yaml"
-      );
+        const hasLockfile = await findFileInDirectory(
+          projectRootDirectory,
+          "pnpm-lock.yaml"
+        );
 
-      if (hasLockfile) {
-        // pnpm is installed and the project contains a pnpm-lock.yml file.
-        return "pnpm";
+        if (hasLockfile) {
+          // pnpm is installed and the project contains a pnpm-lock.yml file.
+          return "pnpm";
+        }
       }
     }
   } catch {}

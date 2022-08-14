@@ -18,6 +18,9 @@ export type CliArguments = {
 export type EnvArguments = Readonly<{
   workingDirectory: string;
   ownPackageDirectory: string;
+  ownPackageName: string;
+  ownPackageDescription: string;
+  ownPackageVersion: string;
   projectRootDirectory: string;
   packageJsonFile: string;
 }>;

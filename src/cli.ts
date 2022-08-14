@@ -38,16 +38,10 @@ import {
 export async function getCliArguments(
   env: EnvArguments
 ): Promise<Partial<CliArguments>> {
-  const {
-    name: PACKAGE_NAME,
-    version: PACKAGE_VERSION,
-    description: PACKAGE_DESCRIPTION,
-  } = await getPackageDetails(env);
-
   program
-    .name(PACKAGE_NAME)
-    .description(PACKAGE_DESCRIPTION)
-    .version(PACKAGE_VERSION, `-v, ${VERSION_ARG}`);
+    .name(env.ownPackageName)
+    .description(env.ownPackageDescription)
+    .version(env.ownPackageVersion, `-v, ${VERSION_ARG}`);
 
   // If you change argumemts, make sure to match up RawCliArguments as well.
   program

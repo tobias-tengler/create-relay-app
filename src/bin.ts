@@ -18,6 +18,9 @@ import {
   printInvalidArg,
   getToolchainSettings,
   prettifyRelativePath,
+  headline,
+  getPackageDetails,
+  getPackageManagerCreateCommand as getPacManCreateCmd,
 } from "./helpers.js";
 import { exit } from "process";
 import {
@@ -45,6 +48,13 @@ import { getProjectRelayEnvFilepath } from "./defaults.js";
 const distDirectory = dirname(fileURLToPath(import.meta.url));
 const ownPackageDirectory = path.join(distDirectory, "..");
 const workingDirectory = process.cwd();
+// todo: handle error
+const {
+  name: ownPackageName,
+  version: ownPackageVersion,
+  description: ownPackageDescription,
+} = await getPackageDetails(ownPackageDirectory);
+
 const packageJsonFile = await traverseUpToFindFile(
   workingDirectory,
   PACKAGE_FILE
@@ -56,6 +66,25 @@ if (!packageJsonFile) {
       workingDirectory
     )} directory.`
   );
+
+  console.log();
+  console.log(headline("Correct usage"));
+  console.log();
+
+  console.log("1. Remember to first scaffold a project using:");
+  console.log("   Next.js: " + highlight(await getPacManCreateCmd("next-app")));
+  console.log("   Vite.js: " + highlight(await getPacManCreateCmd("vite")));
+  console.log(
+    "   Create React App: " + highlight(await getPacManCreateCmd("react-app"))
+  );
+  console.log();
+  console.log("2. Move into the scaffolded directory:");
+  console.log("   cd " + highlight("<new-project-directory>"));
+  console.log();
+  console.log(`3. Run the ${highlight(ownPackageName)} script again:`);
+  // todo: use getPacManCreateCmd once we hopefully have the create-relay-app name
+  console.log(`   npx -y ${ownPackageName}`);
+
   exit(1);
 }
 
@@ -66,6 +95,9 @@ const envArguments: EnvArguments = {
   ownPackageDirectory,
   packageJsonFile,
   projectRootDirectory,
+  ownPackageName,
+  ownPackageDescription,
+  ownPackageVersion,
 };
 
 // GET ARGUMENTS
@@ -239,7 +271,7 @@ try {
 console.log();
 console.log();
 
-console.log(chalk.cyan.bold.underline("Next steps"));
+console.log(headline("Next steps"));
 console.log();
 
 console.log(

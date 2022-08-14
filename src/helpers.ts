@@ -13,6 +13,7 @@ import {
 } from "./consts.js";
 import glob from "glob";
 import chalk from "chalk";
+import { getProjectPackageManager } from "./defaults.js";
 
 export function printInvalidArg(
   arg: string,
@@ -26,8 +27,20 @@ export function printError(message: string): void {
   console.log(chalk.red("✖") + " " + message);
 }
 
+export function headline(message: string): string {
+  return chalk.cyan.bold.underline(message);
+}
+
 export function highlight(message: string): string {
   return chalk.cyan.bold(message);
+}
+
+export async function getPackageManagerCreateCommand(
+  packageName: string
+): Promise<string> {
+  const packageManager = await getProjectPackageManager();
+
+  return packageManager + " create " + packageName;
 }
 
 export async function traverseUpToFindFile(
@@ -103,9 +116,9 @@ type PackageDetails = Readonly<{
 }>;
 
 export async function getPackageDetails(
-  env: EnvArguments
+  ownPackageDirectory: string
 ): Promise<PackageDetails> {
-  const ownPackageJsonFile = path.join(env.ownPackageDirectory, PACKAGE_FILE);
+  const ownPackageJsonFile = path.join(ownPackageDirectory, PACKAGE_FILE);
 
   const packageJsonContent = await fs.readFile(ownPackageJsonFile, "utf8");
 
