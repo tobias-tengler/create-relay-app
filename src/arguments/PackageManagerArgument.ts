@@ -11,6 +11,7 @@ import { ArgumentBase, getNormalizedCliString } from "./ArgumentBase.js";
 
 export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
   public name = "packageManager" as const;
+  public promptMessage = "Select the package manager to install packages with";
 
   registerCliOption(command: Command): void {
     // todo: should be --package-manager
@@ -29,7 +30,6 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
   ): Promise<PackageManager> {
     return this.showInquirerPrompt(
       {
-        message: "Select the package manager to install packages with",
         type: "list",
         choices: PackageManagerOptions,
       },

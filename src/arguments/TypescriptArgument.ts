@@ -6,6 +6,7 @@ import { ArgumentBase } from "./ArgumentBase.js";
 
 export class TypescriptArgument extends ArgumentBase<"typescript"> {
   public name = "typescript" as const;
+  public promptMessage = "Does your project use Typescript";
 
   registerCliOption(command: Command): void {
     const flags = this.getCliFlags();
@@ -19,7 +20,6 @@ export class TypescriptArgument extends ArgumentBase<"typescript"> {
   ): Promise<boolean> {
     return this.showInquirerPrompt(
       {
-        message: "Does your project use Typescript",
         type: "confirm",
       },
       existingArgs,

@@ -1,9 +1,9 @@
+import chalk from "chalk";
 import { Command } from "commander";
 import inquirer from "inquirer";
 import { CliArguments, EnvArguments } from "../types.js";
 
 type PromptOptions<TName extends keyof CliArguments> = {
-  message: string;
   type: "list" | "confirm" | "input";
   choices?: readonly CliArguments[TName][];
   validate?(input: string): true | string;
@@ -11,6 +11,7 @@ type PromptOptions<TName extends keyof CliArguments> = {
 
 export abstract class ArgumentBase<TName extends keyof CliArguments> {
   public abstract readonly name: TName;
+  public abstract readonly promptMessage: string;
 
   abstract registerCliOption(command: Command): void;
 
@@ -30,20 +31,10 @@ export abstract class ArgumentBase<TName extends keyof CliArguments> {
     env: EnvArguments
   ): true | string;
 
-  protected getCliFlags(shorthand?: string, argument?: string) {
-    let flags: string = "";
-
-    if (shorthand) {
-      flags += shorthand + ", ";
-    }
-
-    flags += "--" + this.name;
-
-    if (argument) {
-      flags += " " + argument;
-    }
-
-    return flags;
+  submitWithValue(value: CliArguments[TName]) {
+    console.log(
+      `${chalk.green("?")} ${this.promptMessage} ${chalk.cyan(value)}`
+    );
   }
 
   getInvalidArgError(
@@ -69,6 +60,22 @@ export abstract class ArgumentBase<TName extends keyof CliArguments> {
     return new InvalidArgError(msg);
   }
 
+  protected getCliFlags(shorthand?: string, argument?: string) {
+    let flags: string = "";
+
+    if (shorthand) {
+      flags += shorthand + ", ";
+    }
+
+    flags += "--" + this.name;
+
+    if (argument) {
+      flags += " " + argument;
+    }
+
+    return flags;
+  }
+
   // todo: support path completion for path inputs
   protected async showInquirerPrompt(
     options: PromptOptions<TName>,
@@ -79,6 +86,7 @@ export abstract class ArgumentBase<TName extends keyof CliArguments> {
 
     const answer = await inquirer.prompt({
       name: this.name,
+      message: this.promptMessage,
       default: defaultValue,
       ...options,
     });

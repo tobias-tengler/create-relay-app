@@ -65,13 +65,7 @@ export class ArgumentHandler {
           env
         );
 
-        // todo: display in same format as prompt
-        console.log(
-          "Choose default value for " +
-            argumentDefinition.name +
-            ": " +
-            defaultValue
-        );
+        argumentDefinition.submitWithValue(defaultValue);
 
         // @ts-ignore
         allArgs[argumentDefinition.name] = defaultValue;

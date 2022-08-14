@@ -6,6 +6,7 @@ import { ArgumentBase } from "./ArgumentBase.js";
 
 export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
   public name = "schemaFile" as const;
+  public promptMessage = "Select the path to your GraphQL schema file";
 
   registerCliOption(command: Command): void {
     // todo: should be --schema-file
@@ -20,7 +21,6 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
   ): Promise<string> {
     return this.showInquirerPrompt(
       {
-        message: "Select the path to your GraphQL schema file",
         type: "input",
         validate: (input) => this.isValid(input, existingArgs, env),
       },

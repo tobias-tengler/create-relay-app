@@ -5,6 +5,7 @@ import { ArgumentBase } from "./ArgumentBase.js";
 
 export class SrcArgument extends ArgumentBase<"src"> {
   public name = "src" as const;
+  public promptMessage = "Select the root directory of your application code";
 
   registerCliOption(command: Command): void {
     const flags = this.getCliFlags("-s", "<path>");
@@ -18,7 +19,6 @@ export class SrcArgument extends ArgumentBase<"src"> {
   ): Promise<string> {
     return this.showInquirerPrompt(
       {
-        message: "Select the root directory of your application code",
         type: "input",
         validate: (input) => this.isValid(input, existingArgs, env),
       },

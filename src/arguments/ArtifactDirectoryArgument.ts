@@ -6,6 +6,8 @@ import { ArgumentBase } from "./ArgumentBase.js";
 
 export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory"> {
   public name = "artifactDirectory" as const;
+  public promptMessage =
+    "Select, if needed, a directory to place all Relay artifacts in";
 
   registerCliOption(command: Command): void {
     // todo: should be --artifact-directory
@@ -20,8 +22,6 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
   ): Promise<string> {
     return this.showInquirerPrompt(
       {
-        message:
-          "Select, if needed, a directory to place all Relay artifacts in",
         type: "input",
         validate: (input) => this.isValid(input, existingArgs, env),
       },
