@@ -204,8 +204,10 @@ const runner = new TaskRunner([
     task: new InstallNpmPackagesTask(devDependencies, true, settings),
   },
   {
-    title: `Add Relay configuration to ${highlight(PACKAGE_FILE)}`,
-    task: new AddRelayConfigurationTask(settings),
+    title: `Configure ${highlight("relay-compiler")} in ${highlight(
+      PACKAGE_FILE
+    )}`,
+    task: new ConfigureRelayCompilerTask(settings),
   },
   {
     title: `Configure Relay transform in ${highlight(relConfigPath)}`,

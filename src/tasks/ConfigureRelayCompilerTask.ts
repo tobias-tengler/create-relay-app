@@ -4,7 +4,7 @@ import { readFromFile, writeToFile } from "../utils/fs.js";
 
 const validateRelayArtifactsScript = "relay-compiler --validate";
 
-export class AddRelayConfigurationTask extends TaskBase {
+export class ConfigureRelayCompilerTask extends TaskBase {
   constructor(private settings: ProjectSettings) {
     super();
   }
@@ -46,6 +46,13 @@ export class AddRelayConfigurationTask extends TaskBase {
       "**/__mocks__/**",
       "**/__generated__/**",
     ];
+
+    if (this.settings.toolchain === "vite") {
+      // When generating without eagerEsModules artifacts contain
+      // module.exports, which Vite can not handle correctly.
+      // eagerEsModules will output export default.
+      relaySection["eagerEsModules"] = true;
+    }
 
     if (this.settings.artifactDirectory) {
       relaySection["artifactDirectory"] = this.settings.artifactDirectory;

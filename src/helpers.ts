@@ -58,12 +58,7 @@ export function getRelayCompilerLanguage(
     // Next does not support 'javascript' as an option,
     // only typescript or flow. So we opt for typescript
     // since it's more wide spread.
-    toolchain === "next" ||
-    // When generating as Javascript, artifacts contain
-    // module.exports = node;, which Vite can not handle correctly.
-    // We also force typescript here, since it will produce
-    // export default node;
-    toolchain === "vite"
+    toolchain === "next"
   ) {
     return "typescript";
   } else {
