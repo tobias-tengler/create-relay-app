@@ -8,8 +8,12 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
   public name = "schemaFile" as const;
   public promptMessage = "Select the path to your GraphQL schema file";
 
+  constructor() {
+    super();
+    this.cliArg = "--schema-file";
+  }
+
   registerCliOption(command: Command): void {
-    // todo: should be --schema-file
     const flags = this.getCliFlags("-f", "<path>");
 
     command.option(flags, "path to a GraphQL schema file");

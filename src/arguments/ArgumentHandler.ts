@@ -50,6 +50,7 @@ export class ArgumentHandler {
 
       if (existingValue !== undefined) {
         // Value was supplied as CLI argument, we don't need to prompt for it.
+        argumentDefinition.submitWithValue(existingValue);
         continue;
       }
 

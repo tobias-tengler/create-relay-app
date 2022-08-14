@@ -1,5 +1,6 @@
 import chalk from "chalk";
 import { Command } from "commander";
+import { get } from "http";
 import inquirer from "inquirer";
 import { CliArguments, EnvArguments } from "../types.js";
 
@@ -12,6 +13,16 @@ type PromptOptions<TName extends keyof CliArguments> = {
 export abstract class ArgumentBase<TName extends keyof CliArguments> {
   public abstract readonly name: TName;
   public abstract readonly promptMessage: string;
+
+  private _cliArg?: string;
+
+  get cliArg(): string {
+    return this._cliArg ?? "--" + this.name;
+  }
+
+  protected set cliArg(value: string) {
+    this._cliArg = value;
+  }
 
   abstract registerCliOption(command: Command): void;
 
@@ -42,7 +53,7 @@ export abstract class ArgumentBase<TName extends keyof CliArguments> {
     validValues?: readonly CliArguments[TName][] | CliArguments[TName],
     reason?: string
   ): Error {
-    let msg = `Received an invalid value for --${this.name}: \"${value}\".`;
+    let msg = `Received an invalid value for ${this.cliArg}: \"${value}\".`;
 
     if (validValues) {
       const validValueString: string =
@@ -67,7 +78,7 @@ export abstract class ArgumentBase<TName extends keyof CliArguments> {
       flags += shorthand + ", ";
     }
 
-    flags += "--" + this.name;
+    flags += this.cliArg;
 
     if (argument) {
       flags += " " + argument;

@@ -9,8 +9,12 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
   public promptMessage =
     "Select, if needed, a directory to place all Relay artifacts in";
 
+  constructor() {
+    super();
+    this.cliArg = "--artifact-directory";
+  }
+
   registerCliOption(command: Command): void {
-    // todo: should be --artifact-directory
     const flags = this.getCliFlags("-a", "<path>");
 
     command.option(flags, "directory to place all Relay artifacts in");

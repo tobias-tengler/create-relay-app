@@ -13,9 +13,13 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
   public name = "packageManager" as const;
   public promptMessage = "Select the package manager to install packages with";
 
+  constructor() {
+    super();
+    this.cliArg = "--package-manager";
+  }
+
   registerCliOption(command: Command): void {
-    // todo: should be --package-manager
-    const flags = this.getCliFlags("p", "<manager>");
+    const flags = this.getCliFlags("-p", "<manager>");
 
     command.option(
       flags,
