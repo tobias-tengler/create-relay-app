@@ -20,8 +20,7 @@ export class SrcArgument extends ArgumentBase<"src"> {
       {
         message: "Select the root directory of your application code",
         type: "input",
-        //    validate: (input: string) =>
-        //     isValidSrcDirectory(input, env.projectRootDirectory),
+        validate: (input) => this.isValid(input, existingArgs, env),
       },
       existingArgs,
       env

@@ -22,8 +22,7 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
       {
         message: "Select the path to your GraphQL schema file",
         type: "input",
-        //   validate: (input: string) =>
-        //     isValidSchemaPath(input, env.projectRootDirectory),
+        validate: (input) => this.isValid(input, existingArgs, env),
       },
       existingArgs,
       env

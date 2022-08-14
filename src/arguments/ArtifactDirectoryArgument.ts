@@ -23,12 +23,7 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
         message:
           "Select, if needed, a directory to place all Relay artifacts in",
         type: "input",
-        // validate: (input: string, answers: Partial<CliArguments> | undefined) =>
-        //   isValidArtifactDirectory(
-        //     input,
-        //     answers?.toolchain ?? defaults.toolchain,
-        //     env.projectRootDirectory
-        //   ),
+        validate: (input) => this.isValid(input, existingArgs, env),
       },
       existingArgs,
       env

@@ -34,6 +34,8 @@ export class ArgumentHandler {
 
     const cliArgs = program.opts<CliArguments>();
 
+    this.validateArgs(cliArgs, env);
+
     return cliArgs;
   }
 
@@ -76,21 +78,7 @@ export class ArgumentHandler {
       }
     }
 
-    for (const argumentDefinition of this.argumentDefinitions) {
-      const value = allArgs[argumentDefinition.name];
-
-      if (value === undefined) {
-        continue;
-      }
-
-      const valid = argumentDefinition.isValid(value, allArgs, env);
-
-      if (valid === true) {
-        continue;
-      }
-
-      throw argumentDefinition.getInvalidArgError(value, undefined, valid);
-    }
+    this.validateArgs(allArgs, env);
 
     return {
       ...allArgs,
@@ -100,5 +88,23 @@ export class ArgumentHandler {
         ? prettifyPath(allArgs.artifactDirectory)
         : "",
     } as CliArguments;
+  }
+
+  private validateArgs(args: Partial<CliArguments>, env: EnvArguments) {
+    for (const argumentDefinition of this.argumentDefinitions) {
+      const value = args[argumentDefinition.name];
+
+      if (value === undefined) {
+        continue;
+      }
+
+      const valid = argumentDefinition.isValid(value, args, env);
+
+      if (valid === true) {
+        continue;
+      }
+
+      throw argumentDefinition.getInvalidArgError(value, undefined, valid);
+    }
   }
 }
