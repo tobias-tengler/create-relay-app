@@ -5,7 +5,10 @@ import {
   Toolchain,
   ToolchainOptions,
 } from "../types.js";
-import { isNpmPackageInstalled } from "../utils/index.js";
+import {
+  isNpmPackageDependency,
+  isNpmPackageInstalled,
+} from "../utils/index.js";
 import { ArgumentBase, getNormalizedCliString } from "./ArgumentBase.js";
 
 export class ToolchainArgument extends ArgumentBase<"toolchain"> {
@@ -48,23 +51,11 @@ export class ToolchainArgument extends ArgumentBase<"toolchain"> {
     existingArgs: Partial<CliArguments>,
     env: EnvArguments
   ): Promise<Toolchain> {
-    if (
-      await isNpmPackageInstalled(
-        env.launcher,
-        env.projectRootDirectory,
-        "next"
-      )
-    ) {
+    if (await isNpmPackageDependency(env.packageJsonFile, "next")) {
       return "next";
     }
 
-    if (
-      await isNpmPackageInstalled(
-        env.launcher,
-        env.projectRootDirectory,
-        "vite"
-      )
-    ) {
+    if (await isNpmPackageDependency(env.packageJsonFile, "vite")) {
       return "vite";
     }
 

@@ -1,7 +1,11 @@
 import { Command } from "commander";
 import { TS_CONFIG_FILE, TYPESCRIPT_PACKAGE } from "../consts.js";
 import { CliArguments, EnvArguments } from "../types.js";
-import { isNpmPackageInstalled, findFileInDirectory } from "../utils/index.js";
+import {
+  isNpmPackageInstalled,
+  findFileInDirectory,
+  isNpmPackageDependency,
+} from "../utils/index.js";
 import { ArgumentBase } from "./ArgumentBase.js";
 
 export class TypescriptArgument extends ArgumentBase<"typescript"> {
@@ -48,9 +52,8 @@ export class TypescriptArgument extends ArgumentBase<"typescript"> {
       return true;
     }
 
-    const typescriptInstalled = await isNpmPackageInstalled(
-      env.launcher,
-      env.projectRootDirectory,
+    const typescriptInstalled = await isNpmPackageDependency(
+      env.packageJsonFile,
       TYPESCRIPT_PACKAGE
     );
 

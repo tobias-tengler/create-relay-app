@@ -4,7 +4,30 @@ import { PACKAGE_FILE } from "../consts.js";
 import { PackageManager } from "../types.js";
 import { readFromFile } from "./fs.js";
 
-// todo: implement to look in the packagejson
+export async function isNpmPackageDependency(
+  packageJsonFilepath: string,
+  packageName: string
+): Promise<boolean> {
+  try {
+    const packageJsonContent = await readFromFile(packageJsonFilepath);
+
+    const packageJson = JSON.parse(packageJsonContent);
+
+    const dependencies = packageJson["dependencies"] ?? {};
+    const devDpendencies = packageJson["devDependencies"] ?? {};
+
+    const installedPackages = Object.keys({
+      ...dependencies,
+      ...devDpendencies,
+    });
+
+    return installedPackages.includes(packageName);
+  } catch {
+    return false;
+  }
+}
+
+/** @deprecated Takes too long to lookup */
 export async function isNpmPackageInstalled(
   manager: PackageManager,
   projectRootDirectory: string,

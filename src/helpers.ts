@@ -103,7 +103,6 @@ export async function getEnvironment(
   const projectRootDirectory = path.dirname(packageJsonFile);
 
   return {
-    launcher: pacMan,
     workingDirectory,
     ownPackageDirectory,
     packageJsonFile,
