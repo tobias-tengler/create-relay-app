@@ -72,10 +72,21 @@ if (!packageJsonFile) {
   console.log();
 
   console.log("1. Remember to first scaffold a project using:");
-  console.log("   Next.js: " + highlight(await getPacManCreateCmd("next-app")));
-  console.log("   Vite.js: " + highlight(await getPacManCreateCmd("vite")));
   console.log(
-    "   Create React App: " + highlight(await getPacManCreateCmd("react-app"))
+    "   Next.js: " +
+      highlight(await getPacManCreateCmd("next-app --typescript"))
+  );
+  console.log(
+    "   Vite.js: " +
+      highlight(await getPacManCreateCmd("vite --template react-ts"))
+  );
+  console.log(
+    "   Create React App: " +
+      highlight(
+        await getPacManCreateCmd(
+          "react-app <new-project-directory> --template typescript"
+        )
+      )
   );
   console.log();
   console.log("2. Move into the scaffolded directory:");
