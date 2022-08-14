@@ -237,8 +237,12 @@ if (settings.toolchain === "cra") {
       "graphql"
     )}\`\` tagged literal will not work!`
   );
-
-  // todo: link to craco or eject tutorial
+  console.log(
+    "If you do not want to use the macro, you can check out the following document for guidance:"
+  );
+  console.log(
+    "https://github.com/tobias-tengler/create-relay-app/blob/main/docs/cra-babel-setup.md"
+  );
 }
 
 console.log();

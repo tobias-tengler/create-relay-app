@@ -14,7 +14,7 @@ There is nothing wrong with this approach, but it can be frustrating if your edi
 
 Unfortunately Create React App does not offer a way to configure Babel plugins without ejecting. Fortunately we have some options.
 
-## Ejecting
+# Ejecting
 
 Yep, you guessed it: Ejecting is the first option.
 
@@ -43,6 +43,36 @@ plugins: [
     shouldUseReactRefresh &&
     require.resolve("react-refresh/babel"),
 ].filter(Boolean);
+```
+
+Now you should be able to import `graphql` from `react-relay`, like you are supposed to:
+
+```js
+import { graphql } from "react-relay";
+
+const query = graphql`
+  query App_Query {
+    field
+  }
+`;
+```
+
+# Craco
+
+Another option is to use a tool like [craco](https://github.com/dilanx/craco) to configure Babel plugins without ejecting.
+
+> ⚠️ Note: As of me writing this, craco does not support Create React App v5. Check back on their respository for the current status.
+
+First, install craco as shown here: https://github.com/dilanx/craco/blob/master/packages/craco/README.md#installation
+
+Next create a `craco.config.js` file at the root of your project and add the following code to it:
+
+```js
+module.exports = {
+  babel: {
+    plugins: ["babel-plugin-relay"],
+  },
+};
 ```
 
 Now you should be able to import `graphql` from `react-relay`, like you are supposed to:
