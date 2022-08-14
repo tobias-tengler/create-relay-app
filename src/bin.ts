@@ -219,15 +219,19 @@ if (settings.toolchain === "cra") {
   console.log(importantHeadline("Important"));
   console.log();
   console.log(
-    `Remember that you can only import ${highlight("graphql")} from ${highlight(
-      BABEL_RELAY_PACKAGE + "/macro"
-    )}.`
+    `Remember you need to import ${highlight("graphql")} like the following:`
   );
+  console.log(
+    "   " + highlight('import graphql from "babel-plugin-relay/macro";')
+  );
+  console.log();
   console.log(
     `Otherwise the transform of the ${highlight(
       "graphql"
     )}\`\` tagged literal will not work!`
   );
+
+  // todo: link to craco or eject tutorial
 }
 
 console.log();

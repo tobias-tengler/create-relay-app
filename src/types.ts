@@ -14,6 +14,7 @@ export type CliArguments = {
   artifactDirectory: string;
   packageManager: PackageManager;
   ignoreGitChanges: boolean;
+  skipInstall: boolean;
   yes: boolean;
 };
 

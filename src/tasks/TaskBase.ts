@@ -11,7 +11,7 @@ export abstract class TaskBase {
   }
 
   skip(message?: string): void {
-    const reason = message ? ": " + message : undefined;
+    const reason = message ? ": " + message : "";
 
     this.spinner?.warn(this.spinner.text + " " + dim(`[Skipped${reason}]`));
 

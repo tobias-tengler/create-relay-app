@@ -12,6 +12,11 @@ export class InstallNpmPackagesTask extends TaskBase {
   }
 
   async run(): Promise<void> {
+    if (this.settings.skipInstall) {
+      this.skip();
+      return;
+    }
+
     await installNpmPackages(
       this.settings.packageManager,
       this.settings.projectRootDirectory,

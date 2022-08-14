@@ -28,7 +28,7 @@ export class TaskRunner {
         task.complete();
       } catch (error) {
         if (error instanceof TaskSkippedError) {
-          return;
+          continue;
         }
 
         let errorMsg: string | undefined = undefined;

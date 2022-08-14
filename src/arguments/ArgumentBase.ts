@@ -43,9 +43,13 @@ export abstract class ArgumentBase<TName extends keyof CliArguments> {
   ): true | string;
 
   submitWithValue(value: CliArguments[TName]) {
-    console.log(
-      `${chalk.green("?")} ${this.promptMessage} ${chalk.cyan(value)}`
-    );
+    let val = value;
+
+    if (typeof val === "string" && !val) {
+      val = chalk.italic("empty") as CliArguments[TName];
+    }
+
+    console.log(`${chalk.green("?")} ${this.promptMessage} ${chalk.cyan(val)}`);
   }
 
   getInvalidArgError(

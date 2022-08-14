@@ -17,17 +17,21 @@ export class ArgumentHandler {
       .description(env.ownPackageDescription)
       .version(env.ownPackageVersion, `-v, --version`);
 
+    // Register CLI options.
+    for (const argumentDefinition of this.argumentDefinitions) {
+      argumentDefinition.registerCliOption(program);
+    }
+
     program
       .option(
         "--ignore-git-changes",
         "do not exit if the current directory has un-commited Git changes"
       )
+      .option(
+        "--skip-install",
+        "skip the install of npm packages (only for testing)"
+      )
       .option(`-y, --yes`, `answer \"yes\" to any prompts`);
-
-    // Register CLI options.
-    for (const argumentDefinition of this.argumentDefinitions) {
-      argumentDefinition.registerCliOption(program);
-    }
 
     // Parse CLI options.
     await program.parseAsync();
