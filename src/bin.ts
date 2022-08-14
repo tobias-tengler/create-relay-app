@@ -102,6 +102,7 @@ try {
   exit(1);
 }
 
+// todo: handle errors
 const settings: ProjectSettings = {
   ...env,
   ...cliArgs,
@@ -212,6 +213,11 @@ console.log(
   `2. Replace the value of the ${highlight(
     "HTTP_ENDPOINT"
   )} variable in the ${highlight(relRelayEnvPath)} file.`
+);
+console.log(
+  `3. Add a ${highlight("Suspense")} boundary and ${highlight(
+    "ErrorBoundary"
+  )} to ${highlight(relMainPath)}.`
 );
 
 if (settings.toolchain === "cra") {

@@ -225,7 +225,7 @@ export async function getToolchainSettings(
       mainFilepath,
     };
   } else {
-    const mainFilename = "index" + (args.typescript ? ".tsx" : ".jsx");
+    const mainFilename = "index" + (args.typescript ? ".tsx" : ".js");
 
     const searchDirectory = path.join(env.projectRootDirectory, "src");
 
