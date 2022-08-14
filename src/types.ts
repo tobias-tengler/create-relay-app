@@ -4,6 +4,8 @@ export const PackageManagerOptions = ["npm", "yarn", "pnpm"] as const;
 export type Toolchain = typeof ToolchainOptions[number];
 export type PackageManager = typeof PackageManagerOptions[number];
 
+export type RelayCompilerLanguage = "javascript" | "typescript" | "flow";
+
 export type CliArguments = {
   toolchain: Toolchain;
   typescript: boolean;
@@ -28,7 +30,7 @@ export type EnvArguments = Readonly<{
 export type ProjectSettings = Readonly<
   CliArguments &
     EnvArguments & {
-      compilerLanguage: "javascript" | "typescript";
+      compilerLanguage: RelayCompilerLanguage;
       relayEnvFilepath: string;
       configFilepath: string;
       mainFilepath: string;

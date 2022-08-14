@@ -190,7 +190,10 @@ const toolchainSettings = await getToolchainSettings(envArguments, cliArgs);
 const settings: ProjectSettings = {
   ...envArguments,
   ...cliArgs,
-  compilerLanguage: getRelayCompilerLanguage(cliArgs.typescript),
+  compilerLanguage: getRelayCompilerLanguage(
+    cliArgs.typescript,
+    cliArgs.toolchain
+  ),
   relayEnvFilepath: getProjectRelayEnvFilepath(envArguments, cliArgs),
   ...toolchainSettings,
 };

@@ -4,6 +4,7 @@ import {
   CliArguments,
   EnvArguments,
   ProjectSettings,
+  RelayCompilerLanguage,
   Toolchain,
 } from "./types.js";
 import {
@@ -217,9 +218,13 @@ export function removeExtension(filename: string): string {
 }
 
 export function getRelayCompilerLanguage(
-  useTypescript: boolean
-): "typescript" | "javascript" {
-  if (useTypescript) {
+  useTypescript: boolean,
+  toolchain: Toolchain
+): RelayCompilerLanguage {
+  // Next does not support 'javascript' as an option,
+  // only typescript or flow. So we opt for typescript
+  // since it's more wide spread.
+  if (useTypescript || toolchain === "next") {
     return "typescript";
   } else {
     return "javascript";
