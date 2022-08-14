@@ -22,6 +22,7 @@ import {
   getRelayCompilerLanguage,
   getProjectRelayEnvFilepath,
   getRelayDevDependencies,
+  getEnvironment,
 } from "./helpers.js";
 import {
   GenerateArtifactDirectoryTask,
@@ -33,16 +34,13 @@ import {
   ConfigureRelayCompilerTask,
   ConfigureRelayGraphqlTransformTask,
 } from "./tasks/index.js";
-import { EnvArguments, CliArguments, ProjectSettings } from "./types.js";
+import { CliArguments, ProjectSettings } from "./types.js";
 import {
   dim,
-  getPackageDetails,
   headline,
   highlight,
-  inferPackageManager,
   prettifyRelativePath,
   printError,
-  traverseUpToFindFile,
 } from "./utils/index.js";
 import { hasUnsavedGitChanges } from "./validation.js";
 
@@ -50,69 +48,8 @@ import { hasUnsavedGitChanges } from "./validation.js";
 
 const distDirectory = dirname(fileURLToPath(import.meta.url));
 const ownPackageDirectory = path.join(distDirectory, "..");
-const workingDirectory = process.cwd();
 
-// todo: handle error
-const pacMan = inferPackageManager();
-const packageDetails = await getPackageDetails(ownPackageDirectory);
-
-const packageJsonFile = await traverseUpToFindFile(
-  workingDirectory,
-  PACKAGE_FILE
-);
-
-if (!packageJsonFile) {
-  printError(
-    `Could not find a ${highlight(PACKAGE_FILE)} in the ${highlight(
-      workingDirectory
-    )} directory.`
-  );
-
-  const pacManCreate = pacMan + " create ";
-
-  console.log();
-  console.log(headline("Correct usage"));
-  console.log();
-
-  console.log("1. Remember to first scaffold a project using:");
-  console.log(
-    "   Next.js: " + highlight(pacManCreate + "next-app --typescript")
-  );
-  console.log(
-    "   Vite.js: " + highlight(pacManCreate + "vite --template react-ts")
-  );
-  console.log(
-    "   Create React App: " +
-      highlight(
-        pacManCreate + "react-app <new-project-directory> --template typescript"
-      )
-  );
-  console.log();
-  console.log("2. Move into the scaffolded directory:");
-  console.log("   " + highlight("cd <new-project-directory>"));
-  console.log();
-  console.log("3. Install the referenced packages:");
-  console.log("   " + highlight(pacMan + " install"));
-  console.log();
-  console.log(`4. Run the ${packageDetails.name} script again:`);
-  // todo: use pacManCreate once we hopefully have the create-relay-app name
-  console.log("   " + highlight("npx -y " + packageDetails.name));
-
-  exit(1);
-}
-
-const projectRootDirectory = path.dirname(packageJsonFile);
-
-const envArguments: EnvArguments = {
-  launcher: pacMan,
-  workingDirectory,
-  ownPackageDirectory,
-  packageJsonFile,
-  projectRootDirectory,
-  ownPackageName: packageDetails.name,
-  ownPackageDescription: packageDetails.description,
-  ownPackageVersion: packageDetails.version,
-};
+const env = await getEnvironment(ownPackageDirectory);
 
 // GET ARGUMENTS
 
@@ -130,32 +67,27 @@ let cliArgs: CliArguments;
 try {
   const argumentHandler = new ArgumentHandler(argumentDefinitions);
 
-  const partialCliArguments = await argumentHandler.parse(envArguments);
+  const partialCliArguments = await argumentHandler.parse(env);
 
   // todo: this is kind of awkward here
   if (!partialCliArguments.ignoreGitChanges) {
     const hasUnsavedChanges = await hasUnsavedGitChanges(
-      envArguments.projectRootDirectory
+      env.projectRootDirectory
     );
 
     if (hasUnsavedChanges) {
       printError(
         `Please commit or discard all changes in the ${highlight(
-          envArguments.projectRootDirectory
+          env.projectRootDirectory
         )} directory before continuing.`
       );
       exit(1);
     }
   }
 
-  cliArgs = await argumentHandler.promptForMissing(
-    partialCliArguments,
-    envArguments
-  );
+  cliArgs = await argumentHandler.promptForMissing(partialCliArguments, env);
 
   console.log();
-
-  console.log({ cliArgs });
 } catch (error) {
   if (error instanceof Error) {
     printError("Error while parsing CLI arguments: " + error.message);
@@ -166,21 +98,20 @@ try {
   exit(1);
 }
 
-const toolchainSettings = await getToolchainSettings(envArguments, cliArgs);
-
 const settings: ProjectSettings = {
-  ...envArguments,
+  ...env,
   ...cliArgs,
   compilerLanguage: getRelayCompilerLanguage(
     cliArgs.typescript,
     cliArgs.toolchain
   ),
-  relayEnvFilepath: getProjectRelayEnvFilepath(envArguments, cliArgs),
-  ...toolchainSettings,
+  relayEnvFilepath: getProjectRelayEnvFilepath(env, cliArgs),
+  ...(await getToolchainSettings(env, cliArgs)),
 };
 
 // EXECUTE TASKS
 
+// todo: can we simplify this or move it out of here?
 const dependencies = [REACT_RELAY_PACKAGE];
 const devDependencies = getRelayDevDependencies(
   settings.toolchain,

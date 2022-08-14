@@ -6,10 +6,92 @@ import {
   RelayCompilerLanguage,
   Toolchain,
 } from "./types.js";
-import { BABEL_RELAY_PACKAGE, VITE_RELAY_PACKAGE } from "./consts.js";
-import { findFileInDirectory } from "./utils/index.js";
+import {
+  BABEL_RELAY_PACKAGE,
+  PACKAGE_FILE,
+  VITE_RELAY_PACKAGE,
+} from "./consts.js";
+import {
+  findFileInDirectory,
+  getPackageDetails,
+  headline,
+  highlight,
+  inferPackageManager,
+  printError,
+  traverseUpToFindFile,
+} from "./utils/index.js";
+import { exit } from "process";
 
 // todo: seperate this into meaningful files
+
+export async function getEnvironment(
+  ownPackageDirectory: string
+): Promise<EnvArguments> {
+  const workingDirectory = process.cwd();
+
+  const pacMan = inferPackageManager();
+  // todo: handle error
+  const packageDetails = await getPackageDetails(ownPackageDirectory);
+
+  const packageJsonFile = await traverseUpToFindFile(
+    workingDirectory,
+    PACKAGE_FILE
+  );
+
+  if (!packageJsonFile) {
+    printError(
+      `Could not find a ${highlight(PACKAGE_FILE)} in the ${highlight(
+        workingDirectory
+      )} directory.`
+    );
+
+    const pacManCreate = pacMan + " create ";
+
+    console.log();
+    console.log(headline("Correct usage"));
+    console.log();
+
+    console.log("1. Remember to first scaffold a project using:");
+    console.log(
+      "   Next.js: " + highlight(pacManCreate + "next-app --typescript")
+    );
+    console.log(
+      "   Vite.js: " + highlight(pacManCreate + "vite --template react-ts")
+    );
+    console.log(
+      "   Create React App: " +
+        highlight(
+          pacManCreate +
+            "react-app <new-project-directory> --template typescript"
+        )
+    );
+    console.log();
+    console.log("2. Move into the scaffolded directory:");
+    console.log("   " + highlight("cd <new-project-directory>"));
+    console.log();
+    console.log("3. Install the referenced packages:");
+    console.log("   " + highlight(pacMan + " install"));
+    console.log();
+    console.log(`4. Run the ${packageDetails.name} script again:`);
+    // todo: use pacManCreate once we hopefully have the create-relay-app name
+    console.log("   " + highlight("npx -y " + packageDetails.name));
+
+    exit(1);
+  }
+
+  const projectRootDirectory = path.dirname(packageJsonFile);
+
+  return {
+    launcher: pacMan,
+    workingDirectory,
+    ownPackageDirectory,
+    packageJsonFile,
+    projectRootDirectory,
+    ownPackageName: packageDetails.name,
+    ownPackageDescription: packageDetails.description,
+    ownPackageVersion: packageDetails.version,
+  };
+}
 
 export function getRelayDevDependencies(
   toolchain: Toolchain,

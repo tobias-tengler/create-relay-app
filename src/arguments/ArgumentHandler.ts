@@ -1,6 +1,7 @@
 import { ArgumentBase } from "./ArgumentBase.js";
 import { CliArguments, EnvArguments } from "../types.js";
 import { program } from "commander";
+import { prettifyPath } from "../utils/index.js";
 
 export class ArgumentHandler {
   private readonly argumentDefinitions: ArgumentBase<keyof CliArguments>[];
@@ -77,22 +78,13 @@ export class ArgumentHandler {
 
     // todo: implement validation
 
-    return allArgs as CliArguments;
+    return {
+      ...allArgs,
+      src: allArgs.src ? prettifyPath(allArgs.src) : "",
+      schemaFile: allArgs.schemaFile ? prettifyPath(allArgs.schemaFile) : "",
+      artifactDirectory: allArgs.artifactDirectory
+        ? prettifyPath(allArgs.artifactDirectory)
+        : "",
+    } as CliArguments;
   }
 }
-
-// function buildFinalArgs(
-//   defaults: CliArguments,
-//   answers: Partial<CliArguments>
-// ): CliArguments {
-//   const combined: CliArguments = { ...defaults, ...answers };
-
-//   return {
-//     ...combined,
-//     src: prettifyPath(combined.src),
-//     schemaFile: prettifyPath(combined.schemaFile),
-//     artifactDirectory: combined.artifactDirectory
-//       ? prettifyPath(combined.artifactDirectory)
-//       : "",
-//   };
-// }
