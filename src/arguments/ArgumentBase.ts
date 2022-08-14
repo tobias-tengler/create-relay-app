@@ -87,7 +87,6 @@ export abstract class ArgumentBase<TName extends keyof CliArguments> {
     return flags;
   }
 
-  // todo: support path completion for path inputs
   protected async showInquirerPrompt(
     options: PromptOptions<TName>,
     existingArgs: Partial<CliArguments>,

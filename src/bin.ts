@@ -41,6 +41,7 @@ import {
   dim,
   headline,
   highlight,
+  importantHeadline,
   prettifyRelativePath,
   printError,
 } from "./utils/index.js";
@@ -163,7 +164,7 @@ const runner = new TaskRunner([
   {
     title: `Configure Relay transform in ${highlight(relConfigPath)}`,
     task: new ConfigureRelayGraphqlTransformTask(settings),
-    when: !!settings.configFilepath, // todo: remove once cra is fully supported
+    when: settings.toolchain !== "cra",
   },
   {
     title: `Generate Relay environment ${highlight(relRelayEnvPath)}`,
@@ -172,7 +173,6 @@ const runner = new TaskRunner([
   {
     title: `Add RelayEnvironmentProvider to ${highlight(relMainPath)}`,
     task: new AddRelayEnvironmentProviderTask(settings),
-    when: !!settings.configFilepath, // todo: remove once cra is fully supported
   },
   {
     title: `Generate GraphQL schema file ${highlight(relSchemaPath)}`,
@@ -208,20 +208,25 @@ console.log();
 console.log(
   `1. Replace ${highlight(relSchemaPath)} with your own GraphQL schema file.`
 );
-
 console.log(
-  `2. Replace the value of the ${highlight("HOST")} variable in the ${highlight(
-    relRelayEnvPath
-  )} file.`
+  `2. Replace the value of the ${highlight(
+    "HTTP_ENDPOINT"
+  )} variable in the ${highlight(relRelayEnvPath)} file.`
 );
 
-// todo: remove once cra is fully supported
-
 if (settings.toolchain === "cra") {
+  console.log();
+  console.log(importantHeadline("Important"));
+  console.log();
   console.log(
-    `3. Setup ${highlight(
-      BABEL_RELAY_PACKAGE
-    )} to conform to your project. ${dim("(This will soon be automated!)")}`
+    `Remember that you can only import ${highlight("graphql")} from ${highlight(
+      BABEL_RELAY_PACKAGE + "/macro"
+    )}.`
+  );
+  console.log(
+    `Otherwise the transform of the ${highlight(
+      "graphql"
+    )}\`\` tagged literal will not work!`
   );
 }
 

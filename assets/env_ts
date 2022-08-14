@@ -6,10 +6,10 @@ import {
   Store,
 } from "relay-runtime";
 
-const HOST = "http://localhost:5000/graphql";
+const HTTP_ENDPOINT = "http://localhost:5000/graphql";
 
 const fetchFn: FetchFunction = async (request, variables) => {
-  const resp = await fetch(HOST, {
+  const resp = await fetch(HTTP_ENDPOINT, {
     method: "POST",
     body: JSON.stringify({
       query: request.text,
