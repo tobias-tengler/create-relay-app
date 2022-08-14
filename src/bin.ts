@@ -234,8 +234,8 @@ if (settings.toolchain === "cra") {
   console.log();
   console.log(
     `Otherwise the transform of the ${highlight(
-      "graphql"
-    )}\`\` tagged literal will not work!`
+      "graphql``"
+    )} tagged literal will not work!`
   );
   console.log(
     "If you do not want to use the macro, you can check out the following document for guidance:"

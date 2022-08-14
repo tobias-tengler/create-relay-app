@@ -47,5 +47,3 @@ npx -y @tobiastengler/create-relay-app
 > Note: We are working on getting the `create-relay-app` name!
 
 This will prompt you for a bunch of questions around your project setup. If you do not want to specify these options interactively, you can also specify them through the [CLI arguments](./docs/cli-arguments.md). Passing `-y` will [infer all arguments](./docs/default-values.md) based on your project.
-
-## Default values
