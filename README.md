@@ -9,8 +9,6 @@
   </a>
 </p>
 
-<p align="center"style="font-size: 26px">⚠️ This project is still experimental! ⚠️</p>
-
 <p align="center">
   <img src="./showcase.gif" alt="Showcase" />
 </p>
@@ -27,7 +25,7 @@ Contrary to many existing tools that aim to solve similiar use cases, this proje
 
 `create-relay-app` supports:
 
-- [Create React App](https://create-react-app.dev/) (WIP)
+- [Create React App](https://create-react-app.dev/)
 - [Vite.js](https://vitejs.dev/)
 - [Next.js](https://nextjs.org/)
 
