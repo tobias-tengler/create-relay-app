@@ -1,5 +1,5 @@
 ```bash
-npx @tobiastengler/create-relay-app [options]
+npm/yarn/pnpm create @tobiastengler/relay-app@latest [options]
 ```
 
 ### -y, --yes
