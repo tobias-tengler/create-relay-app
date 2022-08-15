@@ -41,7 +41,7 @@ Contrary to many existing tools that aim to solve similiar use cases, this proje
 3. Run the script inside of the scaffolded directory:
 
 ```bash
-npx -y @tobiastengler/create-relay-app
+npm/yarn/pnpm create @tobiastengler/relay-app@latest
 ```
 
 > Note: We are working on getting the `create-relay-app` name!
