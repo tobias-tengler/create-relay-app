@@ -15,7 +15,7 @@
 
 ## Motivation
 
-Setting up Relay can be quite time consuming, since there are _many_ setup steps that might differ, depending on the toolchain you use.
+Setting up Relay can be quite time consuming, since there are _many_ setup steps that might differ depending on the toolchain you use.
 
 The goal of this project is to automate the setup process as much as possible and give you a fast and consistent configuration experience across the most popular React toolchains.
 
