@@ -1,6 +1,6 @@
 import { TaskBase } from "./TaskBase.js";
 import { h } from "../utils/index.js";
-import { ProjectContext } from "../ProjectContext.js";
+import { ProjectContext } from "../misc/ProjectContext.js";
 
 export class GenerateArtifactDirectoryTask extends TaskBase {
   message: string = "Generate artifact directory";

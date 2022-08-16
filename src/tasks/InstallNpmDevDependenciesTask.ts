@@ -1,7 +1,7 @@
 import { TaskBase } from "./TaskBase.js";
-import { BABEL_RELAY_PACKAGE, VITE_RELAY_PACKAGE } from "../consts.js";
+import { BABEL_RELAY_PACKAGE, VITE_RELAY_PACKAGE } from "../misc/consts.js";
 import { h } from "../utils/cli.js";
-import { ProjectContext } from "../ProjectContext.js";
+import { ProjectContext } from "../misc/ProjectContext.js";
 
 export class InstallNpmDevDependenciesTask extends TaskBase {
   message = "Add Relay devDependencies";

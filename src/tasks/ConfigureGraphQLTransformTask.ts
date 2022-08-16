@@ -2,7 +2,7 @@ import { TaskBase } from "./TaskBase.js";
 import traverse from "@babel/traverse";
 import t from "@babel/types";
 import { h, insertDefaultImport, parseAst, printAst } from "../utils/index.js";
-import { ProjectContext } from "../ProjectContext.js";
+import { ProjectContext } from "../misc/ProjectContext.js";
 
 export class ConfigureGraphQLTransformTask extends TaskBase {
   message: string = "Configure graphql transform";

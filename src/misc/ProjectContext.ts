@@ -1,30 +1,26 @@
-import path from "path";
+import {
+  CliArguments,
+  RelayCompilerLanguage,
+  ToolchainType,
+} from "../types.js";
+import { Environment } from "./Environment.js";
 import { Filesystem } from "./Filesystem.js";
 import { PackageManager } from "./packageManagers/PackageManager.js";
 import { RelativePath } from "./RelativePath.js";
-import {
-  CliArguments,
-  EnvArguments,
-  RelayCompilerLanguage,
-  ToolchainType,
-} from "./types.js";
 
 export class ProjectContext {
   constructor(
-    public env: EnvArguments,
+    public env: Environment,
     public args: CliArguments,
     public manager: PackageManager,
     public fs: Filesystem
   ) {
-    this.src = new RelativePath(env.projectRootDirectory, args.src);
-    this.schemaFile = new RelativePath(
-      env.projectRootDirectory,
-      args.schemaFile
-    );
+    this.src = new RelativePath(env.targetDirectory, args.src);
+    this.schemaFile = new RelativePath(env.targetDirectory, args.schemaFile);
 
     if (args.artifactDirectory) {
       this.artifactDirectory = new RelativePath(
-        env.projectRootDirectory,
+        env.targetDirectory,
         args.artifactDirectory
       );
     } else {

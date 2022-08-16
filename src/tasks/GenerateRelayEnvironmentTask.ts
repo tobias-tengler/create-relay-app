@@ -1,7 +1,7 @@
 import path from "path";
 import { TaskBase } from "./TaskBase.js";
-import { ProjectContext } from "../ProjectContext.js";
 import { h } from "../utils/index.js";
+import { ProjectContext } from "../misc/ProjectContext.js";
 
 export class GenerateRelayEnvironmentTask extends TaskBase {
   message: string = "Generate Relay environment";
@@ -36,10 +36,7 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
       srcFile = "./assets/env";
     }
 
-    const srcFilepath = path.join(
-      this.context.env.ownPackageDirectory,
-      srcFile
-    );
+    const srcFilepath = path.join(this.context.env.targetDirectory, srcFile);
 
     // todo: handle error
     this.context.fs.createDirectory(destDirectory);

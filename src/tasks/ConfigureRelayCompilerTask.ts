@@ -1,11 +1,7 @@
 import { TaskBase } from "./TaskBase.js";
-import { PACKAGE_FILE } from "../consts.js";
-import { ProjectContext } from "../ProjectContext.js";
-import {
-  parsePackageJson,
-  writePackageJson,
-} from "../packageManagers/index.js";
+import { PACKAGE_FILE } from "../misc/consts.js";
 import { h } from "../utils/cli.js";
+import { ProjectContext } from "../misc/ProjectContext.js";
 
 const validateRelayArtifactsScript = "relay-compiler --validate";
 
@@ -21,11 +17,9 @@ export class ConfigureRelayCompilerTask extends TaskBase {
   }
 
   async run(): Promise<void> {
-    const packageJson = await parsePackageJson(
-      this.context.env.packageJsonFile
-    );
+    const packageJson = await this.context.env.packageJson.parse();
 
-    const scriptsSection = packageJson["scripts"] ?? {};
+    const scriptsSection: Record<string, string> = packageJson["scripts"] ?? {};
 
     if (!scriptsSection["relay"]) {
       // Add "relay" script
@@ -71,6 +65,6 @@ export class ConfigureRelayCompilerTask extends TaskBase {
 
     packageJson["relay"] = relaySection;
 
-    await writePackageJson(this.context.env.packageJsonFile, packageJson);
+    this.context.env.packageJson.persist(packageJson);
   }
 }

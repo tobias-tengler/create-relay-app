@@ -1,8 +1,9 @@
 import { Command } from "commander";
 import path from "path";
-import { Filesystem } from "../Filesystem.js";
-import { RelativePath } from "../RelativePath.js";
-import { CliArguments, EnvArguments } from "../types.js";
+import { Environment } from "../misc/Environment.js";
+import { Filesystem } from "../misc/Filesystem.js";
+import { RelativePath } from "../misc/RelativePath.js";
+import { CliArguments } from "../types.js";
 import { h } from "../utils/index.js";
 import { ArgumentBase } from "./ArgumentBase.js";
 
@@ -11,35 +12,32 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
   public promptMessage =
     "Select, if needed, a directory to place all Relay artifacts in";
 
-  constructor(private fs: Filesystem) {
+  constructor(private fs: Filesystem, private env: Environment) {
     super();
     this.cliArg = "--artifact-directory";
   }
 
-  registerCliOption(command: Command, env: EnvArguments): void {
+  registerCliOption(command: Command): void {
     const flags = this.getCliFlags("-a", "<path>");
 
     command.option(flags, "directory to place all Relay artifacts in");
   }
 
   promptForValue(
-    existingArgs: Partial<CliArguments>,
-    env: EnvArguments
+    existingArgs: Partial<CliArguments>
   ): Promise<CliArguments["artifactDirectory"]> {
     return this.showInquirerPrompt(
       {
         type: "input",
-        validate: (input) => this.isValid(input, existingArgs, env),
+        validate: (input) => this.isValid(input, existingArgs),
       },
-      existingArgs,
-      env
+      existingArgs
     );
   }
 
   isValid(
     value: CliArguments["artifactDirectory"],
-    existingArgs: Partial<CliArguments>,
-    env: EnvArguments
+    existingArgs: Partial<CliArguments>
   ): true | string {
     if (!value) {
       if (existingArgs.toolchain === "next") {
@@ -54,13 +52,13 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
       return `Last directory segment should be called ${h("__generated__")}`;
     }
 
-    if (!this.fs.isSubDirectory(env.projectRootDirectory, value)) {
-      return `Must be directory below ${h(env.projectRootDirectory)}`;
+    if (!this.fs.isSubDirectory(this.env.targetDirectory, value)) {
+      return `Must be directory below ${h(this.env.targetDirectory)}`;
     }
 
     if (existingArgs.toolchain === "next") {
       const pagesDirectory = new RelativePath(
-        env.projectRootDirectory,
+        this.env.targetDirectory,
         "./pages"
       );
 
@@ -73,8 +71,7 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
   }
 
   async getDefaultValue(
-    existingArgs: Partial<CliArguments>,
-    env: EnvArguments
+    existingArgs: Partial<CliArguments>
   ): Promise<CliArguments["artifactDirectory"]> {
     if (existingArgs.toolchain === "next") {
       // Artifacts need to be located outside the ./pages directory,

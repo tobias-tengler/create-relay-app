@@ -1,7 +1,7 @@
 import { TaskBase } from "./TaskBase.js";
-import { REACT_RELAY_PACKAGE } from "../consts.js";
+import { REACT_RELAY_PACKAGE } from "../misc/consts.js";
 import { h } from "../utils/cli.js";
-import { ProjectContext } from "../ProjectContext.js";
+import { ProjectContext } from "../misc/ProjectContext.js";
 
 export class InstallNpmDependenciesTask extends TaskBase {
   message = "Add Relay dependencies";

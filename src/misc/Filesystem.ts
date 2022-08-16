@@ -5,6 +5,16 @@ import fsExtra from "fs-extra";
 import glob from "glob";
 
 export class Filesystem {
+  getParent(filepath: string): string {
+    return path.dirname(filepath);
+  }
+
+  isSubDirectory(parent: string, dir: string): boolean {
+    const relative = path.relative(parent, dir);
+
+    return !relative.startsWith("..") && !path.isAbsolute(relative);
+  }
+
   copyFile(src: string, dest: string): Promise<void> {
     return fs.copyFile(src, dest);
   }
@@ -72,11 +82,5 @@ export class Filesystem {
         resolve([]);
       }
     });
-  }
-
-  isSubDirectory(parent: string, dir: string): boolean {
-    const relative = path.relative(parent, dir);
-
-    return !relative.startsWith("..") && !path.isAbsolute(relative);
   }
 }

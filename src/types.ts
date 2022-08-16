@@ -6,14 +6,6 @@ export type PackageManagerType = typeof PackageManagerOptions[number];
 
 export type RelayCompilerLanguage = "javascript" | "typescript" | "flow";
 
-export type PackageDetails = Readonly<{
-  name: string;
-  version: string;
-  description: string;
-  // parentDirectory: string;
-  // jsonFile: string;
-}>;
-
 export type CliArguments = {
   toolchain: ToolchainType;
   typescript: boolean;
@@ -25,13 +17,3 @@ export type CliArguments = {
   skipInstall: boolean;
   yes: boolean;
 };
-
-export type EnvArguments = Readonly<{
-  workingDirectory: string;
-  ownPackageDirectory: string;
-  ownPackageName: string;
-  ownPackageDescription: string;
-  ownPackageVersion: string;
-  projectRootDirectory: string;
-  packageJsonFile: string;
-}>;

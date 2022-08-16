@@ -1,18 +1,17 @@
 import { Command } from "commander";
-import { isNpmPackageDependency } from "../packageManagers/index.js";
-import {
-  CliArguments,
-  EnvArguments,
-  ToolchainType,
-  ToolchainOptions,
-} from "../types.js";
+import { Environment } from "../misc/Environment.js";
+import { CliArguments, ToolchainType, ToolchainOptions } from "../types.js";
 import { ArgumentBase, getNormalizedCliString } from "./ArgumentBase.js";
 
 export class ToolchainArgument extends ArgumentBase<"toolchain"> {
   public name = "toolchain" as const;
   public promptMessage = "Select the toolchain your project was setup with";
 
-  registerCliOption(command: Command, env: EnvArguments): void {
+  constructor(private env: Environment) {
+    super();
+  }
+
+  registerCliOption(command: Command): void {
     const flags = this.getCliFlags("-t", "<toolchain>");
 
     command.option(
@@ -22,37 +21,31 @@ export class ToolchainArgument extends ArgumentBase<"toolchain"> {
     );
   }
 
-  promptForValue(
-    existingArgs: Partial<CliArguments>,
-    env: EnvArguments
-  ): Promise<ToolchainType> {
+  promptForValue(existingArgs: Partial<CliArguments>): Promise<ToolchainType> {
     return this.showInquirerPrompt(
       {
         type: "list",
         choices: ToolchainOptions,
       },
-      existingArgs,
-      env
+      existingArgs
     );
   }
 
   isValid(
     value: ToolchainType,
-    existingArgs: Partial<CliArguments>,
-    env: EnvArguments
+    existingArgs: Partial<CliArguments>
   ): true | string {
     return true;
   }
 
   async getDefaultValue(
-    existingArgs: Partial<CliArguments>,
-    env: EnvArguments
+    existingArgs: Partial<CliArguments>
   ): Promise<ToolchainType> {
-    if (await isNpmPackageDependency(env.packageJsonFile, "next")) {
+    if (await this.env.packageJson.containsDependency("next")) {
       return "next";
     }
 
-    if (await isNpmPackageDependency(env.packageJsonFile, "vite")) {
+    if (await this.env.packageJson.containsDependency("vite")) {
       return "vite";
     }
 

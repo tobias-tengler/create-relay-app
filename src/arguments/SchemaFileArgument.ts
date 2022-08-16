@@ -1,8 +1,9 @@
 import { Command } from "commander";
 import path from "path";
-import { Filesystem } from "../Filesystem.js";
-import { RelativePath } from "../RelativePath.js";
-import { CliArguments, EnvArguments } from "../types.js";
+import { Environment } from "../misc/Environment.js";
+import { Filesystem } from "../misc/Filesystem.js";
+import { RelativePath } from "../misc/RelativePath.js";
+import { CliArguments } from "../types.js";
 import { h } from "../utils/index.js";
 import { ArgumentBase } from "./ArgumentBase.js";
 
@@ -10,35 +11,32 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
   public name = "schemaFile" as const;
   public promptMessage = "Select the path to your GraphQL schema file";
 
-  constructor(private fs: Filesystem) {
+  constructor(private fs: Filesystem, private env: Environment) {
     super();
     this.cliArg = "--schema-file";
   }
 
-  registerCliOption(command: Command, env: EnvArguments): void {
+  registerCliOption(command: Command): void {
     const flags = this.getCliFlags("-f", "<path>");
 
     command.option(flags, "path to a GraphQL schema file");
   }
 
   promptForValue(
-    existingArgs: Partial<CliArguments>,
-    env: EnvArguments
+    existingArgs: Partial<CliArguments>
   ): Promise<CliArguments["schemaFile"]> {
     return this.showInquirerPrompt(
       {
         type: "input",
-        validate: (input) => this.isValid(input, existingArgs, env),
+        validate: (input) => this.isValid(input, existingArgs),
       },
-      existingArgs,
-      env
+      existingArgs
     );
   }
 
   isValid(
     value: CliArguments["schemaFile"],
-    existingArgs: Partial<CliArguments>,
-    env: EnvArguments
+    existingArgs: Partial<CliArguments>
   ): true | string {
     if (!value) {
       return "Required";
@@ -52,16 +50,15 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
       return `File needs to end in ${h(graphqlExt)}`;
     }
 
-    if (!this.fs.isSubDirectory(env.projectRootDirectory, value)) {
-      return `Must be directory below ${h(env.projectRootDirectory)}`;
+    if (!this.fs.isSubDirectory(this.env.targetDirectory, value)) {
+      return `Must be directory below ${h(this.env.targetDirectory)}`;
     }
 
     return true;
   }
 
   async getDefaultValue(
-    existingArgs: Partial<CliArguments>,
-    env: EnvArguments
+    existingArgs: Partial<CliArguments>
   ): Promise<CliArguments["schemaFile"]> {
     const filename = "schema.graphql";
 
@@ -71,9 +68,9 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
       srcPath = "./src";
     }
 
-    const filepath = path.join(env.projectRootDirectory, srcPath, filename);
+    const filepath = path.join(this.env.targetDirectory, srcPath, filename);
 
-    const relPath = new RelativePath(env.projectRootDirectory, filepath);
+    const relPath = new RelativePath(this.env.targetDirectory, filepath);
 
     return relPath.rel;
   }

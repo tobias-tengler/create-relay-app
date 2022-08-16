@@ -1,5 +1,5 @@
 import { spawn } from "child_process";
-import { PackageManagerType } from "../types.js";
+import { PackageManagerType } from "../../types.js";
 
 export interface PackageManager {
   readonly id: PackageManagerType;

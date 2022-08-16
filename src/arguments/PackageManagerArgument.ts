@@ -1,11 +1,11 @@
 import { execSync } from "child_process";
 import { Command } from "commander";
 import path from "path";
-import { Filesystem } from "../Filesystem.js";
-import { inferPackageManager } from "../packageManagers/index.js";
+import { Environment } from "../misc/Environment.js";
+import { Filesystem } from "../misc/Filesystem.js";
+import { inferPackageManager } from "../misc/packageManagers/index.js";
 import {
   CliArguments,
-  EnvArguments,
   PackageManagerType,
   PackageManagerOptions,
 } from "../types.js";
@@ -15,12 +15,12 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
   public name = "packageManager" as const;
   public promptMessage = "Select the package manager to install packages with";
 
-  constructor(private fs: Filesystem) {
+  constructor(private fs: Filesystem, private env: Environment) {
     super();
     this.cliArg = "--package-manager";
   }
 
-  registerCliOption(command: Command, env: EnvArguments): void {
+  registerCliOption(command: Command): void {
     const flags = this.getCliFlags("-p", "<manager>");
 
     command.option(
@@ -31,30 +31,26 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
   }
 
   promptForValue(
-    existingArgs: Partial<CliArguments>,
-    env: EnvArguments
+    existingArgs: Partial<CliArguments>
   ): Promise<PackageManagerType> {
     return this.showInquirerPrompt(
       {
         type: "list",
         choices: PackageManagerOptions,
       },
-      existingArgs,
-      env
+      existingArgs
     );
   }
 
   isValid(
     value: PackageManagerType,
-    existingArgs: Partial<CliArguments>,
-    env: EnvArguments
+    existingArgs: Partial<CliArguments>
   ): true | string {
     return true;
   }
 
   async getDefaultValue(
-    existingArgs: Partial<CliArguments>,
-    env: EnvArguments
+    existingArgs: Partial<CliArguments>
   ): Promise<PackageManagerType> {
     try {
       const inferred = inferPackageManager();
@@ -65,7 +61,7 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
         try {
           execSync("yarn --version", { stdio: "ignore" });
 
-          const lockFile = path.join(env.projectRootDirectory, "yarn.lock");
+          const lockFile = path.join(this.env.targetDirectory, "yarn.lock");
 
           if (this.fs.doesExist(lockFile)) {
             // Yarn is installed and the project contains a yarn.lock file.
@@ -75,7 +71,7 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
           execSync("pnpm --version", { stdio: "ignore" });
 
           const lockFile = path.join(
-            env.projectRootDirectory,
+            this.env.targetDirectory,
             "pnpm-lock.yaml"
           );
 

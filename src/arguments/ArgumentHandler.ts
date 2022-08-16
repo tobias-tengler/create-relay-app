@@ -1,6 +1,7 @@
 import { ArgumentBase } from "./ArgumentBase.js";
-import { CliArguments, EnvArguments } from "../types.js";
+import { CliArguments } from "../types.js";
 import { program } from "commander";
+import { Environment } from "../misc/Environment.js";
 
 export class ArgumentHandler {
   private readonly argumentDefinitions: ArgumentBase<keyof CliArguments>[];
@@ -9,15 +10,17 @@ export class ArgumentHandler {
     this.argumentDefinitions = argumentDefinitions;
   }
 
-  async parse(env: EnvArguments): Promise<Partial<CliArguments>> {
+  async parse(env: Environment): Promise<Partial<CliArguments>> {
+    const details = await env.ownPackageJson.getDetails();
+
     program
-      .name(env.ownPackageName)
-      .description(env.ownPackageDescription)
-      .version(env.ownPackageVersion, `-v, --version`);
+      .name(details.name)
+      .description(details.description)
+      .version(details.version, `-v, --version`);
 
     // Register CLI options.
     for (const argumentDefinition of this.argumentDefinitions) {
-      argumentDefinition.registerCliOption(program, env);
+      argumentDefinition.registerCliOption(program);
     }
 
     program
@@ -36,14 +39,13 @@ export class ArgumentHandler {
 
     const cliArgs = program.opts<CliArguments>();
 
-    this.validateArgs(cliArgs, env);
+    this.validateArgs(cliArgs);
 
     return cliArgs;
   }
 
   async promptForMissing(
-    parsedArgs: Partial<CliArguments>,
-    env: EnvArguments
+    parsedArgs: Partial<CliArguments>
   ): Promise<CliArguments> {
     const allArgs: Partial<CliArguments> = { ...parsedArgs };
 
@@ -57,16 +59,13 @@ export class ArgumentHandler {
       }
 
       if (!parsedArgs.yes) {
-        const answer = await argumentDefinition.promptForValue(allArgs, env);
+        const answer = await argumentDefinition.promptForValue(allArgs);
 
         // @ts-ignore
         allArgs[argumentDefinition.name] = answer;
       } else {
         // The user does not want to be prompted, so we choose default values.
-        const defaultValue = await argumentDefinition.getDefaultValue(
-          allArgs,
-          env
-        );
+        const defaultValue = await argumentDefinition.getDefaultValue(allArgs);
 
         argumentDefinition.submitWithValue(defaultValue);
 
@@ -75,12 +74,12 @@ export class ArgumentHandler {
       }
     }
 
-    this.validateArgs(allArgs, env);
+    this.validateArgs(allArgs);
 
     return allArgs as CliArguments;
   }
 
-  private validateArgs(args: Partial<CliArguments>, env: EnvArguments) {
+  private validateArgs(args: Partial<CliArguments>) {
     for (const argumentDefinition of this.argumentDefinitions) {
       const value = args[argumentDefinition.name];
 
@@ -88,7 +87,7 @@ export class ArgumentHandler {
         continue;
       }
 
-      const valid = argumentDefinition.isValid(value, args, env);
+      const valid = argumentDefinition.isValid(value, args);
 
       if (valid === true) {
         continue;

@@ -1,8 +1,7 @@
 import chalk from "chalk";
 import { Command } from "commander";
 import inquirer from "inquirer";
-import { RelativePath } from "../RelativePath.js";
-import { CliArguments, EnvArguments } from "../types.js";
+import { CliArguments } from "../types.js";
 
 type PromptOptions<TName extends keyof CliArguments> = {
   type: "list" | "confirm" | "input";
@@ -24,22 +23,19 @@ export abstract class ArgumentBase<TName extends keyof CliArguments> {
     this._cliArg = value;
   }
 
-  abstract registerCliOption(command: Command, env: EnvArguments): void;
+  abstract registerCliOption(command: Command): void;
 
   abstract promptForValue(
-    existingArgs: Partial<CliArguments>,
-    env: EnvArguments
+    existingArgs: Partial<CliArguments>
   ): Promise<CliArguments[TName]>;
 
   abstract getDefaultValue(
-    existingArgs: Partial<CliArguments>,
-    env: EnvArguments
+    existingArgs: Partial<CliArguments>
   ): Promise<CliArguments[TName]>;
 
   abstract isValid(
     value: CliArguments[TName],
-    existingArgs: Partial<CliArguments>,
-    env: EnvArguments
+    existingArgs: Partial<CliArguments>
   ): true | string;
 
   submitWithValue(value: CliArguments[TName]) {
@@ -93,10 +89,9 @@ export abstract class ArgumentBase<TName extends keyof CliArguments> {
 
   protected async showInquirerPrompt(
     options: PromptOptions<TName>,
-    existingArgs: Partial<CliArguments>,
-    env: EnvArguments
+    existingArgs: Partial<CliArguments>
   ): Promise<CliArguments[TName]> {
-    const defaultValue = await this.getDefaultValue(existingArgs, env);
+    const defaultValue = await this.getDefaultValue(existingArgs);
 
     const answer = await inquirer.prompt({
       name: this.name,
@@ -111,18 +106,6 @@ export abstract class ArgumentBase<TName extends keyof CliArguments> {
 
 export function getNormalizedCliString(input?: string): string {
   return input?.toLowerCase().trim() || "";
-}
-
-export function tryParseRelativePath(
-  input: string,
-  env: EnvArguments
-): RelativePath | undefined {
-  if (!input) {
-    return undefined;
-  }
-
-  // todo: we need to handle errors here probably
-  return new RelativePath(env.projectRootDirectory, input);
 }
 
 export class InvalidArgError extends Error {}

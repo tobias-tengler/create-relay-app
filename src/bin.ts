@@ -13,11 +13,12 @@ import {
   ToolchainArgument,
   TypescriptArgument,
 } from "./arguments/index.js";
-import { BABEL_RELAY_MACRO } from "./consts.js";
-import { Filesystem } from "./Filesystem.js";
-import { getEnvironment, hasUnsavedGitChanges } from "./helpers.js";
-import { getPackageManger } from "./packageManagers/index.js";
-import { ProjectContext } from "./ProjectContext.js";
+import { BABEL_RELAY_MACRO, PACKAGE_FILE } from "./misc/consts.js";
+import { Filesystem } from "./misc/Filesystem.js";
+import {
+  getPackageManger,
+  inferPackageManager,
+} from "./misc/packageManagers/index.js";
 import {
   GenerateArtifactDirectoryTask,
   AddRelayEnvironmentProviderTask,
@@ -32,51 +33,89 @@ import {
 } from "./tasks/index.js";
 import { CliArguments } from "./types.js";
 import { headline, h, importantHeadline, printError } from "./utils/index.js";
-
-// INIT ENVIRONMENT
+import { ProjectContext } from "./misc/ProjectContext.js";
+import { Environment, MissingPackageJsonError } from "./misc/Environment.js";
+import { Git } from "./misc/Git.js";
 
 const fs = new Filesystem();
 
+// We need to determine where our package was installed to,
+// since we later might need to access files from this location.
 const distDirectory = dirname(fileURLToPath(import.meta.url));
-const ownPackageDirectory = path.join(distDirectory, "..");
+const ownPackageJsonFilepath = path.join(distDirectory, "..", PACKAGE_FILE);
 
-const env = await getEnvironment(ownPackageDirectory);
+const cwd = process.cwd();
+const pacMan = inferPackageManager();
 
-// GET ARGUMENTS
+const env = new Environment(cwd, ownPackageJsonFilepath, fs);
 
-const argumentDefinitions = [
-  new ToolchainArgument(),
-  new TypescriptArgument(fs),
-  new SrcArgument(fs),
-  new SchemaFileArgument(fs),
-  new ArtifactDirectoryArgument(fs),
-  new PackageManagerArgument(fs),
-];
+// Determine environment information, such as where the package.json
+// of the target project lies.
+try {
+  await env.init();
+} catch (error) {
+  if (error instanceof MissingPackageJsonError) {
+    // prettier-ignore
+    printError(`Could not find a ${h(PACKAGE_FILE)} in the ${h(cwd)} directory.`);
+
+    console.log();
+    console.log(headline("Correct usage"));
+    console.log();
+
+    console.log("1. Remember to first scaffold a project using:");
+    console.log("   Next.js: " + h(pacMan + "create next-app --typescript"));
+    console.log("   Vite.js: " + h(pacMan + "create vite --template react-ts"));
+    // prettier-ignore
+    console.log("   Create React App: " + h(pacMan + "create react-app <new-project-directory> --template typescript"));
+    console.log();
+    console.log("2. Move into the scaffolded directory:");
+    console.log("   " + h("cd <new-project-directory>"));
+    console.log();
+    // todo: replace with create-relay-app, if we hopefully get the name.
+    console.log(`3. Run the @tobiastengler/relay-app script again:`);
+    console.log("   " + h(pacMan + "create @tobiastengler/relay-app"));
+  } else if (error instanceof Error) {
+    // prettier-ignore
+    printError("Unexpected error while gathering environment information: " + error.message);
+  } else {
+    // prettier-ignore
+    printError("Unexpected error while gathering environment information");
+  }
+
+  exit(1);
+}
+
+// Define all of the possible CLI arguments.
+const argumentHandler = new ArgumentHandler([
+  new ToolchainArgument(env),
+  new TypescriptArgument(fs, env),
+  new SrcArgument(fs, env),
+  new SchemaFileArgument(fs, env),
+  new ArtifactDirectoryArgument(fs, env),
+  new PackageManagerArgument(fs, env),
+]);
 
 let cliArgs: CliArguments;
 
+// Try to parse the CLI arguments
 try {
-  const argumentHandler = new ArgumentHandler(argumentDefinitions);
-
-  const partialCliArguments = await argumentHandler.parse(env);
+  // Get the arguments provided to the program.
+  const cliProvidedArgs = await argumentHandler.parse(env);
 
   // todo: this is kind of awkward here
-  if (!partialCliArguments.ignoreGitChanges) {
-    const hasUnsavedChanges = await hasUnsavedGitChanges(
-      env.projectRootDirectory
-    );
+  if (!cliProvidedArgs.ignoreGitChanges) {
+    const git = new Git();
+    const hasUnsavedChanges = await git.hasUnsavedChanges(env.targetDirectory);
 
     if (hasUnsavedChanges) {
-      printError(
-        `Please commit or discard all changes in the ${h(
-          env.projectRootDirectory
-        )} directory before continuing.`
-      );
+      // prettier-ignore
+      printError(`Please commit or discard all changes in the ${h(env.targetDirectory)} directory before continuing.`);
       exit(1);
     }
   }
 
-  cliArgs = await argumentHandler.promptForMissing(partialCliArguments, env);
+  // Prompt for all of the missing arguments, required to execute the program.
+  cliArgs = await argumentHandler.promptForMissing(cliProvidedArgs);
 
   console.log();
 } catch (error) {
@@ -91,17 +130,16 @@ try {
   exit(1);
 }
 
+// Instantiate a package manager, based on the user's choice.
 const packageManager = getPackageManger(
   cliArgs.packageManager,
-  env.projectRootDirectory
+  env.targetDirectory
 );
 
+// Build a context that contains all of the configuration.
 const context = new ProjectContext(env, cliArgs, packageManager, fs);
-// context.mainFile = await getMainFile(env, cliArgs);
-// context.configFile = await getConfigFile(env, cliArgs);
 
-// EXECUTE TASKS
-
+// Define tasks that should be executed.
 const runner = new TaskRunner([
   new InstallNpmDependenciesTask(context),
   new InstallNpmDevDependenciesTask(context),
@@ -114,51 +152,44 @@ const runner = new TaskRunner([
   new AddBabelMacroTypeDefinitionsTask(context),
 ]);
 
+// Execute all of the tasks sequentially.
 try {
   await runner.run();
 } catch {
   console.log();
+  // todo: provide error message
   printError("Some of the tasks failed unexpectedly.");
   exit(1);
 }
 
-// DISPLAY RESULT
-
 console.log();
 console.log();
 
+// Display a guide to the user on how to continue setting up his project.
 console.log(headline("Next steps"));
 console.log();
 
-console.log(
-  `1. Replace ${h(context.schemaFile.rel)} with your own GraphQL schema file.`
-);
-console.log(
-  `2. Replace the value of the ${h("HTTP_ENDPOINT")} variable in the ${h(
-    context.relayEnvFile.rel
-  )} file.`
-);
+// prettier-ignore
+console.log(`1. Replace ${h(context.schemaFile.rel)} with your own GraphQL schema file.`);
+// prettier-ignore
+console.log(`2. Replace the value of the ${h("HTTP_ENDPOINT")} variable in the ${h(context.relayEnvFile.rel)} file.`);
 
+// Create React app comes with some annoyances, so we warn the user about it,
+// and provide possible solutions that can be manually implemented.
 if (context.is("cra")) {
   console.log();
   console.log(importantHeadline("Important"));
   console.log();
-  console.log(
-    `Remember you need to import ${h("graphql")} like the following:`
-  );
+  // prettier-ignore
+  console.log(`Remember you need to import ${h("graphql")} like the following:`);
   console.log("   " + h(`import graphql from \"${BABEL_RELAY_MACRO}\";`));
   console.log();
-  console.log(
-    `Otherwise the transform of the ${h(
-      "graphql``"
-    )} tagged literal will not work!`
-  );
-  console.log(
-    "If you do not want to use the macro, you can check out the following document for guidance:"
-  );
-  console.log(
-    "https://github.com/tobias-tengler/create-relay-app/blob/main/docs/cra-babel-setup.md"
-  );
+  // prettier-ignore
+  console.log(`Otherwise the transform of the ${h("graphql``")} tagged literal will not work!`);
+  // prettier-ignore
+  console.log("If you do not want to use the macro, you can check out the following document for guidance:");
+  // prettier-ignore
+  console.log("https://github.com/tobias-tengler/create-relay-app/blob/main/docs/cra-babel-setup.md");
 }
 
 console.log();
