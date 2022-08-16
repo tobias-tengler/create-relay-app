@@ -8,6 +8,7 @@ export class Environment {
     ownPackageJsonFilepath: string,
     private readonly fs: Filesystem
   ) {
+    this.ownPackageDirectory = fs.getParent(ownPackageJsonFilepath);
     this.ownPackageJson = new PackageJsonFile(ownPackageJsonFilepath, this.fs);
   }
 
@@ -24,10 +25,9 @@ export class Environment {
 
     this.packageJson = new PackageJsonFile(packageJsonFilepath, this.fs);
     this.targetDirectory = this.fs.getParent(packageJsonFilepath);
-
-    // Determine own package.json file location.
   }
 
+  ownPackageDirectory: string;
   ownPackageJson: PackageJsonFile;
   packageJson: PackageJsonFile = null!;
   targetDirectory: string = null!;

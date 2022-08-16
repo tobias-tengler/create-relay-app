@@ -10,7 +10,7 @@ declare module "babel-plugin-relay/macro" {
   export { graphql as default } from "react-relay";
 }`;
 
-export class AddBabelMacroTypeDefinitionsTask extends TaskBase {
+export class Cra_AddBabelMacroTypeDefinitionsTask extends TaskBase {
   message: string = `Add ${h(BABEL_RELAY_MACRO)} type definitions`;
 
   constructor(private context: ProjectContext) {

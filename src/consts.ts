@@ -8,3 +8,6 @@ export const REACT_RELAY_PACKAGE = "react-relay";
 // todo: remove branch, once released
 export const VITE_RELAY_PACKAGE =
   "vite-plugin-relay@https://github.com/tobias-tengler/vite-plugin-relay#tte/fix-plugin";
+
+export const RELAY_ENV_PROVIDER = "RelayEnvironmentProvider";
+export const RELAY_ENV = "RelayEnvironment";

@@ -21,15 +21,18 @@ import {
 } from "./misc/packageManagers/index.js";
 import {
   GenerateArtifactDirectoryTask,
-  AddRelayEnvironmentProviderTask,
   GenerateRelayEnvironmentTask,
   GenerateGraphQlSchemaFileTask,
   TaskRunner,
   ConfigureRelayCompilerTask,
-  ConfigureGraphQLTransformTask,
-  AddBabelMacroTypeDefinitionsTask,
+  Cra_AddBabelMacroTypeDefinitionsTask,
   InstallNpmDependenciesTask,
   InstallNpmDevDependenciesTask,
+  Vite_ConfigureVitePluginRelayTask,
+  Next_ConfigureNextCompilerTask,
+  Cra_AddRelayEnvironmentProvider,
+  Vite_AddRelayEnvironmentProvider,
+  Next_AddRelayEnvironmentProvider,
 } from "./tasks/index.js";
 import { CliArguments } from "./types.js";
 import { headline, h, importantHeadline, printError } from "./utils/index.js";
@@ -147,9 +150,12 @@ const runner = new TaskRunner([
   new GenerateRelayEnvironmentTask(context),
   new GenerateGraphQlSchemaFileTask(context),
   new GenerateArtifactDirectoryTask(context),
-  new AddRelayEnvironmentProviderTask(context),
-  new ConfigureGraphQLTransformTask(context),
-  new AddBabelMacroTypeDefinitionsTask(context),
+  new Cra_AddBabelMacroTypeDefinitionsTask(context),
+  new Vite_ConfigureVitePluginRelayTask(context),
+  new Next_ConfigureNextCompilerTask(context),
+  new Cra_AddRelayEnvironmentProvider(context),
+  new Vite_AddRelayEnvironmentProvider(context),
+  new Next_AddRelayEnvironmentProvider(context),
 ]);
 
 // Execute all of the tasks sequentially.

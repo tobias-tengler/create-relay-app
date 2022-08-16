@@ -114,7 +114,7 @@ export function mergeProperties(
       (p) => t.isObjectProperty(p) && p.key === prop.key
     );
 
-    if (existingIndex) {
+    if (existingIndex !== -1) {
       existingCopy[existingIndex] = prop;
     } else {
       existingCopy.push(prop);

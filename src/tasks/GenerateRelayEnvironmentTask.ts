@@ -36,7 +36,10 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
       srcFile = "./assets/env";
     }
 
-    const srcFilepath = path.join(this.context.env.targetDirectory, srcFile);
+    const srcFilepath = path.join(
+      this.context.env.ownPackageDirectory,
+      srcFile
+    );
 
     // todo: handle error
     this.context.fs.createDirectory(destDirectory);
