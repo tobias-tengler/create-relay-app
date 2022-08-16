@@ -6,7 +6,10 @@ export class TaskRunner {
   constructor(private taskDefs: TaskBase[]) {}
 
   async run(): Promise<void> {
-    for (const task of this.taskDefs) {
+    for (let i = 0; i < this.taskDefs.length; i++) {
+      const task = this.taskDefs[i];
+      const isLastTask = i === this.taskDefs.length - 1;
+
       if (!task.isEnabled()) {
         continue;
       }
@@ -45,7 +48,10 @@ export class TaskRunner {
         if (errorMsg) {
           console.log();
           console.log("  " + errorMsg);
-          console.log();
+
+          if (!isLastTask) {
+            console.log();
+          }
         }
       }
     }

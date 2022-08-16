@@ -6,13 +6,14 @@ import {
   h,
   insertDefaultImport,
   parseAst,
+  prettifyRelativePath,
   printAst,
   readFromFile,
   writeToFile,
 } from "../utils/index.js";
 
-export class ConfigureRelayGraphqlTransformTask extends TaskBase {
-  message: string = "Configure Relay transform";
+export class ConfigureGraphQLTransformTask extends TaskBase {
+  message: string = "Configure graphql transform";
 
   constructor(private settings: ProjectSettings) {
     super();
@@ -25,6 +26,17 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
   }
 
   async run(): Promise<void> {
+    this.updateMessage(
+      this.message +
+        " in " +
+        h(
+          prettifyRelativePath(
+            this.settings.projectRootDirectory,
+            this.settings.configFilepath
+          )
+        )
+    );
+
     // todo: pull toolchain specific settings out
     switch (this.settings.toolchain) {
       case "vite":
@@ -38,6 +50,7 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
     }
   }
 
+  // todo: handle some cases where we can't find things
   private async configureNext() {
     // todo: handle errors
     const configCode = await readFromFile(this.settings.configFilepath);
@@ -57,9 +70,7 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
           node.left.object.name !== "module" ||
           node.left.property.name !== "exports"
         ) {
-          throw new Error(
-            `Expected to find a module.exports assignment that exports the Next.js configuration from ${this.settings.configFilepath}.`
-          );
+          return;
         }
 
         let objExp: t.ObjectExpression;
@@ -76,18 +87,14 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
             !t.isVariableDeclarator(binding.path.node) ||
             !t.isObjectExpression(binding.path.node.init)
           ) {
-            throw new Error(
-              `module.exports in ${this.settings.configFilepath} references a variable, which is not a valid object definition.`
-            );
+            return;
           }
 
           objExp = binding.path.node.init;
         } else if (t.isObjectExpression(node.right)) {
           objExp = node.right;
         } else {
-          throw new Error(
-            `Expected to find a module.exports assignment that exports the Next.js configuration from ${this.settings.configFilepath}.`
-          );
+          return;
         }
 
         // We are creating or getting the 'compiler' property.
@@ -108,9 +115,7 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
         }
 
         if (!t.isObjectExpression(compilerProperty.value)) {
-          throw new Error(
-            `Could not create or get a "compiler" property on the Next.js configuration object in ${this.settings.configFilepath}.`
-          );
+          return;
         }
 
         const relayProperty = compilerProperty.value.properties.find(
@@ -120,6 +125,7 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
             p.key.name === "relay"
         );
 
+        // todo: we should merge here
         if (!!relayProperty) {
           // A "relay" property already exists.
           return;
@@ -160,6 +166,7 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
     await writeToFile(this.settings.configFilepath, updatedConfigCode);
   }
 
+  // todo: handle some cases where we can't find things
   private async configureVite() {
     // todo: handle errors
     const configCode = await readFromFile(this.settings.configFilepath);
@@ -185,21 +192,13 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
           !t.isIdentifier(node.declaration.callee) ||
           node.declaration.callee.name !== "defineConfig"
         ) {
-          throw new Error(
-            `Expected a export default defineConfig({}) in ${h(
-              this.settings.configFilepath
-            )}.`
-          );
+          return;
         }
 
         const arg = node.declaration.arguments[0];
 
         if (!t.isObjectExpression(arg)) {
-          throw new Error(
-            `Expected a export default defineConfig({}) in ${h(
-              this.settings.configFilepath
-            )}.`
-          );
+          return;
         }
 
         // We are creating or getting the 'plugins' property.
@@ -220,11 +219,7 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
         }
 
         if (!t.isArrayExpression(pluginsProperty.value)) {
-          throw new Error(
-            `Could not create or get a "plugins" property on the Vite configuration object in ${h(
-              this.settings.configFilepath
-            )}.`
-          );
+          return;
         }
 
         const vitePlugins = pluginsProperty.value.elements;
@@ -234,7 +229,7 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
             (p) => t.isIdentifier(p) && p.name === relayImportId.name
           )
         ) {
-          // A "relay" entry already exists.
+          // The "vite-plugin-relay" is already added to the plugins.
           return;
         }
 

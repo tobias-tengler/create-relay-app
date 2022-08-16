@@ -3,7 +3,7 @@ export * from "./InstallNpmDependenciesTask.js";
 export * from "./InstallNpmDevDependenciesTask.js";
 export * from "./AddRelayEnvironmentProviderTask.js";
 export * from "./ConfigureRelayCompilerTask.js";
-export * from "./ConfigureRelayGraphqlTransformTask.js";
+export * from "./ConfigureGraphQLTransformTask.js";
 export * from "./GenerateArtifactDirectoryTask.js";
 export * from "./GenerateGraphQlSchemaFileTask.js";
 export * from "./GenerateRelayEnvironmentTask.js";

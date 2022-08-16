@@ -5,6 +5,7 @@ import t from "@babel/types";
 import { ProjectSettings } from "../types.js";
 import { REACT_RELAY_PACKAGE } from "../consts.js";
 import {
+  h,
   insertNamedImport,
   parseAst,
   prettifyRelativePath,
@@ -29,6 +30,17 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
   }
 
   async run(): Promise<void> {
+    this.updateMessage(
+      this.message +
+        " to " +
+        h(
+          prettifyRelativePath(
+            this.settings.projectRootDirectory,
+            this.settings.mainFilepath
+          )
+        )
+    );
+
     // todo: pull toolchain specific settings out
     switch (this.settings.toolchain) {
       case "vite":
@@ -49,6 +61,7 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
     const ast = parseAst(code);
 
     let providerWrapped = false;
+
     traverse.default(ast, {
       JSXElement: (path) => {
         // Find first JSX being returned *somewhere*.
@@ -63,6 +76,17 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
         path.skip();
       },
     });
+
+    if (!providerWrapped) {
+      throw new Error(
+        `Could not find JSX in ${h(
+          prettifyRelativePath(
+            this.settings.projectRootDirectory,
+            this.settings.mainFilepath
+          )
+        )}`
+      );
+    }
 
     const updatedCode = printAst(ast, code);
 
@@ -102,6 +126,17 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
       },
     });
 
+    if (!providerWrapped) {
+      throw new Error(
+        `Could not find JSX being passed to ReactDOM.render in ${h(
+          prettifyRelativePath(
+            this.settings.projectRootDirectory,
+            this.settings.mainFilepath
+          )
+        )}`
+      );
+    }
+
     const updatedCode = printAst(ast, code);
 
     await writeToFile(this.settings.mainFilepath, updatedCode);
@@ -126,13 +161,13 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
       t.isJSXIdentifier(jsxPath.node.openingElement.name) &&
       jsxPath.node.openingElement.name.name === envProviderId.name
     ) {
-      // JSX has already been wrapped.
+      this.skip(`JSX already wrapped inside ${h(RELAY_ENV_PROVIDER)}`);
       return;
     }
 
     const test = t.jsxExpressionContainer(envId);
 
-    // Wrap JSX inside render() into RelayEnvironmentProvider.
+    // Wrap JSX into RelayEnvironmentProvider.
     jsxPath.replaceWith(
       t.jsxElement(
         t.jsxOpeningElement(envProviderId, [

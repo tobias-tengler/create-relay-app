@@ -39,12 +39,14 @@ export class AddBabelMacroTypeDefinitionsTask extends TaskBase {
       "react-app-env.d.ts"
     );
 
+    const relPath = prettifyRelativePath(
+      this.settings.projectRootDirectory,
+      reactTypeDefFilepath
+    );
+
+    this.updateMessage(this.message + " to " + h(relPath));
+
     if (!doesExist(reactTypeDefFilepath)) {
-      const relPath = prettifyRelativePath(
-        this.settings.projectRootDirectory,
-        reactTypeDefFilepath
-      );
-      // todo: change
       throw new Error(`Could not find ${h(relPath)}`);
     }
 
@@ -55,7 +57,13 @@ export class AddBabelMacroTypeDefinitionsTask extends TaskBase {
       return;
     }
 
-    // todo: handle error
-    await appendToFile(reactTypeDefFilepath, babelMacroTypeDef);
+    try {
+      await appendToFile(reactTypeDefFilepath, babelMacroTypeDef);
+    } catch (error) {
+      throw new Error(
+        `Could not append ${BABEL_RELAY_MACRO} to ${h(relPath)}`,
+        { cause: error instanceof Error ? error : undefined }
+      );
+    }
   }
 }

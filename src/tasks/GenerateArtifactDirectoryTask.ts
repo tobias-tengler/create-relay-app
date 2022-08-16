@@ -1,7 +1,7 @@
 import { TaskBase } from "./TaskBase.js";
 import { ProjectSettings } from "../types.js";
 import path from "path";
-import { createDirectory } from "../utils/index.js";
+import { createDirectory, h, prettifyRelativePath } from "../utils/index.js";
 
 export class GenerateArtifactDirectoryTask extends TaskBase {
   message: string = "Generate artifact directory";
@@ -18,6 +18,17 @@ export class GenerateArtifactDirectoryTask extends TaskBase {
     if (!this.settings.artifactDirectory) {
       return;
     }
+
+    this.updateMessage(
+      this.message +
+        " " +
+        h(
+          prettifyRelativePath(
+            this.settings.projectRootDirectory,
+            this.settings.artifactDirectory
+          )
+        )
+    );
 
     const fullpath = path.join(
       this.settings.projectRootDirectory,

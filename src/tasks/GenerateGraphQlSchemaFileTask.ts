@@ -1,7 +1,13 @@
 import path from "path";
 import { TaskBase } from "./TaskBase.js";
 import { ProjectSettings } from "../types.js";
-import { createDirectory, writeToFile, doesExist } from "../utils/index.js";
+import {
+  createDirectory,
+  writeToFile,
+  doesExist,
+  h,
+  prettifyRelativePath,
+} from "../utils/index.js";
 
 const schemaGraphQLContent = `# Replace this with your own GraphQL schema file!
 type Query {
@@ -20,8 +26,20 @@ export class GenerateGraphQlSchemaFileTask extends TaskBase {
   }
 
   async run(): Promise<void> {
+    this.updateMessage(
+      this.message +
+        " " +
+        h(
+          prettifyRelativePath(
+            this.settings.projectRootDirectory,
+            this.settings.schemaFile
+          )
+        )
+    );
+
     if (doesExist(this.settings.schemaFile)) {
       this.skip("File exists");
+      return;
     }
 
     const dir = path.dirname(this.settings.schemaFile);

@@ -1,12 +1,6 @@
 import { TaskBase } from "./TaskBase.js";
 import { ProjectSettings } from "../types.js";
-import {
-  h,
-  parsePackageJson,
-  readFromFile,
-  writePackageJson,
-  writeToFile,
-} from "../utils/index.js";
+import { h, parsePackageJson, writePackageJson } from "../utils/index.js";
 import { PACKAGE_FILE } from "../consts.js";
 
 const validateRelayArtifactsScript = "relay-compiler --validate";

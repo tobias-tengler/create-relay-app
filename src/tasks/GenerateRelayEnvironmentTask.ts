@@ -1,7 +1,12 @@
 import path from "path";
 import { TaskBase } from "./TaskBase.js";
 import { ProjectSettings } from "../types.js";
-import { copyFile, createDirectory } from "../utils/index.js";
+import {
+  copyFile,
+  createDirectory,
+  h,
+  prettifyRelativePath,
+} from "../utils/index.js";
 
 export class GenerateRelayEnvironmentTask extends TaskBase {
   message: string = "Generate Relay environment";
@@ -19,6 +24,17 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
   }
 
   private async addRelayEnvironmentFile() {
+    this.updateMessage(
+      this.message +
+        " " +
+        h(
+          prettifyRelativePath(
+            this.settings.projectRootDirectory,
+            this.settings.relayEnvFilepath
+          )
+        )
+    );
+
     const destDirectory = path.dirname(this.settings.relayEnvFilepath);
 
     let srcFile: string;

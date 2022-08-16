@@ -13,6 +13,7 @@ import {
   ToolchainArgument,
   TypescriptArgument,
 } from "./arguments/index.js";
+import { BABEL_RELAY_MACRO } from "./consts.js";
 import {
   getToolchainSettings,
   getRelayCompilerLanguage,
@@ -27,13 +28,19 @@ import {
   GenerateGraphQlSchemaFileTask,
   TaskRunner,
   ConfigureRelayCompilerTask,
-  ConfigureRelayGraphqlTransformTask,
+  ConfigureGraphQLTransformTask,
   AddBabelMacroTypeDefinitionsTask,
   InstallNpmDependenciesTask,
   InstallNpmDevDependenciesTask,
 } from "./tasks/index.js";
 import { CliArguments, ProjectSettings } from "./types.js";
-import { headline, h, importantHeadline, printError } from "./utils/index.js";
+import {
+  headline,
+  h,
+  importantHeadline,
+  printError,
+  prettifyRelativePath,
+} from "./utils/index.js";
 
 // INIT ENVIRONMENT
 
@@ -113,7 +120,7 @@ const runner = new TaskRunner([
   new GenerateGraphQlSchemaFileTask(settings),
   new GenerateArtifactDirectoryTask(settings),
   new AddRelayEnvironmentProviderTask(settings),
-  new ConfigureRelayGraphqlTransformTask(settings),
+  new ConfigureGraphQLTransformTask(settings),
   new AddBabelMacroTypeDefinitionsTask(settings),
 ]);
 
@@ -133,14 +140,19 @@ console.log();
 console.log(headline("Next steps"));
 console.log();
 
-// console.log(
-//   `1. Replace ${h(relSchemaPath)} with your own GraphQL schema file.`
-// );
-// console.log(
-//   `2. Replace the value of the ${h("HTTP_ENDPOINT")} variable in the ${h(
-//     relRelayEnvPath
-//   )} file.`
-// );
+console.log(
+  `1. Replace ${h(
+    prettifyRelativePath(settings.projectRootDirectory, settings.schemaFile)
+  )} with your own GraphQL schema file.`
+);
+console.log(
+  `2. Replace the value of the ${h("HTTP_ENDPOINT")} variable in the ${h(
+    prettifyRelativePath(
+      settings.projectRootDirectory,
+      settings.relayEnvFilepath
+    )
+  )} file.`
+);
 
 if (settings.toolchain === "cra") {
   console.log();
@@ -149,7 +161,7 @@ if (settings.toolchain === "cra") {
   console.log(
     `Remember you need to import ${h("graphql")} like the following:`
   );
-  console.log("   " + h('import graphql from "babel-plugin-relay/macro";'));
+  console.log("   " + h(`import graphql from \"${BABEL_RELAY_MACRO}\";`));
   console.log();
   console.log(
     `Otherwise the transform of the ${h(

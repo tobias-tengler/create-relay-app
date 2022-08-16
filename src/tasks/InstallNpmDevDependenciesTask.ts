@@ -2,6 +2,7 @@ import { TaskBase } from "./TaskBase.js";
 import { ProjectSettings } from "../types.js";
 import { BABEL_RELAY_PACKAGE, VITE_RELAY_PACKAGE } from "../consts.js";
 import { installNpmPackages } from "../utils/packages.js";
+import { h } from "../utils/cli.js";
 
 export class InstallNpmDevDependenciesTask extends TaskBase {
   message = "Add Relay devDependencies";
@@ -22,7 +23,9 @@ export class InstallNpmDevDependenciesTask extends TaskBase {
 
     const packages = this.getPackages();
 
-    // todo: update title
+    this.updateMessage(
+      this.message + " " + packages.map((p) => h(p)).join(" ")
+    );
 
     await installNpmPackages(
       this.settings.packageManager,
