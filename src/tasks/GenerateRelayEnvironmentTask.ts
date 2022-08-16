@@ -1,7 +1,7 @@
 import path from "path";
 import { TaskBase } from "./TaskBase.js";
-import { copyFile, createDirectory, doesExist, h } from "../utils/index.js";
 import { ProjectContext } from "../ProjectContext.js";
+import { h } from "../utils/index.js";
 
 export class GenerateRelayEnvironmentTask extends TaskBase {
   message: string = "Generate Relay environment";
@@ -21,7 +21,7 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
   private async addRelayEnvironmentFile() {
     this.updateMessage(this.message + " " + h(this.context.relayEnvFile.rel));
 
-    if (await doesExist(this.context.relayEnvFile.abs)) {
+    if (await this.context.fs.doesExist(this.context.relayEnvFile.abs)) {
       this.skip("File exists");
       return;
     }
@@ -42,9 +42,9 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
     );
 
     // todo: handle error
-    createDirectory(destDirectory);
+    this.context.fs.createDirectory(destDirectory);
 
     // todo: handle error
-    await copyFile(srcFilepath, this.context.relayEnvFile.abs);
+    await this.context.fs.copyFile(srcFilepath, this.context.relayEnvFile.abs);
   }
 }

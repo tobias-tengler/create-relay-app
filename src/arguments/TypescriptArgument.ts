@@ -1,14 +1,18 @@
 import { Command } from "commander";
 import path from "path";
 import { TS_CONFIG_FILE, TYPESCRIPT_PACKAGE } from "../consts.js";
+import { Filesystem } from "../Filesystem.js";
 import { isNpmPackageDependency } from "../packageManagers/index.js";
 import { CliArguments, EnvArguments } from "../types.js";
-import { doesExist } from "../utils/fs.js";
 import { ArgumentBase } from "./ArgumentBase.js";
 
 export class TypescriptArgument extends ArgumentBase<"typescript"> {
   public name = "typescript" as const;
   public promptMessage = "Does your project use Typescript";
+
+  constructor(private fs: Filesystem) {
+    super();
+  }
 
   registerCliOption(command: Command, env: EnvArguments): void {
     const flags = this.getCliFlags();
@@ -43,7 +47,7 @@ export class TypescriptArgument extends ArgumentBase<"typescript"> {
   ): Promise<boolean> {
     const tsconfigFile = path.join(env.projectRootDirectory, TS_CONFIG_FILE);
 
-    if (await doesExist(tsconfigFile)) {
+    if (await this.fs.doesExist(tsconfigFile)) {
       return true;
     }
 

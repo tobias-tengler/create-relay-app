@@ -1,12 +1,7 @@
 import path from "path";
 import { EnvArguments } from "./types.js";
 import { PACKAGE_FILE } from "./consts.js";
-import {
-  headline,
-  h,
-  printError,
-  traverseUpToFindFile,
-} from "./utils/index.js";
+import { headline, h, printError } from "./utils/index.js";
 import { exit } from "process";
 import { exec } from "child_process";
 import {

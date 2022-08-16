@@ -1,5 +1,5 @@
 import { TaskBase } from "./TaskBase.js";
-import { createDirectory, h } from "../utils/index.js";
+import { h } from "../utils/index.js";
 import { ProjectContext } from "../ProjectContext.js";
 
 export class GenerateArtifactDirectoryTask extends TaskBase {
@@ -23,6 +23,6 @@ export class GenerateArtifactDirectoryTask extends TaskBase {
     );
 
     // todo: handle error
-    createDirectory(this.context.artifactDirectory.abs);
+    this.context.fs.createDirectory(this.context.artifactDirectory.abs);
   }
 }

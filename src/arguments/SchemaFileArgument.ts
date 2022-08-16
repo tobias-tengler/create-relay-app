@@ -1,15 +1,16 @@
 import { Command } from "commander";
 import path from "path";
+import { Filesystem } from "../Filesystem.js";
 import { RelativePath } from "../RelativePath.js";
 import { CliArguments, EnvArguments } from "../types.js";
-import { h, isSubDirectory } from "../utils/index.js";
+import { h } from "../utils/index.js";
 import { ArgumentBase } from "./ArgumentBase.js";
 
 export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
   public name = "schemaFile" as const;
   public promptMessage = "Select the path to your GraphQL schema file";
 
-  constructor() {
+  constructor(private fs: Filesystem) {
     super();
     this.cliArg = "--schema-file";
   }
@@ -51,7 +52,7 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
       return `File needs to end in ${h(graphqlExt)}`;
     }
 
-    if (!isSubDirectory(env.projectRootDirectory, value)) {
+    if (!this.fs.isSubDirectory(env.projectRootDirectory, value)) {
       return `Must be directory below ${h(env.projectRootDirectory)}`;
     }
 

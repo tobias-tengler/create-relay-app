@@ -1,7 +1,6 @@
 import path from "path";
 import { PACKAGE_FILE } from "../consts.js";
 import { PackageDetails, PackageManagerType } from "../types.js";
-import { readFromFile, writeToFile } from "../utils/fs.js";
 import { NpmPackageManager } from "./NpmPackageManager.js";
 import { PackageManager } from "./PackageManager.js";
 import { PnpmPackageManager } from "./PnpmPackageManager.js";

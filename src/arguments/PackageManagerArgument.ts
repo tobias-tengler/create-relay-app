@@ -1,6 +1,7 @@
 import { execSync } from "child_process";
 import { Command } from "commander";
 import path from "path";
+import { Filesystem } from "../Filesystem.js";
 import { inferPackageManager } from "../packageManagers/index.js";
 import {
   CliArguments,
@@ -8,14 +9,13 @@ import {
   PackageManagerType,
   PackageManagerOptions,
 } from "../types.js";
-import { doesExist } from "../utils/fs.js";
 import { ArgumentBase, getNormalizedCliString } from "./ArgumentBase.js";
 
 export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
   public name = "packageManager" as const;
   public promptMessage = "Select the package manager to install packages with";
 
-  constructor() {
+  constructor(private fs: Filesystem) {
     super();
     this.cliArg = "--package-manager";
   }
@@ -67,7 +67,7 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
 
           const lockFile = path.join(env.projectRootDirectory, "yarn.lock");
 
-          if (doesExist(lockFile)) {
+          if (this.fs.doesExist(lockFile)) {
             // Yarn is installed and the project contains a yarn.lock file.
             return "yarn";
           }
@@ -79,7 +79,7 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
             "pnpm-lock.yaml"
           );
 
-          if (doesExist(lockFile)) {
+          if (this.fs.doesExist(lockFile)) {
             // pnpm is installed and the project contains a pnpm-lock.yml file.
             return "pnpm";
           }

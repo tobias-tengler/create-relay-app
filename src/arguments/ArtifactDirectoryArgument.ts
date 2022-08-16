@@ -1,8 +1,9 @@
 import { Command } from "commander";
 import path from "path";
+import { Filesystem } from "../Filesystem.js";
 import { RelativePath } from "../RelativePath.js";
 import { CliArguments, EnvArguments } from "../types.js";
-import { h, isSubDirectory } from "../utils/index.js";
+import { h } from "../utils/index.js";
 import { ArgumentBase } from "./ArgumentBase.js";
 
 export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory"> {
@@ -10,7 +11,7 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
   public promptMessage =
     "Select, if needed, a directory to place all Relay artifacts in";
 
-  constructor() {
+  constructor(private fs: Filesystem) {
     super();
     this.cliArg = "--artifact-directory";
   }
@@ -53,7 +54,7 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
       return `Last directory segment should be called ${h("__generated__")}`;
     }
 
-    if (!isSubDirectory(env.projectRootDirectory, value)) {
+    if (!this.fs.isSubDirectory(env.projectRootDirectory, value)) {
       return `Must be directory below ${h(env.projectRootDirectory)}`;
     }
 
@@ -63,7 +64,7 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
         "./pages"
       );
 
-      if (isSubDirectory(pagesDirectory.abs, value)) {
+      if (this.fs.isSubDirectory(pagesDirectory.abs, value)) {
         return `Can not be under ${h(pagesDirectory.rel)}`;
       }
     }

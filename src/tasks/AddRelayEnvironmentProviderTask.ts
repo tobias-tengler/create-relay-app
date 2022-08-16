@@ -2,15 +2,7 @@ import traverse, { NodePath } from "@babel/traverse";
 import { TaskBase } from "./TaskBase.js";
 import t from "@babel/types";
 import { REACT_RELAY_PACKAGE } from "../consts.js";
-import {
-  h,
-  insertNamedImport,
-  parseAst,
-  printAst,
-  readFromFile,
-  removeExtension,
-  writeToFile,
-} from "../utils/index.js";
+import { h, insertNamedImport, parseAst, printAst } from "../utils/index.js";
 import { ProjectContext } from "../ProjectContext.js";
 import { RelativePath } from "../RelativePath.js";
 
@@ -47,7 +39,7 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
   }
 
   async configureNext() {
-    const code = await readFromFile(this.context.mainFile.abs);
+    const code = await this.context.fs.readFromFile(this.context.mainFile.abs);
 
     const ast = parseAst(code);
 
@@ -74,11 +66,11 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
 
     const updatedCode = printAst(ast, code);
 
-    await writeToFile(this.context.mainFile.abs, updatedCode);
+    await this.context.fs.writeToFile(this.context.mainFile.abs, updatedCode);
   }
 
   async configureViteOrCra() {
-    const code = await readFromFile(this.context.mainFile.abs);
+    const code = await this.context.fs.readFromFile(this.context.mainFile.abs);
 
     const ast = parseAst(code);
 
@@ -120,7 +112,7 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
 
     const updatedCode = printAst(ast, code);
 
-    await writeToFile(this.context.mainFile.abs, updatedCode);
+    await this.context.fs.writeToFile(this.context.mainFile.abs, updatedCode);
   }
 
   private wrapJsxInProvider(jsxPath: NodePath<t.JSXElement>) {
@@ -156,4 +148,8 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
       )
     );
   }
+}
+
+function removeExtension(filename: string): string {
+  return filename.substring(0, filename.lastIndexOf(".")) || filename;
 }

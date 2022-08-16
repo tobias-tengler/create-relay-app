@@ -1,14 +1,7 @@
 import { TaskBase } from "./TaskBase.js";
 import traverse from "@babel/traverse";
 import t from "@babel/types";
-import {
-  h,
-  insertDefaultImport,
-  parseAst,
-  printAst,
-  readFromFile,
-  writeToFile,
-} from "../utils/index.js";
+import { h, insertDefaultImport, parseAst, printAst } from "../utils/index.js";
 import { ProjectContext } from "../ProjectContext.js";
 
 export class ConfigureGraphQLTransformTask extends TaskBase {
@@ -42,7 +35,9 @@ export class ConfigureGraphQLTransformTask extends TaskBase {
   // todo: handle some cases where we can't find things
   private async configureNext() {
     // todo: handle errors
-    const configCode = await readFromFile(this.context.configFile.abs);
+    const configCode = await this.context.fs.readFromFile(
+      this.context.configFile.abs
+    );
 
     const ast = parseAst(configCode);
 
@@ -152,13 +147,18 @@ export class ConfigureGraphQLTransformTask extends TaskBase {
 
     const updatedConfigCode = printAst(ast, configCode);
 
-    await writeToFile(this.context.configFile.abs, updatedConfigCode);
+    await this.context.fs.writeToFile(
+      this.context.configFile.abs,
+      updatedConfigCode
+    );
   }
 
   // todo: handle some cases where we can't find things
   private async configureVite() {
     // todo: handle errors
-    const configCode = await readFromFile(this.context.configFile.abs);
+    const configCode = await this.context.fs.readFromFile(
+      this.context.configFile.abs
+    );
 
     const ast = parseAst(configCode);
 
@@ -229,6 +229,9 @@ export class ConfigureGraphQLTransformTask extends TaskBase {
 
     const updatedConfigCode = printAst(ast, configCode);
 
-    await writeToFile(this.context.configFile.abs, updatedConfigCode);
+    await this.context.fs.writeToFile(
+      this.context.configFile.abs,
+      updatedConfigCode
+    );
   }
 }

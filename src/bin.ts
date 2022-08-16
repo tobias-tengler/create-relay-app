@@ -14,13 +14,10 @@ import {
   TypescriptArgument,
 } from "./arguments/index.js";
 import { BABEL_RELAY_MACRO } from "./consts.js";
+import { Filesystem } from "./Filesystem.js";
 import { getEnvironment, hasUnsavedGitChanges } from "./helpers.js";
 import { getPackageManger } from "./packageManagers/index.js";
-import {
-  getConfigFile,
-  getMainFile,
-  ProjectContext,
-} from "./ProjectContext.js";
+import { ProjectContext } from "./ProjectContext.js";
 import {
   GenerateArtifactDirectoryTask,
   AddRelayEnvironmentProviderTask,
@@ -38,6 +35,8 @@ import { headline, h, importantHeadline, printError } from "./utils/index.js";
 
 // INIT ENVIRONMENT
 
+const fs = new Filesystem();
+
 const distDirectory = dirname(fileURLToPath(import.meta.url));
 const ownPackageDirectory = path.join(distDirectory, "..");
 
@@ -47,11 +46,11 @@ const env = await getEnvironment(ownPackageDirectory);
 
 const argumentDefinitions = [
   new ToolchainArgument(),
-  new TypescriptArgument(),
-  new SrcArgument(),
-  new SchemaFileArgument(),
-  new ArtifactDirectoryArgument(),
-  new PackageManagerArgument(),
+  new TypescriptArgument(fs),
+  new SrcArgument(fs),
+  new SchemaFileArgument(fs),
+  new ArtifactDirectoryArgument(fs),
+  new PackageManagerArgument(fs),
 ];
 
 let cliArgs: CliArguments;
@@ -97,9 +96,9 @@ const packageManager = getPackageManger(
   env.projectRootDirectory
 );
 
-const context = new ProjectContext(env, cliArgs, packageManager);
-context.mainFile = await getMainFile(env, cliArgs);
-context.configFile = await getConfigFile(env, cliArgs);
+const context = new ProjectContext(env, cliArgs, packageManager, fs);
+// context.mainFile = await getMainFile(env, cliArgs);
+// context.configFile = await getConfigFile(env, cliArgs);
 
 // EXECUTE TASKS
 

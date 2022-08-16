@@ -1,12 +1,16 @@
 import { Command } from "commander";
-import { RelativePath } from "../RelativePath.js";
+import { Filesystem } from "../Filesystem.js";
 import { CliArguments, EnvArguments } from "../types.js";
-import { h, isSubDirectory } from "../utils/index.js";
+import { h } from "../utils/index.js";
 import { ArgumentBase } from "./ArgumentBase.js";
 
 export class SrcArgument extends ArgumentBase<"src"> {
   public name = "src" as const;
   public promptMessage = "Select the root directory of your application code";
+
+  constructor(private fs: Filesystem) {
+    super();
+  }
 
   registerCliOption(command: Command, env: EnvArguments): void {
     const flags = this.getCliFlags("-s", "<path>");
@@ -37,7 +41,7 @@ export class SrcArgument extends ArgumentBase<"src"> {
       return `Required`;
     }
 
-    if (!isSubDirectory(env.projectRootDirectory, value)) {
+    if (!this.fs.isSubDirectory(env.projectRootDirectory, value)) {
       return `Must be directory below ${h(env.projectRootDirectory)}`;
     }
 
