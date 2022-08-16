@@ -18,6 +18,10 @@ export class ConfigureRelayCompilerTask extends TaskBase {
     super();
   }
 
+  isEnabled(): boolean {
+    return true;
+  }
+
   async run(): Promise<void> {
     const packageJson = await parsePackageJson(this.settings.packageJsonFile);
 

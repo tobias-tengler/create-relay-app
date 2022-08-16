@@ -10,6 +10,10 @@ export class InstallNpmDependenciesTask extends TaskBase {
     super();
   }
 
+  isEnabled(): boolean {
+    return true;
+  }
+
   async run(): Promise<void> {
     if (this.settings.skipInstall) {
       this.skip();

@@ -18,6 +18,12 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
     super();
   }
 
+  isEnabled(): boolean {
+    return (
+      this.settings.toolchain === "vite" || this.settings.toolchain === "next"
+    );
+  }
+
   async run(): Promise<void> {
     // todo: pull toolchain specific settings out
     switch (this.settings.toolchain) {

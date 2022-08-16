@@ -10,6 +10,10 @@ export class InstallNpmDevDependenciesTask extends TaskBase {
     super();
   }
 
+  isEnabled(): boolean {
+    return true;
+  }
+
   async run(): Promise<void> {
     if (this.settings.skipInstall) {
       this.skip();
@@ -36,7 +40,10 @@ export class InstallNpmDevDependenciesTask extends TaskBase {
       relayDevDep.push("@types/relay-runtime");
     }
 
-    if (["cra", "vite"].some((t) => t === this.settings.toolchain)) {
+    if (
+      this.settings.toolchain === "vite" ||
+      this.settings.toolchain === "cra"
+    ) {
       relayDevDep.push(BABEL_RELAY_PACKAGE);
     }
 

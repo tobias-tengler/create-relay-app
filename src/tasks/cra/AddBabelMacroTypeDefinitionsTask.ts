@@ -23,6 +23,10 @@ export class AddBabelMacroTypeDefinitionsTask extends TaskBase {
     super();
   }
 
+  isEnabled(): boolean {
+    return this.settings.toolchain === "cra" && this.settings.typescript;
+  }
+
   async run(): Promise<void> {
     if (this.settings.toolchain !== "cra" && !this.settings.typescript) {
       this.skip("Not a Typescript Create React App project");

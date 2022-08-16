@@ -15,6 +15,10 @@ export class GenerateGraphQlSchemaFileTask extends TaskBase {
     super();
   }
 
+  isEnabled(): boolean {
+    return true;
+  }
+
   async run(): Promise<void> {
     if (doesExist(this.settings.schemaFile)) {
       this.skip("File exists");

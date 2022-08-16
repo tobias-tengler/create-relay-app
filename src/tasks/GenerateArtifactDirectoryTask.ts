@@ -10,6 +10,10 @@ export class GenerateArtifactDirectoryTask extends TaskBase {
     super();
   }
 
+  isEnabled(): boolean {
+    return !!this.settings.artifactDirectory;
+  }
+
   async run(): Promise<void> {
     if (!this.settings.artifactDirectory) {
       return;

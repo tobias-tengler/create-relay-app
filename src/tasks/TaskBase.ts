@@ -1,9 +1,7 @@
-import { Ora } from "ora";
-
 export abstract class TaskBase {
   abstract message: string;
-  // todo: handle this properly
-  enabled: boolean = true;
+
+  abstract isEnabled(): boolean;
 
   abstract run(): Promise<void>;
 

@@ -10,6 +10,10 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
     super();
   }
 
+  isEnabled(): boolean {
+    return true;
+  }
+
   async run(): Promise<void> {
     await this.addRelayEnvironmentFile();
   }

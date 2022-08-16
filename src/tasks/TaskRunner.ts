@@ -7,7 +7,7 @@ export class TaskRunner {
 
   async run(): Promise<void> {
     for (const task of this.taskDefs) {
-      if (!task.enabled) {
+      if (!task.isEnabled()) {
         continue;
       }
 

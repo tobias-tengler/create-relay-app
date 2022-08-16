@@ -24,6 +24,10 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
     super();
   }
 
+  isEnabled(): boolean {
+    return true;
+  }
+
   async run(): Promise<void> {
     // todo: pull toolchain specific settings out
     switch (this.settings.toolchain) {
