@@ -49,11 +49,11 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
       return true;
     }
 
-    if (path.basename(value.name) !== "__generated__") {
+    if (path.basename(value) !== "__generated__") {
       return `Last directory segment should be called ${h("__generated__")}`;
     }
 
-    if (!isSubDirectory(env.projectRootDirectory, value.abs)) {
+    if (!isSubDirectory(env.projectRootDirectory, value)) {
       return `Must be directory below ${h(env.projectRootDirectory)}`;
     }
 
@@ -63,7 +63,7 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
         "./pages"
       );
 
-      if (isSubDirectory(pagesDirectory.abs, value.abs)) {
+      if (isSubDirectory(pagesDirectory.abs, value)) {
         return `Can not be under ${h(pagesDirectory.rel)}`;
       }
     }
@@ -78,9 +78,9 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
     if (existingArgs.toolchain === "next") {
       // Artifacts need to be located outside the ./pages directory,
       // or they will be treated as pages.
-      return new RelativePath(env.projectRootDirectory, "./__generated__");
+      return "./__generated__";
     }
 
-    return null;
+    return "";
   }
 }

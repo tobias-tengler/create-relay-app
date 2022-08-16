@@ -37,7 +37,7 @@ export class SrcArgument extends ArgumentBase<"src"> {
       return `Required`;
     }
 
-    if (!isSubDirectory(env.projectRootDirectory, value.abs)) {
+    if (!isSubDirectory(env.projectRootDirectory, value)) {
       return `Must be directory below ${h(env.projectRootDirectory)}`;
     }
 
@@ -49,9 +49,9 @@ export class SrcArgument extends ArgumentBase<"src"> {
     env: EnvArguments
   ): Promise<CliArguments["src"]> {
     if (existingArgs.toolchain === "next") {
-      return new RelativePath(env.projectRootDirectory, "./");
+      return "./";
     }
 
-    return new RelativePath(env.projectRootDirectory, "./src");
+    return "./src";
   }
 }

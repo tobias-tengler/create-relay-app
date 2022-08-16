@@ -14,13 +14,9 @@ import {
   TypescriptArgument,
 } from "./arguments/index.js";
 import { BABEL_RELAY_MACRO } from "./consts.js";
-import {
-  getToolchainSettings,
-  getRelayCompilerLanguage,
-  getProjectRelayEnvFilepath,
-  getEnvironment,
-  hasUnsavedGitChanges,
-} from "./helpers.js";
+import { getEnvironment, hasUnsavedGitChanges } from "./helpers.js";
+import { getPackageManger } from "./packageManagers/index.js";
+import { ProjectContext } from "./ProjectContext.js";
 import {
   GenerateArtifactDirectoryTask,
   AddRelayEnvironmentProviderTask,
@@ -33,7 +29,7 @@ import {
   InstallNpmDependenciesTask,
   InstallNpmDevDependenciesTask,
 } from "./tasks/index.js";
-import { CliArguments, ProjectSettings } from "./types.js";
+import { CliArguments } from "./types.js";
 import { headline, h, importantHeadline, printError } from "./utils/index.js";
 
 // INIT ENVIRONMENT
@@ -92,30 +88,25 @@ try {
   exit(1);
 }
 
-// todo: handle errors and put this in a dedicated class
-const settings: ProjectSettings = {
-  ...env,
-  ...cliArgs,
-  compilerLanguage: getRelayCompilerLanguage(
-    cliArgs.typescript,
-    cliArgs.toolchain
-  ),
-  relayEnvFile: getProjectRelayEnvFilepath(env, cliArgs),
-  ...(await getToolchainSettings(env, cliArgs)),
-};
+const packageManager = getPackageManger(
+  cliArgs.packageManager,
+  env.projectRootDirectory
+);
+
+const context = new ProjectContext(env, cliArgs, packageManager);
 
 // EXECUTE TASKS
 
 const runner = new TaskRunner([
-  new InstallNpmDependenciesTask(settings),
-  new InstallNpmDevDependenciesTask(settings),
-  new ConfigureRelayCompilerTask(settings),
-  new GenerateRelayEnvironmentTask(settings),
-  new GenerateGraphQlSchemaFileTask(settings),
-  new GenerateArtifactDirectoryTask(settings),
-  new AddRelayEnvironmentProviderTask(settings),
-  new ConfigureGraphQLTransformTask(settings),
-  new AddBabelMacroTypeDefinitionsTask(settings),
+  new InstallNpmDependenciesTask(context),
+  new InstallNpmDevDependenciesTask(context),
+  new ConfigureRelayCompilerTask(context),
+  new GenerateRelayEnvironmentTask(context),
+  new GenerateGraphQlSchemaFileTask(context),
+  new GenerateArtifactDirectoryTask(context),
+  new AddRelayEnvironmentProviderTask(context),
+  new ConfigureGraphQLTransformTask(context),
+  new AddBabelMacroTypeDefinitionsTask(context),
 ]);
 
 try {
@@ -135,15 +126,15 @@ console.log(headline("Next steps"));
 console.log();
 
 console.log(
-  `1. Replace ${h(settings.schemaFile.rel)} with your own GraphQL schema file.`
+  `1. Replace ${h(context.schemaFile.rel)} with your own GraphQL schema file.`
 );
 console.log(
   `2. Replace the value of the ${h("HTTP_ENDPOINT")} variable in the ${h(
-    settings.relayEnvFile.rel
+    context.relayEnvFile.rel
   )} file.`
 );
 
-if (settings.toolchain === "cra") {
+if (context.is("cra")) {
   console.log();
   console.log(importantHeadline("Important"));
   console.log();

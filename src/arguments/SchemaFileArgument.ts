@@ -45,11 +45,13 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
 
     const graphqlExt = ".graphql";
 
-    if (!value.name.endsWith(graphqlExt)) {
+    const filename = path.basename(value);
+
+    if (!filename.endsWith(graphqlExt)) {
       return `File needs to end in ${h(graphqlExt)}`;
     }
 
-    if (!isSubDirectory(env.projectRootDirectory, value.abs)) {
+    if (!isSubDirectory(env.projectRootDirectory, value)) {
       return `Must be directory below ${h(env.projectRootDirectory)}`;
     }
 
@@ -62,7 +64,7 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
   ): Promise<CliArguments["schemaFile"]> {
     const filename = "schema.graphql";
 
-    let srcPath: string = existingArgs.src!.rel;
+    let srcPath: string = existingArgs.src!;
 
     if (existingArgs.toolchain === "next") {
       srcPath = "./src";
@@ -70,6 +72,6 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
 
     const filepath = path.join(srcPath, filename);
 
-    return new RelativePath(env.projectRootDirectory, filepath);
+    return path.join(env.projectRootDirectory, filepath);
   }
 }

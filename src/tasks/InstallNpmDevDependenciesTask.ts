@@ -1,13 +1,12 @@
 import { TaskBase } from "./TaskBase.js";
-import { ProjectSettings } from "../types.js";
 import { BABEL_RELAY_PACKAGE, VITE_RELAY_PACKAGE } from "../consts.js";
-import { installNpmPackages } from "../utils/packages.js";
 import { h } from "../utils/cli.js";
+import { ProjectContext } from "../ProjectContext.js";
 
 export class InstallNpmDevDependenciesTask extends TaskBase {
   message = "Add Relay devDependencies";
 
-  constructor(private settings: ProjectSettings) {
+  constructor(private context: ProjectContext) {
     super();
   }
 
@@ -16,7 +15,7 @@ export class InstallNpmDevDependenciesTask extends TaskBase {
   }
 
   async run(): Promise<void> {
-    if (this.settings.skipInstall) {
+    if (this.context.args.skipInstall) {
       this.skip();
       return;
     }
@@ -27,30 +26,22 @@ export class InstallNpmDevDependenciesTask extends TaskBase {
       this.message + " " + packages.map((p) => h(p)).join(" ")
     );
 
-    await installNpmPackages(
-      this.settings.packageManager,
-      this.settings.projectRootDirectory,
-      packages,
-      true
-    );
+    await this.context.manager.addDevDependency(packages);
   }
 
   private getPackages() {
     const relayDevDep = ["relay-compiler"];
 
-    if (this.settings.typescript) {
+    if (this.context.args.typescript) {
       relayDevDep.push("@types/react-relay");
       relayDevDep.push("@types/relay-runtime");
     }
 
-    if (
-      this.settings.toolchain === "vite" ||
-      this.settings.toolchain === "cra"
-    ) {
+    if (this.context.is("cra") || this.context.is("vite")) {
       relayDevDep.push(BABEL_RELAY_PACKAGE);
     }
 
-    if (this.settings.toolchain === "vite") {
+    if (this.context.is("vite")) {
       relayDevDep.push(VITE_RELAY_PACKAGE);
     }
 

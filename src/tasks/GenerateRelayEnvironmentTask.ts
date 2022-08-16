@@ -1,12 +1,12 @@
 import path from "path";
 import { TaskBase } from "./TaskBase.js";
-import { ProjectSettings } from "../types.js";
-import { copyFile, createDirectory, h } from "../utils/index.js";
+import { copyFile, createDirectory, doesExist, h } from "../utils/index.js";
+import { ProjectContext } from "../ProjectContext.js";
 
 export class GenerateRelayEnvironmentTask extends TaskBase {
   message: string = "Generate Relay environment";
 
-  constructor(private settings: ProjectSettings) {
+  constructor(private context: ProjectContext) {
     super();
   }
 
@@ -19,24 +19,32 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
   }
 
   private async addRelayEnvironmentFile() {
-    this.updateMessage(this.message + " " + h(this.settings.relayEnvFile.rel));
+    this.updateMessage(this.message + " " + h(this.context.relayEnvFile.rel));
 
-    const destDirectory = path.dirname(this.settings.relayEnvFile.abs);
+    if (await doesExist(this.context.relayEnvFile.abs)) {
+      this.skip("File exists");
+      return;
+    }
+
+    const destDirectory = path.dirname(this.context.relayEnvFile.abs);
 
     let srcFile: string;
 
-    if (this.settings.typescript) {
+    if (this.context.args.typescript) {
       srcFile = "./assets/env_ts";
     } else {
       srcFile = "./assets/env";
     }
 
-    const srcFilepath = path.join(this.settings.ownPackageDirectory, srcFile);
+    const srcFilepath = path.join(
+      this.context.env.ownPackageDirectory,
+      srcFile
+    );
 
     // todo: handle error
     createDirectory(destDirectory);
 
     // todo: handle error
-    await copyFile(srcFilepath, this.settings.relayEnvFile.abs);
+    await copyFile(srcFilepath, this.context.relayEnvFile.abs);
   }
 }

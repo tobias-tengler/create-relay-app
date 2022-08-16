@@ -1,10 +1,10 @@
 import path from "path";
 import { TaskBase } from "../TaskBase.js";
-import { ProjectSettings } from "../../types.js";
 import { doesExist, appendToFile, readFromFile, h } from "../../utils/index.js";
 import { EOL } from "os";
 import { BABEL_RELAY_MACRO } from "../../consts.js";
 import { RelativePath } from "../../RelativePath.js";
+import { ProjectContext } from "../../ProjectContext.js";
 
 const babelMacroTypeDef = `${EOL}
 declare module "babel-plugin-relay/macro" {
@@ -14,22 +14,22 @@ declare module "babel-plugin-relay/macro" {
 export class AddBabelMacroTypeDefinitionsTask extends TaskBase {
   message: string = `Add ${h(BABEL_RELAY_MACRO)} type definitions`;
 
-  constructor(private settings: ProjectSettings) {
+  constructor(private context: ProjectContext) {
     super();
   }
 
   isEnabled(): boolean {
-    return this.settings.toolchain === "cra" && this.settings.typescript;
+    return this.context.is("cra") && this.context.args.typescript;
   }
 
   async run(): Promise<void> {
-    if (this.settings.toolchain !== "cra" && !this.settings.typescript) {
+    if (!this.context.is("cra") && !this.context.args.typescript) {
       this.skip("Not a Typescript Create React App project");
       return;
     }
 
     const reactTypeDefFilepath = new RelativePath(
-      this.settings.projectRootDirectory,
+      this.context.env.projectRootDirectory,
       "src/react-app-env.d.ts"
     );
 

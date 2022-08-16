@@ -1,29 +1,28 @@
 import { TaskBase } from "./TaskBase.js";
-import { ProjectSettings } from "../types.js";
-import path from "path";
 import { createDirectory, h } from "../utils/index.js";
+import { ProjectContext } from "../ProjectContext.js";
 
 export class GenerateArtifactDirectoryTask extends TaskBase {
   message: string = "Generate artifact directory";
 
-  constructor(private settings: ProjectSettings) {
+  constructor(private context: ProjectContext) {
     super();
   }
 
   isEnabled(): boolean {
-    return !!this.settings.artifactDirectory;
+    return !!this.context.artifactDirectory;
   }
 
   async run(): Promise<void> {
-    if (!this.settings.artifactDirectory) {
+    if (!this.context.artifactDirectory) {
       return;
     }
 
     this.updateMessage(
-      this.message + " " + h(this.settings.artifactDirectory.rel)
+      this.message + " " + h(this.context.artifactDirectory.rel)
     );
 
     // todo: handle error
-    createDirectory(this.settings.artifactDirectory.abs);
+    createDirectory(this.context.artifactDirectory.abs);
   }
 }

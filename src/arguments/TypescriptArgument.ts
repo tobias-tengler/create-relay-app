@@ -1,8 +1,9 @@
 import { Command } from "commander";
 import path from "path";
 import { TS_CONFIG_FILE, TYPESCRIPT_PACKAGE } from "../consts.js";
+import { isNpmPackageDependency } from "../packageManagers/index.js";
 import { CliArguments, EnvArguments } from "../types.js";
-import { doesExist, isNpmPackageDependency } from "../utils/index.js";
+import { doesExist } from "../utils/fs.js";
 import { ArgumentBase } from "./ArgumentBase.js";
 
 export class TypescriptArgument extends ArgumentBase<"typescript"> {

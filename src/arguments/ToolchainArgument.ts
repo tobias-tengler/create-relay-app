@@ -1,11 +1,11 @@
 import { Command } from "commander";
+import { isNpmPackageDependency } from "../packageManagers/index.js";
 import {
   CliArguments,
   EnvArguments,
-  Toolchain,
+  ToolchainType,
   ToolchainOptions,
 } from "../types.js";
-import { isNpmPackageDependency } from "../utils/index.js";
 import { ArgumentBase, getNormalizedCliString } from "./ArgumentBase.js";
 
 export class ToolchainArgument extends ArgumentBase<"toolchain"> {
@@ -25,7 +25,7 @@ export class ToolchainArgument extends ArgumentBase<"toolchain"> {
   promptForValue(
     existingArgs: Partial<CliArguments>,
     env: EnvArguments
-  ): Promise<Toolchain> {
+  ): Promise<ToolchainType> {
     return this.showInquirerPrompt(
       {
         type: "list",
@@ -37,7 +37,7 @@ export class ToolchainArgument extends ArgumentBase<"toolchain"> {
   }
 
   isValid(
-    value: Toolchain,
+    value: ToolchainType,
     existingArgs: Partial<CliArguments>,
     env: EnvArguments
   ): true | string {
@@ -47,7 +47,7 @@ export class ToolchainArgument extends ArgumentBase<"toolchain"> {
   async getDefaultValue(
     existingArgs: Partial<CliArguments>,
     env: EnvArguments
-  ): Promise<Toolchain> {
+  ): Promise<ToolchainType> {
     if (await isNpmPackageDependency(env.packageJsonFile, "next")) {
       return "next";
     }
@@ -59,7 +59,7 @@ export class ToolchainArgument extends ArgumentBase<"toolchain"> {
     return "cra";
   }
 
-  parseToolChain(rawInput?: string): Toolchain | null {
+  parseToolChain(rawInput?: string): ToolchainType | null {
     if (!rawInput) {
       return null;
     }

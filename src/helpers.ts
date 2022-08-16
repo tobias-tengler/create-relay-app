@@ -1,24 +1,18 @@
 import path from "path";
-import {
-  CliArguments,
-  EnvArguments,
-  ProjectSettings,
-  RelayCompilerLanguage,
-  Toolchain,
-} from "./types.js";
+import { EnvArguments } from "./types.js";
 import { PACKAGE_FILE } from "./consts.js";
 import {
-  getPackageDetails,
   headline,
   h,
-  inferPackageManager,
   printError,
   traverseUpToFindFile,
-  doesExist,
 } from "./utils/index.js";
 import { exit } from "process";
 import { exec } from "child_process";
-import { RelativePath } from "./RelativePath.js";
+import {
+  inferPackageManager,
+  getPackageDetails,
+} from "./packageManagers/index.js";
 
 // todo: seperate this into meaningful files
 
@@ -101,106 +95,4 @@ export async function getEnvironment(
     ownPackageDescription: packageDetails.description,
     ownPackageVersion: packageDetails.version,
   };
-}
-
-export function getRelayCompilerLanguage(
-  useTypescript: boolean,
-  toolchain: Toolchain
-): RelayCompilerLanguage {
-  if (
-    useTypescript ||
-    // Next does not support 'javascript' as an option,
-    // only typescript or flow. So we opt for typescript
-    // since it's more wide spread.
-    toolchain === "next"
-  ) {
-    return "typescript";
-  } else {
-    return "javascript";
-  }
-}
-
-export function getProjectRelayEnvFilepath(
-  env: EnvArguments,
-  args: CliArguments
-): RelativePath {
-  const filename = "RelayEnvironment" + (args.typescript ? ".ts" : ".js");
-
-  const relativeDirectory = args.toolchain === "next" ? "./src" : args.src.rel;
-
-  const filepath = path.join(relativeDirectory, filename);
-
-  return new RelativePath(env.projectRootDirectory, filepath);
-}
-
-export async function getToolchainSettings(
-  env: EnvArguments,
-  args: CliArguments
-): Promise<Pick<ProjectSettings, "mainFile" | "configFile">> {
-  if (args.toolchain === "vite") {
-    const configFilename = "vite.config" + (args.typescript ? ".ts" : ".js");
-
-    const configFilepath = path.join(env.projectRootDirectory, configFilename);
-
-    if (!(await doesExist(configFilepath))) {
-      throw new Error(`${configFilename} not found`);
-    }
-
-    const mainFilename = "main" + (args.typescript ? ".tsx" : ".jsx");
-
-    const mainFilepath = path.join(
-      env.projectRootDirectory,
-      "src",
-      mainFilename
-    );
-
-    if (!(await doesExist(mainFilepath))) {
-      throw new Error(`${mainFilename} not found`);
-    }
-
-    return {
-      configFile: new RelativePath(env.projectRootDirectory, configFilepath),
-      mainFile: new RelativePath(env.projectRootDirectory, mainFilepath),
-    };
-  } else if (args.toolchain === "next") {
-    const configFilename = "next.config.js";
-
-    const configFilepath = path.join(env.projectRootDirectory, configFilename);
-
-    if (!(await doesExist(configFilepath))) {
-      throw new Error(`${configFilename} not found`);
-    }
-
-    const mainFilename = "_app" + (args.typescript ? ".tsx" : ".js");
-
-    const searchDirectory = path.join(env.projectRootDirectory, "pages");
-
-    const mainFilepath = path.join(searchDirectory, mainFilename);
-
-    if (!(await doesExist(mainFilepath))) {
-      throw new Error(`${mainFilename} not found`);
-    }
-
-    return {
-      configFile: new RelativePath(env.projectRootDirectory, configFilepath),
-      mainFile: new RelativePath(env.projectRootDirectory, mainFilepath),
-    };
-  } else {
-    const mainFilename = "index" + (args.typescript ? ".tsx" : ".js");
-
-    const mainFilepath = path.join(
-      env.projectRootDirectory,
-      "src",
-      mainFilename
-    );
-
-    if (!(await doesExist(mainFilepath))) {
-      throw new Error(`${mainFilename} not found`);
-    }
-
-    return {
-      configFile: null!,
-      mainFile: new RelativePath(env.projectRootDirectory, mainFilepath),
-    };
-  }
 }

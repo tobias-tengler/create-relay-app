@@ -1,21 +1,26 @@
-import { RelativePath } from "./RelativePath.js";
-
 export const ToolchainOptions = ["cra", "next", "vite"] as const;
 export const PackageManagerOptions = ["npm", "yarn", "pnpm"] as const;
 
-export type Toolchain = typeof ToolchainOptions[number];
-export type PackageManager = typeof PackageManagerOptions[number];
+export type ToolchainType = typeof ToolchainOptions[number];
+export type PackageManagerType = typeof PackageManagerOptions[number];
 
 export type RelayCompilerLanguage = "javascript" | "typescript" | "flow";
 
+export type PackageDetails = Readonly<{
+  name: string;
+  version: string;
+  description: string;
+  // parentDirectory: string;
+  // jsonFile: string;
+}>;
+
 export type CliArguments = {
-  toolchain: Toolchain;
+  toolchain: ToolchainType;
   typescript: boolean;
-  // todo: the raw cli arguments should be string, but the settings should be RelativePaths
-  schemaFile: RelativePath;
-  src: RelativePath;
-  artifactDirectory: RelativePath | null;
-  packageManager: PackageManager;
+  schemaFile: string;
+  src: string;
+  artifactDirectory: string;
+  packageManager: PackageManagerType;
   ignoreGitChanges: boolean;
   skipInstall: boolean;
   yes: boolean;
@@ -30,13 +35,3 @@ export type EnvArguments = Readonly<{
   projectRootDirectory: string;
   packageJsonFile: string;
 }>;
-
-export type ProjectSettings = Readonly<
-  CliArguments &
-    EnvArguments & {
-      compilerLanguage: RelayCompilerLanguage;
-      relayEnvFile: RelativePath;
-      configFile: RelativePath;
-      mainFile: RelativePath;
-    }
->;

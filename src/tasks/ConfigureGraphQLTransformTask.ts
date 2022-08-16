@@ -1,5 +1,4 @@
 import { TaskBase } from "./TaskBase.js";
-import { ProjectSettings } from "../types.js";
 import traverse from "@babel/traverse";
 import t from "@babel/types";
 import {
@@ -10,25 +9,24 @@ import {
   readFromFile,
   writeToFile,
 } from "../utils/index.js";
+import { ProjectContext } from "../ProjectContext.js";
 
 export class ConfigureGraphQLTransformTask extends TaskBase {
   message: string = "Configure graphql transform";
 
-  constructor(private settings: ProjectSettings) {
+  constructor(private context: ProjectContext) {
     super();
   }
 
   isEnabled(): boolean {
-    return (
-      this.settings.toolchain === "vite" || this.settings.toolchain === "next"
-    );
+    return this.context.is("vite") || this.context.is("next");
   }
 
   async run(): Promise<void> {
-    this.updateMessage(this.message + " in " + h(this.settings.configFile.rel));
+    this.updateMessage(this.message + " in " + h(this.context.configFile.rel));
 
     // todo: pull toolchain specific settings out
-    switch (this.settings.toolchain) {
+    switch (this.context.args.toolchain) {
       case "vite":
         await this.configureVite();
         break;
@@ -36,14 +34,16 @@ export class ConfigureGraphQLTransformTask extends TaskBase {
         await this.configureNext();
         break;
       default:
-        throw new Error(`Unsupported toolchain: ${this.settings.toolchain}`);
+        throw new Error(
+          `Unsupported toolchain: ${this.context.args.toolchain}`
+        );
     }
   }
 
   // todo: handle some cases where we can't find things
   private async configureNext() {
     // todo: handle errors
-    const configCode = await readFromFile(this.settings.configFile.abs);
+    const configCode = await readFromFile(this.context.configFile.abs);
 
     const ast = parseAst(configCode);
 
@@ -124,19 +124,19 @@ export class ConfigureGraphQLTransformTask extends TaskBase {
         const objProperties: t.ObjectProperty[] = [
           t.objectProperty(
             t.identifier("src"),
-            t.stringLiteral(this.settings.src.rel)
+            t.stringLiteral(this.context.src.rel)
           ),
           t.objectProperty(
             t.identifier("language"),
-            t.stringLiteral(this.settings.compilerLanguage)
+            t.stringLiteral(this.context.compilerLanguage)
           ),
         ];
 
-        if (this.settings.artifactDirectory) {
+        if (this.context.artifactDirectory) {
           objProperties.push(
             t.objectProperty(
               t.identifier("artifactDirectory"),
-              t.stringLiteral(this.settings.artifactDirectory.rel)
+              t.stringLiteral(this.context.artifactDirectory.rel)
             )
           );
         }
@@ -153,13 +153,13 @@ export class ConfigureGraphQLTransformTask extends TaskBase {
 
     const updatedConfigCode = printAst(ast, configCode);
 
-    await writeToFile(this.settings.configFile.abs, updatedConfigCode);
+    await writeToFile(this.context.configFile.abs, updatedConfigCode);
   }
 
   // todo: handle some cases where we can't find things
   private async configureVite() {
     // todo: handle errors
-    const configCode = await readFromFile(this.settings.configFile.abs);
+    const configCode = await readFromFile(this.context.configFile.abs);
 
     const ast = parseAst(configCode);
 
@@ -230,6 +230,6 @@ export class ConfigureGraphQLTransformTask extends TaskBase {
 
     const updatedConfigCode = printAst(ast, configCode);
 
-    await writeToFile(this.settings.configFile.abs, updatedConfigCode);
+    await writeToFile(this.context.configFile.abs, updatedConfigCode);
   }
 }

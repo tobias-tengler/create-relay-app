@@ -1,13 +1,14 @@
 import { execSync } from "child_process";
 import { Command } from "commander";
 import path from "path";
+import { inferPackageManager } from "../packageManagers/index.js";
 import {
   CliArguments,
   EnvArguments,
-  PackageManager,
+  PackageManagerType,
   PackageManagerOptions,
 } from "../types.js";
-import { doesExist, inferPackageManager } from "../utils/index.js";
+import { doesExist } from "../utils/fs.js";
 import { ArgumentBase, getNormalizedCliString } from "./ArgumentBase.js";
 
 export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
@@ -32,7 +33,7 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
   promptForValue(
     existingArgs: Partial<CliArguments>,
     env: EnvArguments
-  ): Promise<PackageManager> {
+  ): Promise<PackageManagerType> {
     return this.showInquirerPrompt(
       {
         type: "list",
@@ -44,7 +45,7 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
   }
 
   isValid(
-    value: PackageManager,
+    value: PackageManagerType,
     existingArgs: Partial<CliArguments>,
     env: EnvArguments
   ): true | string {
@@ -54,7 +55,7 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
   async getDefaultValue(
     existingArgs: Partial<CliArguments>,
     env: EnvArguments
-  ): Promise<PackageManager> {
+  ): Promise<PackageManagerType> {
     try {
       const inferred = inferPackageManager();
 
@@ -89,7 +90,7 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
     return "npm";
   }
 
-  parsePackageManager(rawInput?: string): PackageManager | null {
+  parsePackageManager(rawInput?: string): PackageManagerType | null {
     if (!rawInput) {
       return null;
     }

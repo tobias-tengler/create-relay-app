@@ -1,7 +1,6 @@
 import traverse, { NodePath } from "@babel/traverse";
 import { TaskBase } from "./TaskBase.js";
 import t from "@babel/types";
-import { ProjectSettings } from "../types.js";
 import { REACT_RELAY_PACKAGE } from "../consts.js";
 import {
   h,
@@ -12,6 +11,7 @@ import {
   removeExtension,
   writeToFile,
 } from "../utils/index.js";
+import { ProjectContext } from "../ProjectContext.js";
 
 const RELAY_ENV_PROVIDER = "RelayEnvironmentProvider";
 const RELAY_ENV = "RelayEnvironment";
@@ -19,7 +19,7 @@ const RELAY_ENV = "RelayEnvironment";
 export class AddRelayEnvironmentProviderTask extends TaskBase {
   message: string = "Add RelayEnvironmentProvider";
 
-  constructor(private settings: ProjectSettings) {
+  constructor(private context: ProjectContext) {
     super();
   }
 
@@ -28,10 +28,10 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
   }
 
   async run(): Promise<void> {
-    this.updateMessage(this.message + " to " + h(this.settings.mainFile.rel));
+    this.updateMessage(this.message + " to " + h(this.context.mainFile.rel));
 
     // todo: pull toolchain specific settings out
-    switch (this.settings.toolchain) {
+    switch (this.context.args.toolchain) {
       case "vite":
       case "cra":
         await this.configureViteOrCra();
@@ -40,12 +40,14 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
         await this.configureNext();
         break;
       default:
-        throw new Error(`Unsupported toolchain: ${this.settings.toolchain}`);
+        throw new Error(
+          `Unsupported toolchain: ${this.context.args.toolchain}`
+        );
     }
   }
 
   async configureNext() {
-    const code = await readFromFile(this.settings.mainFile.abs);
+    const code = await readFromFile(this.context.mainFile.abs);
 
     const ast = parseAst(code);
 
@@ -67,16 +69,16 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
     });
 
     if (!providerWrapped) {
-      throw new Error(`Could not find JSX in ${h(this.settings.mainFile.rel)}`);
+      throw new Error(`Could not find JSX in ${h(this.context.mainFile.rel)}`);
     }
 
     const updatedCode = printAst(ast, code);
 
-    await writeToFile(this.settings.mainFile.abs, updatedCode);
+    await writeToFile(this.context.mainFile.abs, updatedCode);
   }
 
   async configureViteOrCra() {
-    const code = await readFromFile(this.settings.mainFile.abs);
+    const code = await readFromFile(this.context.mainFile.abs);
 
     const ast = parseAst(code);
 
@@ -111,14 +113,14 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
     if (!providerWrapped) {
       throw new Error(
         `Could not find JSX being passed to ReactDOM.render in ${h(
-          this.settings.mainFile.rel
+          this.context.mainFile.rel
         )}`
       );
     }
 
     const updatedCode = printAst(ast, code);
 
-    await writeToFile(this.settings.mainFile.abs, updatedCode);
+    await writeToFile(this.context.mainFile.abs, updatedCode);
   }
 
   private wrapJsxInProvider(jsxPath: NodePath<t.JSXElement>) {
