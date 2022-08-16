@@ -1,11 +1,6 @@
 import ora from "ora";
+import { dim } from "../utils/cli.js";
 import { TaskBase, TaskSkippedError } from "./TaskBase.js";
-
-type TaskDefinition = {
-  title: string;
-  task: TaskBase;
-  when?: boolean;
-};
 
 export class TaskRunner {
   constructor(private taskDefs: TaskBase[]) {}
@@ -16,18 +11,22 @@ export class TaskRunner {
         continue;
       }
 
-      const spinner = ora();
+      const spinner = ora(task.message);
 
-      task.init(spinner);
+      task.onUpdateMessage = (msg) => (spinner.text = msg);
 
       try {
         spinner.start();
 
         await task.run();
 
-        task.complete();
+        spinner.succeed();
       } catch (error) {
         if (error instanceof TaskSkippedError) {
+          const reason = error.reason ? ": " + error.reason : "";
+
+          spinner.warn(spinner.text + " " + dim(`[Skipped${reason}]`));
+
           continue;
         }
 
@@ -41,7 +40,7 @@ export class TaskRunner {
           }
         }
 
-        task.error();
+        spinner.fail();
 
         if (errorMsg) {
           console.log();

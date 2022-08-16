@@ -1,35 +1,31 @@
 import { Ora } from "ora";
-import { dim } from "../utils/index.js";
 
 export abstract class TaskBase {
-  private spinner?: Ora;
-
   abstract message: string;
   // todo: handle this properly
   enabled: boolean = true;
 
   abstract run(): Promise<void>;
 
-  init(spinner: Ora) {
-    this.spinner = spinner;
-    this.spinner.text = this.message;
+  updateMessage(message: string) {
+    if (this.onUpdateMessage) {
+      this.onUpdateMessage(message);
+    }
   }
 
-  skip(message?: string): void {
-    const reason = message ? ": " + message : "";
-
-    this.spinner?.warn(this.spinner.text + " " + dim(`[Skipped${reason}]`));
-
-    throw new TaskSkippedError();
+  skip(reason?: string): void {
+    throw new TaskSkippedError(reason);
   }
 
-  error(): void {
-    this.spinner?.fail();
-  }
-
-  complete(): void {
-    this.spinner?.succeed();
-  }
+  onUpdateMessage?(message: string): void;
 }
 
-export class TaskSkippedError extends Error {}
+export class TaskSkippedError extends Error {
+  constructor(reason?: string) {
+    super("Task skipped: " + (reason ?? "Reason not specified"));
+
+    this.reason = reason;
+  }
+
+  reason?: string;
+}
