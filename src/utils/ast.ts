@@ -102,3 +102,24 @@ export function getDefaultImport(
       )
   ) as t.ImportDeclaration;
 }
+
+export function mergeProperties(
+  existingProps: t.ObjectExpression["properties"],
+  newProps: t.ObjectProperty[]
+): t.ObjectExpression["properties"] {
+  let existingCopy = [...existingProps];
+
+  for (const prop of newProps) {
+    const existingIndex = existingCopy.findIndex(
+      (p) => t.isObjectProperty(p) && p.key === prop.key
+    );
+
+    if (existingIndex) {
+      existingCopy[existingIndex] = prop;
+    } else {
+      existingCopy.push(prop);
+    }
+  }
+
+  return existingCopy;
+}

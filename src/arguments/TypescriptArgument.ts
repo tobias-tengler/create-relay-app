@@ -1,6 +1,6 @@
 import { Command } from "commander";
 import path from "path";
-import { TS_CONFIG_FILE, TYPESCRIPT_PACKAGE } from "../misc/consts.js";
+import { TS_CONFIG_FILE, TYPESCRIPT_PACKAGE } from "../consts.js";
 import { Environment } from "../misc/Environment.js";
 import { Filesystem } from "../misc/Filesystem.js";
 import { CliArguments } from "../types.js";

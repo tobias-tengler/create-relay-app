@@ -1,4 +1,4 @@
-import { PACKAGE_FILE } from "./consts.js";
+import { PACKAGE_FILE } from "../consts.js";
 import { Filesystem } from "./Filesystem.js";
 import { PackageJsonFile } from "./PackageJsonFile.js";
 

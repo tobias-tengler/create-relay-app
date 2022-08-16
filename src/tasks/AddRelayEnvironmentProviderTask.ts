@@ -1,7 +1,7 @@
 import traverse, { NodePath } from "@babel/traverse";
 import { TaskBase } from "./TaskBase.js";
 import t from "@babel/types";
-import { REACT_RELAY_PACKAGE } from "../misc/consts.js";
+import { REACT_RELAY_PACKAGE } from "../consts.js";
 import { h, insertNamedImport, parseAst, printAst } from "../utils/index.js";
 import { ProjectContext } from "../misc/ProjectContext.js";
 import { RelativePath } from "../misc/RelativePath.js";

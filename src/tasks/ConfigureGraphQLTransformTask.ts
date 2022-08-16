@@ -1,7 +1,13 @@
 import { TaskBase } from "./TaskBase.js";
 import traverse from "@babel/traverse";
 import t from "@babel/types";
-import { h, insertDefaultImport, parseAst, printAst } from "../utils/index.js";
+import {
+  h,
+  insertDefaultImport,
+  mergeProperties,
+  parseAst,
+  printAst,
+} from "../utils/index.js";
 import { ProjectContext } from "../misc/ProjectContext.js";
 
 export class ConfigureGraphQLTransformTask extends TaskBase {
@@ -32,7 +38,6 @@ export class ConfigureGraphQLTransformTask extends TaskBase {
     }
   }
 
-  // todo: handle some cases where we can't find things
   private async configureNext() {
     // todo: handle errors
     const configCode = await this.context.fs.readFromFile(
@@ -41,8 +46,14 @@ export class ConfigureGraphQLTransformTask extends TaskBase {
 
     const ast = parseAst(configCode);
 
+    let configured = false;
+
     traverse.default(ast, {
       AssignmentExpression: (path) => {
+        if (configured) {
+          return;
+        }
+
         const node = path.node;
 
         // We are looking for module.exports = ???.
@@ -71,51 +82,42 @@ export class ConfigureGraphQLTransformTask extends TaskBase {
             !t.isVariableDeclarator(binding.path.node) ||
             !t.isObjectExpression(binding.path.node.init)
           ) {
-            return;
+            throw new Error(
+              "`module.exports` references a variable, but the variable is not an object."
+            );
           }
 
           objExp = binding.path.node.init;
         } else if (t.isObjectExpression(node.right)) {
           objExp = node.right;
         } else {
-          return;
+          throw new Error(
+            "Expected to find an object initializer or variable assigned to `module.exports`."
+          );
         }
 
         // We are creating or getting the 'compiler' property.
-        let compilerProperty = objExp.properties.find(
+        let compiler_Prop = objExp.properties.find(
           (p) =>
             t.isObjectProperty(p) &&
             t.isIdentifier(p.key) &&
             p.key.name === "compiler"
         ) as t.ObjectProperty;
 
-        if (!compilerProperty) {
-          compilerProperty = t.objectProperty(
+        if (!compiler_Prop) {
+          compiler_Prop = t.objectProperty(
             t.identifier("compiler"),
             t.objectExpression([])
           );
 
-          objExp.properties.push(compilerProperty);
+          objExp.properties.push(compiler_Prop);
         }
 
-        if (!t.isObjectExpression(compilerProperty.value)) {
-          return;
+        if (!t.isObjectExpression(compiler_Prop.value)) {
+          throw new Error("Expected the `compiler` property to be an object.");
         }
 
-        const relayProperty = compilerProperty.value.properties.find(
-          (p) =>
-            t.isObjectProperty(p) &&
-            t.isIdentifier(p.key) &&
-            p.key.name === "relay"
-        );
-
-        // todo: we should merge here
-        if (!!relayProperty) {
-          // A "relay" property already exists.
-          return;
-        }
-
-        const objProperties: t.ObjectProperty[] = [
+        let relay_ObjProps: t.ObjectExpression["properties"] = [
           t.objectProperty(
             t.identifier("src"),
             t.stringLiteral(this.context.src.rel)
@@ -127,7 +129,7 @@ export class ConfigureGraphQLTransformTask extends TaskBase {
         ];
 
         if (this.context.artifactDirectory) {
-          objProperties.push(
+          relay_ObjProps.push(
             t.objectProperty(
               t.identifier("artifactDirectory"),
               t.stringLiteral(this.context.artifactDirectory.rel)
@@ -135,13 +137,36 @@ export class ConfigureGraphQLTransformTask extends TaskBase {
           );
         }
 
-        // Add the "relay" property to the "compiler" property object.
-        compilerProperty.value.properties.push(
-          t.objectProperty(
-            t.identifier("relay"),
-            t.objectExpression(objProperties)
-          )
-        );
+        const compiler_relayProp = compiler_Prop.value.properties.find(
+          (p) =>
+            t.isObjectProperty(p) &&
+            t.isIdentifier(p.key) &&
+            p.key.name === "relay"
+        ) as t.ObjectProperty;
+
+        if (
+          compiler_relayProp &&
+          t.isObjectExpression(compiler_relayProp.value)
+        ) {
+          // There is an existing relay: {...} definition.
+          // We merge its props with the new props.
+          relay_ObjProps = mergeProperties(
+            compiler_relayProp.value.properties,
+            relay_ObjProps
+          );
+
+          compiler_relayProp.value.properties = relay_ObjProps;
+        } else {
+          // We do not yet have a "relay" propery, so we add it.
+          compiler_Prop.value.properties.push(
+            t.objectProperty(
+              t.identifier("relay"),
+              t.objectExpression(relay_ObjProps)
+            )
+          );
+        }
+
+        path.skip();
       },
     });
 

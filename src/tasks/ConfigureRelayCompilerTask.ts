@@ -1,5 +1,5 @@
 import { TaskBase } from "./TaskBase.js";
-import { PACKAGE_FILE } from "../misc/consts.js";
+import { PACKAGE_FILE } from "../consts.js";
 import { h } from "../utils/cli.js";
 import { ProjectContext } from "../misc/ProjectContext.js";
 

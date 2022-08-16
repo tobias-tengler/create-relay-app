@@ -1,7 +1,7 @@
 import { TaskBase } from "../TaskBase.js";
 import { h } from "../../utils/index.js";
 import { EOL } from "os";
-import { BABEL_RELAY_MACRO } from "../../misc/consts.js";
+import { BABEL_RELAY_MACRO } from "../../consts.js";
 import { ProjectContext } from "../../misc/ProjectContext.js";
 import { RelativePath } from "../../misc/RelativePath.js";
 

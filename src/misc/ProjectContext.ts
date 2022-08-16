@@ -1,3 +1,4 @@
+import path from "path";
 import {
   CliArguments,
   RelayCompilerLanguage,
@@ -31,18 +32,15 @@ export class ProjectContext {
       args.typescript,
       args.toolchain
     );
+    this.relayEnvFile = getRelayEnvFilepath(env, args);
   }
 
   schemaFile: RelativePath;
   src: RelativePath;
   artifactDirectory: RelativePath | null;
   compilerLanguage: RelayCompilerLanguage;
-  // todo: currently not assigned
-  relayEnvFile: RelativePath = null!;
 
-  // todo: these should come from toolchain specific settings
-  public configFile: RelativePath = null!;
-  public mainFile: RelativePath = null!;
+  relayEnvFile: RelativePath;
 
   is(toolchain: ToolchainType): boolean {
     return this.args.toolchain === toolchain;
@@ -66,18 +64,18 @@ function getRelayCompilerLanguage(
   }
 }
 
-// function getProjectRelayEnvFilepath(
-//   env: EnvArguments,
-//   args: CliArguments
-// ): RelativePath {
-//   const filename = "RelayEnvironment" + (args.typescript ? ".ts" : ".js");
+function getRelayEnvFilepath(
+  env: Environment,
+  args: CliArguments
+): RelativePath {
+  const filename = "RelayEnvironment" + (args.typescript ? ".ts" : ".js");
 
-//   const relativeDirectory = args.toolchain === "next" ? "./src" : args.src;
+  const relativeDirectory = args.toolchain === "next" ? "./src" : args.src;
 
-//   const filepath = path.join(relativeDirectory, filename);
+  const filepath = path.join(relativeDirectory, filename);
 
-//   return new RelativePath(env.projectRootDirectory, filepath);
-// }
+  return new RelativePath(env.targetDirectory, filepath);
+}
 
 // export async function getConfigFile(
 //   env: EnvArguments,

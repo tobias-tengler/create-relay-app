@@ -13,7 +13,7 @@ import {
   ToolchainArgument,
   TypescriptArgument,
 } from "./arguments/index.js";
-import { BABEL_RELAY_MACRO, PACKAGE_FILE } from "./misc/consts.js";
+import { BABEL_RELAY_MACRO, PACKAGE_FILE } from "./consts.js";
 import { Filesystem } from "./misc/Filesystem.js";
 import {
   getPackageManger,
