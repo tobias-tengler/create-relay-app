@@ -31,11 +31,11 @@ Contrary to many existing tools that aim to solve similiar use cases, this proje
 
 ## Usage
 
-1. Scaffold a new project using the toolchain of your choice (as long as [it's supported](#supported-toolchains)
+1. Scaffold a new project using the toolchain of your choice (as long as [it's supported](#supported-toolchains))
    - Next.js: `yarn create next-app --typescript`
    - Vite.js: `yarn create vite --template react-ts`
    - Create React App: `yarn create react-app <new-project-directory> --template typescript`
-2. Install all the packages and ensure that the template is functioning. If it comes with a Git repository, ensure your working directory is clean, by commiting or discarding any changes.
+2. If you are inside a Git repository, ensure your working directory is clean, by commiting or discarding any changes.
 3. Run the script inside of the scaffolded directory:
 
 ```bash
