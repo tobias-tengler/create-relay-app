@@ -4,6 +4,8 @@ import { ProjectSettings } from "../types.js";
 import { copyFile, createDirectory } from "../utils/index.js";
 
 export class GenerateRelayEnvironmentTask extends TaskBase {
+  message: string = "Generate Relay environment";
+
   constructor(private settings: ProjectSettings) {
     super();
   }

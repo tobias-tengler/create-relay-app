@@ -18,11 +18,14 @@ const RELAY_ENV_PROVIDER = "RelayEnvironmentProvider";
 const RELAY_ENV = "RelayEnvironment";
 
 export class AddRelayEnvironmentProviderTask extends TaskBase {
+  message: string = "Add RelayEnvironmentProvider";
+
   constructor(private settings: ProjectSettings) {
     super();
   }
 
   async run(): Promise<void> {
+    // todo: pull toolchain specific settings out
     switch (this.settings.toolchain) {
       case "vite":
       case "cra":

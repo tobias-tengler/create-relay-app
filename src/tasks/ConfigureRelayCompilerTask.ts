@@ -1,21 +1,25 @@
 import { TaskBase } from "./TaskBase.js";
 import { ProjectSettings } from "../types.js";
-import { readFromFile, writeToFile } from "../utils/index.js";
+import {
+  h,
+  parsePackageJson,
+  readFromFile,
+  writePackageJson,
+  writeToFile,
+} from "../utils/index.js";
+import { PACKAGE_FILE } from "../consts.js";
 
 const validateRelayArtifactsScript = "relay-compiler --validate";
 
 export class ConfigureRelayCompilerTask extends TaskBase {
+  message: string = `Configure ${h("relay-compiler")} in ${h(PACKAGE_FILE)}`;
+
   constructor(private settings: ProjectSettings) {
     super();
   }
 
   async run(): Promise<void> {
-    // todo: handle error
-    const packageJsonContent = await readFromFile(
-      this.settings.packageJsonFile
-    );
-
-    const packageJson = JSON.parse(packageJsonContent);
+    const packageJson = await parsePackageJson(this.settings.packageJsonFile);
 
     const scriptsSection = packageJson["scripts"] ?? {};
 
@@ -60,9 +64,6 @@ export class ConfigureRelayCompilerTask extends TaskBase {
 
     packageJson["relay"] = relaySection;
 
-    const serializedPackageJson = JSON.stringify(packageJson, null, 2);
-
-    // todo: handle error
-    await writeToFile(this.settings.packageJsonFile, serializedPackageJson);
+    await writePackageJson(this.settings.packageJsonFile, packageJson);
   }
 }

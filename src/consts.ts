@@ -3,6 +3,7 @@ export const PACKAGE_FILE = "package.json";
 
 export const TYPESCRIPT_PACKAGE = "typescript";
 export const BABEL_RELAY_PACKAGE = "babel-plugin-relay";
+export const BABEL_RELAY_MACRO = BABEL_RELAY_PACKAGE + "/macro";
 export const REACT_RELAY_PACKAGE = "react-relay";
 // todo: remove branch, once released
 export const VITE_RELAY_PACKAGE =

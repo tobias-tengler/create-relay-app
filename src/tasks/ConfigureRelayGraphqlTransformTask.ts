@@ -3,7 +3,7 @@ import { ProjectSettings } from "../types.js";
 import traverse from "@babel/traverse";
 import t from "@babel/types";
 import {
-  highlight,
+  h,
   insertDefaultImport,
   parseAst,
   printAst,
@@ -12,11 +12,14 @@ import {
 } from "../utils/index.js";
 
 export class ConfigureRelayGraphqlTransformTask extends TaskBase {
+  message: string = "Configure Relay transform";
+
   constructor(private settings: ProjectSettings) {
     super();
   }
 
   async run(): Promise<void> {
+    // todo: pull toolchain specific settings out
     switch (this.settings.toolchain) {
       case "vite":
         await this.configureVite();
@@ -177,7 +180,7 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
           node.declaration.callee.name !== "defineConfig"
         ) {
           throw new Error(
-            `Expected a export default defineConfig({}) in ${highlight(
+            `Expected a export default defineConfig({}) in ${h(
               this.settings.configFilepath
             )}.`
           );
@@ -187,7 +190,7 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
 
         if (!t.isObjectExpression(arg)) {
           throw new Error(
-            `Expected a export default defineConfig({}) in ${highlight(
+            `Expected a export default defineConfig({}) in ${h(
               this.settings.configFilepath
             )}.`
           );
@@ -212,7 +215,7 @@ export class ConfigureRelayGraphqlTransformTask extends TaskBase {
 
         if (!t.isArrayExpression(pluginsProperty.value)) {
           throw new Error(
-            `Could not create or get a "plugins" property on the Vite configuration object in ${highlight(
+            `Could not create or get a "plugins" property on the Vite configuration object in ${h(
               this.settings.configFilepath
             )}.`
           );

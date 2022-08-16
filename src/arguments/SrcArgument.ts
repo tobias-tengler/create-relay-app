@@ -1,6 +1,6 @@
 import { Command } from "commander";
 import { CliArguments, EnvArguments } from "../types.js";
-import { highlight, isSubDirectory } from "../utils/index.js";
+import { h, isSubDirectory } from "../utils/index.js";
 import { ArgumentBase } from "./ArgumentBase.js";
 
 export class SrcArgument extends ArgumentBase<"src"> {
@@ -37,7 +37,7 @@ export class SrcArgument extends ArgumentBase<"src"> {
     }
 
     if (!isSubDirectory(env.projectRootDirectory, value)) {
-      return `Must be directory below ${highlight(env.projectRootDirectory)}`;
+      return `Must be directory below ${h(env.projectRootDirectory)}`;
     }
 
     return true;

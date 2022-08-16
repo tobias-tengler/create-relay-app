@@ -2,16 +2,35 @@ import { spawn } from "child_process";
 import path from "path";
 import { PACKAGE_FILE } from "../consts.js";
 import { PackageManager } from "../types.js";
-import { readFromFile } from "./fs.js";
+import { readFromFile, writeToFile } from "./fs.js";
+
+export async function parsePackageJson(
+  filepath: string
+): Promise<Record<string, any>> {
+  // todo: handle error
+  const packageJsonContent = await readFromFile(filepath);
+
+  const packageJson = JSON.parse(packageJsonContent);
+
+  return packageJson;
+}
+
+export async function writePackageJson(
+  filepath: string,
+  content: Record<string, any>
+) {
+  const serializedPackageJson = JSON.stringify(content, null, 2);
+
+  // todo: handle error
+  await writeToFile(filepath, serializedPackageJson);
+}
 
 export async function isNpmPackageDependency(
   packageJsonFilepath: string,
   packageName: string
 ): Promise<boolean> {
   try {
-    const packageJsonContent = await readFromFile(packageJsonFilepath);
-
-    const packageJson = JSON.parse(packageJsonContent);
+    const packageJson = await parsePackageJson(packageJsonFilepath);
 
     const dependencies = packageJson["dependencies"] ?? {};
     const devDpendencies = packageJson["devDependencies"] ?? {};
@@ -124,9 +143,7 @@ export async function getPackageDetails(
 ): Promise<PackageDetails> {
   const ownPackageJsonFile = path.join(ownPackageDirectory, PACKAGE_FILE);
 
-  const packageJsonContent = await readFromFile(ownPackageJsonFile);
-
-  const packageJson = JSON.parse(packageJsonContent);
+  const packageJson = await parsePackageJson(ownPackageJsonFile);
 
   const name = packageJson?.name;
 

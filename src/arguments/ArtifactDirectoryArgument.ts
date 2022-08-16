@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import path from "path";
 import { CliArguments, EnvArguments } from "../types.js";
-import { highlight, isSubDirectory } from "../utils/index.js";
+import { h, isSubDirectory } from "../utils/index.js";
 import { ArgumentBase } from "./ArgumentBase.js";
 
 export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory"> {
@@ -49,13 +49,11 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
     }
 
     if (path.basename(value) !== "__generated__") {
-      return `Last directory segment should be called ${highlight(
-        "__generated__"
-      )}`;
+      return `Last directory segment should be called ${h("__generated__")}`;
     }
 
     if (!isSubDirectory(env.projectRootDirectory, value)) {
-      return `Must be directory below ${highlight(env.projectRootDirectory)}`;
+      return `Must be directory below ${h(env.projectRootDirectory)}`;
     }
 
     if (existingArgs.toolchain === "next") {
@@ -66,7 +64,7 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
       );
 
       if (isSubDirectory(pagesDirectory, value)) {
-        return `Can not be under ${highlight(relativePagesDir)}`;
+        return `Can not be under ${h(relativePagesDir)}`;
       }
     }
 

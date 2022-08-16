@@ -9,6 +9,8 @@ type Query {
 }`;
 
 export class GenerateGraphQlSchemaFileTask extends TaskBase {
+  message: string = "Generate GraphQL schema file";
+
   constructor(private settings: ProjectSettings) {
     super();
   }

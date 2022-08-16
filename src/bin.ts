@@ -14,15 +14,9 @@ import {
   TypescriptArgument,
 } from "./arguments/index.js";
 import {
-  PACKAGE_FILE,
-  REACT_RELAY_PACKAGE,
-  BABEL_RELAY_PACKAGE,
-} from "./consts.js";
-import {
   getToolchainSettings,
   getRelayCompilerLanguage,
   getProjectRelayEnvFilepath,
-  getRelayDevDependencies,
   getEnvironment,
   hasUnsavedGitChanges,
 } from "./helpers.js";
@@ -31,21 +25,15 @@ import {
   AddRelayEnvironmentProviderTask,
   GenerateRelayEnvironmentTask,
   GenerateGraphQlSchemaFileTask,
-  InstallNpmPackagesTask,
   TaskRunner,
   ConfigureRelayCompilerTask,
   ConfigureRelayGraphqlTransformTask,
   AddBabelMacroTypeDefinitionsTask,
+  InstallNpmDependenciesTask,
+  InstallNpmDevDependenciesTask,
 } from "./tasks/index.js";
 import { CliArguments, ProjectSettings } from "./types.js";
-import {
-  dim,
-  headline,
-  highlight,
-  importantHeadline,
-  prettifyRelativePath,
-  printError,
-} from "./utils/index.js";
+import { headline, h, importantHeadline, printError } from "./utils/index.js";
 
 // INIT ENVIRONMENT
 
@@ -80,7 +68,7 @@ try {
 
     if (hasUnsavedChanges) {
       printError(
-        `Please commit or discard all changes in the ${highlight(
+        `Please commit or discard all changes in the ${h(
           env.projectRootDirectory
         )} directory before continuing.`
       );
@@ -103,7 +91,7 @@ try {
   exit(1);
 }
 
-// todo: handle errors
+// todo: handle errors and put this in a dedicated class
 const settings: ProjectSettings = {
   ...env,
   ...cliArgs,
@@ -117,81 +105,16 @@ const settings: ProjectSettings = {
 
 // EXECUTE TASKS
 
-// todo: can we simplify this or move it out of here?
-const dependencies = [REACT_RELAY_PACKAGE];
-const devDependencies = getRelayDevDependencies(
-  settings.toolchain,
-  settings.typescript
-);
-
-const relRelayEnvPath = prettifyRelativePath(
-  settings.projectRootDirectory,
-  settings.relayEnvFilepath
-);
-
-const relMainPath = prettifyRelativePath(
-  settings.projectRootDirectory,
-  settings.mainFilepath
-);
-
-const relConfigPath = prettifyRelativePath(
-  settings.projectRootDirectory,
-  settings.configFilepath
-);
-
-const relSchemaPath = prettifyRelativePath(
-  settings.projectRootDirectory,
-  settings.schemaFile
-);
-
 const runner = new TaskRunner([
-  {
-    title: `Add Relay dependencies: ${dependencies
-      .map((d) => highlight(d))
-      .join(" ")}`,
-    task: new InstallNpmPackagesTask(dependencies, false, settings),
-  },
-  {
-    title: `Add Relay devDependencies: ${devDependencies
-      .map((d) => highlight(d))
-      .join(" ")}`,
-    task: new InstallNpmPackagesTask(devDependencies, true, settings),
-  },
-  {
-    title: `Configure ${highlight("relay-compiler")} in ${highlight(
-      PACKAGE_FILE
-    )}`,
-    task: new ConfigureRelayCompilerTask(settings),
-  },
-  {
-    title: `Configure Relay transform in ${highlight(relConfigPath)}`,
-    task: new ConfigureRelayGraphqlTransformTask(settings),
-    when: settings.toolchain !== "cra",
-  },
-  {
-    title: `Add ${highlight(BABEL_RELAY_PACKAGE + "/macro")} type definitions`,
-    task: new AddBabelMacroTypeDefinitionsTask(settings),
-    when: settings.toolchain === "cra" && settings.typescript,
-  },
-  {
-    title: `Generate Relay environment ${highlight(relRelayEnvPath)}`,
-    task: new GenerateRelayEnvironmentTask(settings),
-  },
-  {
-    title: `Add RelayEnvironmentProvider to ${highlight(relMainPath)}`,
-    task: new AddRelayEnvironmentProviderTask(settings),
-  },
-  {
-    title: `Generate GraphQL schema file ${highlight(relSchemaPath)}`,
-    task: new GenerateGraphQlSchemaFileTask(settings),
-  },
-  {
-    title: `Generate artifact directory ${highlight(
-      settings.artifactDirectory!
-    )}`,
-    task: new GenerateArtifactDirectoryTask(settings),
-    when: !!settings.artifactDirectory,
-  },
+  new InstallNpmDependenciesTask(settings),
+  new InstallNpmDevDependenciesTask(settings),
+  new ConfigureRelayCompilerTask(settings),
+  new GenerateRelayEnvironmentTask(settings),
+  new GenerateGraphQlSchemaFileTask(settings),
+  new GenerateArtifactDirectoryTask(settings),
+  new AddRelayEnvironmentProviderTask(settings),
+  new ConfigureRelayGraphqlTransformTask(settings),
+  new AddBabelMacroTypeDefinitionsTask(settings),
 ]);
 
 try {
@@ -200,8 +123,6 @@ try {
   console.log();
   printError("Some of the tasks failed unexpectedly.");
   exit(1);
-
-  // todo: if tasks fail, display ways to resovle the tasks manually
 }
 
 // DISPLAY RESULT
@@ -212,28 +133,26 @@ console.log();
 console.log(headline("Next steps"));
 console.log();
 
-console.log(
-  `1. Replace ${highlight(relSchemaPath)} with your own GraphQL schema file.`
-);
-console.log(
-  `2. Replace the value of the ${highlight(
-    "HTTP_ENDPOINT"
-  )} variable in the ${highlight(relRelayEnvPath)} file.`
-);
+// console.log(
+//   `1. Replace ${h(relSchemaPath)} with your own GraphQL schema file.`
+// );
+// console.log(
+//   `2. Replace the value of the ${h("HTTP_ENDPOINT")} variable in the ${h(
+//     relRelayEnvPath
+//   )} file.`
+// );
 
 if (settings.toolchain === "cra") {
   console.log();
   console.log(importantHeadline("Important"));
   console.log();
   console.log(
-    `Remember you need to import ${highlight("graphql")} like the following:`
+    `Remember you need to import ${h("graphql")} like the following:`
   );
-  console.log(
-    "   " + highlight('import graphql from "babel-plugin-relay/macro";')
-  );
+  console.log("   " + h('import graphql from "babel-plugin-relay/macro";'));
   console.log();
   console.log(
-    `Otherwise the transform of the ${highlight(
+    `Otherwise the transform of the ${h(
       "graphql``"
     )} tagged literal will not work!`
   );

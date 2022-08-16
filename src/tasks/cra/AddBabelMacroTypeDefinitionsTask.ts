@@ -1,14 +1,15 @@
 import path from "path";
-import { TaskBase } from "./TaskBase.js";
-import { ProjectSettings } from "../types.js";
+import { TaskBase } from "../TaskBase.js";
+import { ProjectSettings } from "../../types.js";
 import {
   doesExist,
   appendToFile,
   readFromFile,
   prettifyRelativePath,
-  highlight,
-} from "../utils/index.js";
+  h,
+} from "../../utils/index.js";
 import { EOL } from "os";
+import { BABEL_RELAY_MACRO } from "../../consts.js";
 
 const babelMacroTypeDef = `${EOL}
 declare module "babel-plugin-relay/macro" {
@@ -16,6 +17,8 @@ declare module "babel-plugin-relay/macro" {
 }`;
 
 export class AddBabelMacroTypeDefinitionsTask extends TaskBase {
+  message: string = `Add ${h(BABEL_RELAY_MACRO)} type definitions`;
+
   constructor(private settings: ProjectSettings) {
     super();
   }
@@ -38,7 +41,7 @@ export class AddBabelMacroTypeDefinitionsTask extends TaskBase {
         reactTypeDefFilepath
       );
       // todo: change
-      throw new Error(`Could not find ${highlight(relPath)}`);
+      throw new Error(`Could not find ${h(relPath)}`);
     }
 
     const typeDefContent = await readFromFile(reactTypeDefFilepath);

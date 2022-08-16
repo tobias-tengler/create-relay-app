@@ -8,15 +8,15 @@ type TaskDefinition = {
 };
 
 export class TaskRunner {
-  constructor(private taskDefs: TaskDefinition[]) {}
+  constructor(private taskDefs: TaskBase[]) {}
 
   async run(): Promise<void> {
-    for (const { title, task, when } of this.taskDefs) {
-      if (when === false) {
+    for (const task of this.taskDefs) {
+      if (!task.enabled) {
         continue;
       }
 
-      const spinner = ora(title);
+      const spinner = ora();
 
       task.init(spinner);
 

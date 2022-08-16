@@ -15,7 +15,7 @@ import {
   findFileInDirectory,
   getPackageDetails,
   headline,
-  highlight,
+  h,
   inferPackageManager,
   printError,
   traverseUpToFindFile,
@@ -61,7 +61,7 @@ export async function getEnvironment(
 
   if (!packageJsonFile) {
     printError(
-      `Could not find a ${highlight(PACKAGE_FILE)} in the ${highlight(
+      `Could not find a ${h(PACKAGE_FILE)} in the ${h(
         workingDirectory
       )} directory.`
     );
@@ -73,26 +73,22 @@ export async function getEnvironment(
     console.log();
 
     console.log("1. Remember to first scaffold a project using:");
-    console.log(
-      "   Next.js: " + highlight(pacManCreate + "next-app --typescript")
-    );
-    console.log(
-      "   Vite.js: " + highlight(pacManCreate + "vite --template react-ts")
-    );
+    console.log("   Next.js: " + h(pacManCreate + "next-app --typescript"));
+    console.log("   Vite.js: " + h(pacManCreate + "vite --template react-ts"));
     console.log(
       "   Create React App: " +
-        highlight(
+        h(
           pacManCreate +
             "react-app <new-project-directory> --template typescript"
         )
     );
     console.log();
     console.log("2. Move into the scaffolded directory:");
-    console.log("   " + highlight("cd <new-project-directory>"));
+    console.log("   " + h("cd <new-project-directory>"));
     console.log();
     console.log(`3. Run the ${packageDetails.name} script again:`);
     // todo: use pacManCreate once we hopefully have the create-relay-app name
-    console.log("   " + highlight("npx -y " + packageDetails.name));
+    console.log("   " + h("npx -y " + packageDetails.name));
 
     exit(1);
   }
@@ -108,28 +104,6 @@ export async function getEnvironment(
     ownPackageDescription: packageDetails.description,
     ownPackageVersion: packageDetails.version,
   };
-}
-
-export function getRelayDevDependencies(
-  toolchain: Toolchain,
-  useTypescript: boolean
-) {
-  const relayDevDep = ["relay-compiler"];
-
-  if (useTypescript) {
-    relayDevDep.push("@types/react-relay");
-    relayDevDep.push("@types/relay-runtime");
-  }
-
-  if (toolchain === "cra" || toolchain === "vite") {
-    relayDevDep.push(BABEL_RELAY_PACKAGE);
-  }
-
-  if (toolchain === "vite") {
-    relayDevDep.push(VITE_RELAY_PACKAGE);
-  }
-
-  return relayDevDep;
 }
 
 export function getRelayCompilerLanguage(
