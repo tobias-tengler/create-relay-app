@@ -43,11 +43,11 @@ export class ProjectContext {
   src: RelativePath;
   artifactDirectory: RelativePath | null;
   compilerLanguage: RelayCompilerLanguage;
+  relayEnvFile: RelativePath;
 
   // todo: these should come from toolchain specific settings
-  relayEnvFile: RelativePath;
-  configFile: RelativePath = null!;
-  mainFile: RelativePath = null!;
+  public configFile: RelativePath = null!;
+  public mainFile: RelativePath = null!;
 
   is(toolchain: ToolchainType): boolean {
     return this.args.toolchain === toolchain;
@@ -84,7 +84,7 @@ function getProjectRelayEnvFilepath(
   return new RelativePath(env.projectRootDirectory, filepath);
 }
 
-async function getConfigFile(
+export async function getConfigFile(
   env: EnvArguments,
   args: CliArguments
 ): Promise<RelativePath> {
@@ -113,7 +113,7 @@ async function getConfigFile(
   }
 }
 
-async function getMainFile(
+export async function getMainFile(
   env: EnvArguments,
   args: CliArguments
 ): Promise<RelativePath> {

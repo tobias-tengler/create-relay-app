@@ -25,7 +25,6 @@ export class ConfigureGraphQLTransformTask extends TaskBase {
   async run(): Promise<void> {
     this.updateMessage(this.message + " in " + h(this.context.configFile.rel));
 
-    // todo: pull toolchain specific settings out
     switch (this.context.args.toolchain) {
       case "vite":
         await this.configureVite();

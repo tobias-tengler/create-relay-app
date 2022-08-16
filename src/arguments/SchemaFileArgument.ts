@@ -70,8 +70,10 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
       srcPath = "./src";
     }
 
-    const filepath = path.join(srcPath, filename);
+    const filepath = path.join(env.projectRootDirectory, srcPath, filename);
 
-    return path.join(env.projectRootDirectory, filepath);
+    const relPath = new RelativePath(env.projectRootDirectory, filepath);
+
+    return relPath.rel;
   }
 }

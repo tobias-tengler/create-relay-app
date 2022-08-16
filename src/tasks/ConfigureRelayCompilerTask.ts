@@ -44,11 +44,14 @@ export class ConfigureRelayCompilerTask extends TaskBase {
         validateRelayArtifactsScript + " && " + buildScript;
     }
 
-    const relaySection = packageJson["relay"] ?? {};
+    const relaySection = (packageJson["relay"] ?? {}) as Record<
+      string,
+      string | string[] | boolean
+    >;
 
-    relaySection["src"] = this.context.src;
+    relaySection["src"] = this.context.src.rel;
     relaySection["language"] = this.context.compilerLanguage;
-    relaySection["schema"] = this.context.schemaFile;
+    relaySection["schema"] = this.context.schemaFile.rel;
     relaySection["exclude"] = [
       "**/node_modules/**",
       "**/__mocks__/**",
@@ -63,7 +66,7 @@ export class ConfigureRelayCompilerTask extends TaskBase {
     }
 
     if (this.context.artifactDirectory) {
-      relaySection["artifactDirectory"] = this.context.artifactDirectory;
+      relaySection["artifactDirectory"] = this.context.artifactDirectory.rel;
     }
 
     packageJson["relay"] = relaySection;

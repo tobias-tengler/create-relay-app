@@ -12,6 +12,7 @@ import {
   writeToFile,
 } from "../utils/index.js";
 import { ProjectContext } from "../ProjectContext.js";
+import { RelativePath } from "../RelativePath.js";
 
 const RELAY_ENV_PROVIDER = "RelayEnvironmentProvider";
 const RELAY_ENV = "RelayEnvironment";
@@ -30,7 +31,6 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
   async run(): Promise<void> {
     this.updateMessage(this.message + " to " + h(this.context.mainFile.rel));
 
-    // todo: pull toolchain specific settings out
     switch (this.context.args.toolchain) {
       case "vite":
       case "cra":
@@ -124,14 +124,12 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
   }
 
   private wrapJsxInProvider(jsxPath: NodePath<t.JSXElement>) {
-    // todo: correctly export
-    const relativeImportPath = "";
-    //  prettifyRelativePath(
-    //   this.settings.mainFile.parentDirectory,
-    //   removeExtension(this.settings.relayEnvFile.rel)
-    // );
+    const relativeImportPath = new RelativePath(
+      this.context.mainFile.parentDirectory,
+      removeExtension(this.context.relayEnvFile.abs)
+    );
 
-    const envId = insertNamedImport(jsxPath, RELAY_ENV, relativeImportPath);
+    const envId = insertNamedImport(jsxPath, RELAY_ENV, relativeImportPath.rel);
 
     const envProviderId = t.jsxIdentifier(
       insertNamedImport(jsxPath, RELAY_ENV_PROVIDER, REACT_RELAY_PACKAGE).name

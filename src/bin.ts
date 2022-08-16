@@ -16,7 +16,11 @@ import {
 import { BABEL_RELAY_MACRO } from "./consts.js";
 import { getEnvironment, hasUnsavedGitChanges } from "./helpers.js";
 import { getPackageManger } from "./packageManagers/index.js";
-import { ProjectContext } from "./ProjectContext.js";
+import {
+  getConfigFile,
+  getMainFile,
+  ProjectContext,
+} from "./ProjectContext.js";
 import {
   GenerateArtifactDirectoryTask,
   AddRelayEnvironmentProviderTask,
@@ -94,6 +98,8 @@ const packageManager = getPackageManger(
 );
 
 const context = new ProjectContext(env, cliArgs, packageManager);
+context.mainFile = await getMainFile(env, cliArgs);
+context.configFile = await getConfigFile(env, cliArgs);
 
 // EXECUTE TASKS
 
