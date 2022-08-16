@@ -6,7 +6,6 @@ import {
   h,
   insertDefaultImport,
   parseAst,
-  prettifyRelativePath,
   printAst,
   readFromFile,
   writeToFile,
@@ -26,16 +25,7 @@ export class ConfigureGraphQLTransformTask extends TaskBase {
   }
 
   async run(): Promise<void> {
-    this.updateMessage(
-      this.message +
-        " in " +
-        h(
-          prettifyRelativePath(
-            this.settings.projectRootDirectory,
-            this.settings.configFilepath
-          )
-        )
-    );
+    this.updateMessage(this.message + " in " + h(this.settings.configFile.rel));
 
     // todo: pull toolchain specific settings out
     switch (this.settings.toolchain) {
@@ -53,7 +43,7 @@ export class ConfigureGraphQLTransformTask extends TaskBase {
   // todo: handle some cases where we can't find things
   private async configureNext() {
     // todo: handle errors
-    const configCode = await readFromFile(this.settings.configFilepath);
+    const configCode = await readFromFile(this.settings.configFile.abs);
 
     const ast = parseAst(configCode);
 
@@ -134,7 +124,7 @@ export class ConfigureGraphQLTransformTask extends TaskBase {
         const objProperties: t.ObjectProperty[] = [
           t.objectProperty(
             t.identifier("src"),
-            t.stringLiteral(this.settings.src)
+            t.stringLiteral(this.settings.src.rel)
           ),
           t.objectProperty(
             t.identifier("language"),
@@ -146,7 +136,7 @@ export class ConfigureGraphQLTransformTask extends TaskBase {
           objProperties.push(
             t.objectProperty(
               t.identifier("artifactDirectory"),
-              t.stringLiteral(this.settings.artifactDirectory)
+              t.stringLiteral(this.settings.artifactDirectory.rel)
             )
           );
         }
@@ -163,13 +153,13 @@ export class ConfigureGraphQLTransformTask extends TaskBase {
 
     const updatedConfigCode = printAst(ast, configCode);
 
-    await writeToFile(this.settings.configFilepath, updatedConfigCode);
+    await writeToFile(this.settings.configFile.abs, updatedConfigCode);
   }
 
   // todo: handle some cases where we can't find things
   private async configureVite() {
     // todo: handle errors
-    const configCode = await readFromFile(this.settings.configFilepath);
+    const configCode = await readFromFile(this.settings.configFile.abs);
 
     const ast = parseAst(configCode);
 
@@ -240,6 +230,6 @@ export class ConfigureGraphQLTransformTask extends TaskBase {
 
     const updatedConfigCode = printAst(ast, configCode);
 
-    await writeToFile(this.settings.configFilepath, updatedConfigCode);
+    await writeToFile(this.settings.configFile.abs, updatedConfigCode);
   }
 }

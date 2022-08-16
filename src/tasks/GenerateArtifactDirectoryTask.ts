@@ -1,7 +1,7 @@
 import { TaskBase } from "./TaskBase.js";
 import { ProjectSettings } from "../types.js";
 import path from "path";
-import { createDirectory, h, prettifyRelativePath } from "../utils/index.js";
+import { createDirectory, h } from "../utils/index.js";
 
 export class GenerateArtifactDirectoryTask extends TaskBase {
   message: string = "Generate artifact directory";
@@ -20,22 +20,10 @@ export class GenerateArtifactDirectoryTask extends TaskBase {
     }
 
     this.updateMessage(
-      this.message +
-        " " +
-        h(
-          prettifyRelativePath(
-            this.settings.projectRootDirectory,
-            this.settings.artifactDirectory
-          )
-        )
-    );
-
-    const fullpath = path.join(
-      this.settings.projectRootDirectory,
-      this.settings.artifactDirectory
+      this.message + " " + h(this.settings.artifactDirectory.rel)
     );
 
     // todo: handle error
-    createDirectory(fullpath);
+    createDirectory(this.settings.artifactDirectory.abs);
   }
 }

@@ -1,5 +1,6 @@
 import { Command } from "commander";
 import path from "path";
+import { RelativePath } from "../RelativePath.js";
 import { CliArguments, EnvArguments } from "../types.js";
 import { h, isSubDirectory } from "../utils/index.js";
 import { ArgumentBase } from "./ArgumentBase.js";
@@ -14,7 +15,7 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
     this.cliArg = "--artifact-directory";
   }
 
-  registerCliOption(command: Command): void {
+  registerCliOption(command: Command, env: EnvArguments): void {
     const flags = this.getCliFlags("-a", "<path>");
 
     command.option(flags, "directory to place all Relay artifacts in");
@@ -23,7 +24,7 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
   promptForValue(
     existingArgs: Partial<CliArguments>,
     env: EnvArguments
-  ): Promise<string> {
+  ): Promise<CliArguments["artifactDirectory"]> {
     return this.showInquirerPrompt(
       {
         type: "input",
@@ -35,7 +36,7 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
   }
 
   isValid(
-    value: string,
+    value: CliArguments["artifactDirectory"],
     existingArgs: Partial<CliArguments>,
     env: EnvArguments
   ): true | string {
@@ -48,23 +49,22 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
       return true;
     }
 
-    if (path.basename(value) !== "__generated__") {
+    if (path.basename(value.name) !== "__generated__") {
       return `Last directory segment should be called ${h("__generated__")}`;
     }
 
-    if (!isSubDirectory(env.projectRootDirectory, value)) {
+    if (!isSubDirectory(env.projectRootDirectory, value.abs)) {
       return `Must be directory below ${h(env.projectRootDirectory)}`;
     }
 
     if (existingArgs.toolchain === "next") {
-      const relativePagesDir = "./pages";
-      const pagesDirectory = path.join(
+      const pagesDirectory = new RelativePath(
         env.projectRootDirectory,
-        relativePagesDir
+        "./pages"
       );
 
-      if (isSubDirectory(pagesDirectory, value)) {
-        return `Can not be under ${h(relativePagesDir)}`;
+      if (isSubDirectory(pagesDirectory.abs, value.abs)) {
+        return `Can not be under ${h(pagesDirectory.rel)}`;
       }
     }
 
@@ -74,13 +74,13 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
   async getDefaultValue(
     existingArgs: Partial<CliArguments>,
     env: EnvArguments
-  ): Promise<string> {
+  ): Promise<CliArguments["artifactDirectory"]> {
     if (existingArgs.toolchain === "next") {
       // Artifacts need to be located outside the ./pages directory,
       // or they will be treated as pages.
-      return "./__generated__";
+      return new RelativePath(env.projectRootDirectory, "./__generated__");
     }
 
-    return "";
+    return null;
   }
 }

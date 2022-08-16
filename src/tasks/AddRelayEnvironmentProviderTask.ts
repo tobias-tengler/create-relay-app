@@ -1,5 +1,4 @@
 import traverse, { NodePath } from "@babel/traverse";
-import path from "path";
 import { TaskBase } from "./TaskBase.js";
 import t from "@babel/types";
 import { ProjectSettings } from "../types.js";
@@ -8,7 +7,6 @@ import {
   h,
   insertNamedImport,
   parseAst,
-  prettifyRelativePath,
   printAst,
   readFromFile,
   removeExtension,
@@ -30,16 +28,7 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
   }
 
   async run(): Promise<void> {
-    this.updateMessage(
-      this.message +
-        " to " +
-        h(
-          prettifyRelativePath(
-            this.settings.projectRootDirectory,
-            this.settings.mainFilepath
-          )
-        )
-    );
+    this.updateMessage(this.message + " to " + h(this.settings.mainFile.rel));
 
     // todo: pull toolchain specific settings out
     switch (this.settings.toolchain) {
@@ -56,7 +45,7 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
   }
 
   async configureNext() {
-    const code = await readFromFile(this.settings.mainFilepath);
+    const code = await readFromFile(this.settings.mainFile.abs);
 
     const ast = parseAst(code);
 
@@ -69,7 +58,7 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
           return;
         }
 
-        this.wrapJsxInProvider(path, this.settings.mainFilepath);
+        this.wrapJsxInProvider(path);
 
         providerWrapped = true;
 
@@ -78,23 +67,16 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
     });
 
     if (!providerWrapped) {
-      throw new Error(
-        `Could not find JSX in ${h(
-          prettifyRelativePath(
-            this.settings.projectRootDirectory,
-            this.settings.mainFilepath
-          )
-        )}`
-      );
+      throw new Error(`Could not find JSX in ${h(this.settings.mainFile.rel)}`);
     }
 
     const updatedCode = printAst(ast, code);
 
-    await writeToFile(this.settings.mainFilepath, updatedCode);
+    await writeToFile(this.settings.mainFile.abs, updatedCode);
   }
 
   async configureViteOrCra() {
-    const code = await readFromFile(this.settings.mainFilepath);
+    const code = await readFromFile(this.settings.mainFile.abs);
 
     const ast = parseAst(code);
 
@@ -118,7 +100,7 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
           return;
         }
 
-        this.wrapJsxInProvider(path, this.settings.mainFilepath);
+        this.wrapJsxInProvider(path);
 
         providerWrapped = true;
 
@@ -129,27 +111,23 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
     if (!providerWrapped) {
       throw new Error(
         `Could not find JSX being passed to ReactDOM.render in ${h(
-          prettifyRelativePath(
-            this.settings.projectRootDirectory,
-            this.settings.mainFilepath
-          )
+          this.settings.mainFile.rel
         )}`
       );
     }
 
     const updatedCode = printAst(ast, code);
 
-    await writeToFile(this.settings.mainFilepath, updatedCode);
+    await writeToFile(this.settings.mainFile.abs, updatedCode);
   }
 
-  private wrapJsxInProvider(
-    jsxPath: NodePath<t.JSXElement>,
-    sourceFilepath: string
-  ) {
-    const relativeImportPath = prettifyRelativePath(
-      path.dirname(sourceFilepath),
-      removeExtension(this.settings.relayEnvFilepath)
-    );
+  private wrapJsxInProvider(jsxPath: NodePath<t.JSXElement>) {
+    // todo: correctly export
+    const relativeImportPath = "";
+    //  prettifyRelativePath(
+    //   this.settings.mainFile.parentDirectory,
+    //   removeExtension(this.settings.relayEnvFile.rel)
+    // );
 
     const envId = insertNamedImport(jsxPath, RELAY_ENV, relativeImportPath);
 
@@ -161,7 +139,7 @@ export class AddRelayEnvironmentProviderTask extends TaskBase {
       t.isJSXIdentifier(jsxPath.node.openingElement.name) &&
       jsxPath.node.openingElement.name.name === envProviderId.name
     ) {
-      this.skip(`JSX already wrapped inside ${h(RELAY_ENV_PROVIDER)}`);
+      this.skip(`JSX already wrapped with ${h(RELAY_ENV_PROVIDER)}`);
       return;
     }
 

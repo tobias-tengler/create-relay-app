@@ -1,13 +1,6 @@
-import path from "path";
 import { TaskBase } from "./TaskBase.js";
 import { ProjectSettings } from "../types.js";
-import {
-  createDirectory,
-  writeToFile,
-  doesExist,
-  h,
-  prettifyRelativePath,
-} from "../utils/index.js";
+import { createDirectory, writeToFile, doesExist, h } from "../utils/index.js";
 
 const schemaGraphQLContent = `# Replace this with your own GraphQL schema file!
 type Query {
@@ -26,28 +19,17 @@ export class GenerateGraphQlSchemaFileTask extends TaskBase {
   }
 
   async run(): Promise<void> {
-    this.updateMessage(
-      this.message +
-        " " +
-        h(
-          prettifyRelativePath(
-            this.settings.projectRootDirectory,
-            this.settings.schemaFile
-          )
-        )
-    );
+    this.updateMessage(this.message + " " + h(this.settings.schemaFile.rel));
 
-    if (doesExist(this.settings.schemaFile)) {
+    if (doesExist(this.settings.schemaFile.abs)) {
       this.skip("File exists");
       return;
     }
 
-    const dir = path.dirname(this.settings.schemaFile);
+    // todo: handle error
+    createDirectory(this.settings.schemaFile.parentDirectory);
 
     // todo: handle error
-    createDirectory(dir);
-
-    // todo: handle error
-    await writeToFile(this.settings.schemaFile, schemaGraphQLContent);
+    await writeToFile(this.settings.schemaFile.abs, schemaGraphQLContent);
   }
 }

@@ -36,11 +36,9 @@ export async function traverseUpToFindFile(
   let previousDirectory: string | null = null;
 
   while (!!currentDirectory) {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const filepath = path.join(currentDirectory, filename);
 
-    const filepath = await findFileInDirectory(currentDirectory, filename);
-
-    if (!!filepath) {
+    if (await doesExist(filepath)) {
       return filepath;
     }
 
@@ -52,25 +50,6 @@ export async function traverseUpToFindFile(
       break;
     }
   }
-
-  return null;
-}
-
-export async function findFileInDirectory(
-  directory: string,
-  filename: string
-): Promise<string | null> {
-  try {
-    const filenames = await fs.readdir(directory);
-
-    for (const name of filenames) {
-      if (name === filename) {
-        const filepath = path.join(directory, filename);
-
-        return filepath;
-      }
-    }
-  } catch {}
 
   return null;
 }
@@ -100,29 +79,6 @@ export function isSubDirectory(parent: string, dir: string): boolean {
   return !relative.startsWith("..") && !path.isAbsolute(relative);
 }
 
-export function normalizePath(input: string): string {
-  return input.split(path.sep).join("/");
-}
-
 export function removeExtension(filename: string): string {
   return filename.substring(0, filename.lastIndexOf(".")) || filename;
-}
-
-export function prettifyRelativePath(
-  parentPath: string,
-  childPath: string
-): string {
-  const relativePath = path.relative(parentPath, childPath);
-
-  return prettifyPath(relativePath);
-}
-
-export function prettifyPath(input: string): string {
-  let normalizedPath = normalizePath(input);
-
-  if (!normalizedPath.startsWith("..") && !normalizedPath.startsWith("./")) {
-    normalizedPath = "./" + normalizedPath;
-  }
-
-  return normalizedPath;
 }

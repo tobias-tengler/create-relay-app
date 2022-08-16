@@ -1,4 +1,5 @@
 import { Command } from "commander";
+import { RelativePath } from "../RelativePath.js";
 import { CliArguments, EnvArguments } from "../types.js";
 import { h, isSubDirectory } from "../utils/index.js";
 import { ArgumentBase } from "./ArgumentBase.js";
@@ -7,7 +8,7 @@ export class SrcArgument extends ArgumentBase<"src"> {
   public name = "src" as const;
   public promptMessage = "Select the root directory of your application code";
 
-  registerCliOption(command: Command): void {
+  registerCliOption(command: Command, env: EnvArguments): void {
     const flags = this.getCliFlags("-s", "<path>");
 
     command.option(flags, "root directory of your application code");
@@ -16,7 +17,7 @@ export class SrcArgument extends ArgumentBase<"src"> {
   promptForValue(
     existingArgs: Partial<CliArguments>,
     env: EnvArguments
-  ): Promise<string> {
+  ): Promise<CliArguments["src"]> {
     return this.showInquirerPrompt(
       {
         type: "input",
@@ -28,7 +29,7 @@ export class SrcArgument extends ArgumentBase<"src"> {
   }
 
   isValid(
-    value: string,
+    value: CliArguments["src"],
     existingArgs: Partial<CliArguments>,
     env: EnvArguments
   ): true | string {
@@ -36,7 +37,7 @@ export class SrcArgument extends ArgumentBase<"src"> {
       return `Required`;
     }
 
-    if (!isSubDirectory(env.projectRootDirectory, value)) {
+    if (!isSubDirectory(env.projectRootDirectory, value.abs)) {
       return `Must be directory below ${h(env.projectRootDirectory)}`;
     }
 
@@ -46,11 +47,11 @@ export class SrcArgument extends ArgumentBase<"src"> {
   async getDefaultValue(
     existingArgs: Partial<CliArguments>,
     env: EnvArguments
-  ): Promise<string> {
+  ): Promise<CliArguments["src"]> {
     if (existingArgs.toolchain === "next") {
-      return "./";
+      return new RelativePath(env.projectRootDirectory, "./");
     }
 
-    return "./src";
+    return new RelativePath(env.projectRootDirectory, "./src");
   }
 }

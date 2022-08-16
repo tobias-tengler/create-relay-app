@@ -1,13 +1,13 @@
 import chalk from "chalk";
 import { Command } from "commander";
-import { get } from "http";
 import inquirer from "inquirer";
+import { RelativePath } from "../RelativePath.js";
 import { CliArguments, EnvArguments } from "../types.js";
 
 type PromptOptions<TName extends keyof CliArguments> = {
   type: "list" | "confirm" | "input";
   choices?: readonly CliArguments[TName][];
-  validate?(input: string): true | string;
+  validate?(input: CliArguments[TName]): true | string;
 };
 
 export abstract class ArgumentBase<TName extends keyof CliArguments> {
@@ -24,7 +24,7 @@ export abstract class ArgumentBase<TName extends keyof CliArguments> {
     this._cliArg = value;
   }
 
-  abstract registerCliOption(command: Command): void;
+  abstract registerCliOption(command: Command, env: EnvArguments): void;
 
   abstract promptForValue(
     existingArgs: Partial<CliArguments>,
@@ -45,7 +45,7 @@ export abstract class ArgumentBase<TName extends keyof CliArguments> {
   submitWithValue(value: CliArguments[TName]) {
     let val = value;
 
-    if (typeof val === "string" && !val) {
+    if (val === null || (typeof val === "string" && !val)) {
       val = chalk.italic("empty") as CliArguments[TName];
     }
 
@@ -111,6 +111,18 @@ export abstract class ArgumentBase<TName extends keyof CliArguments> {
 
 export function getNormalizedCliString(input?: string): string {
   return input?.toLowerCase().trim() || "";
+}
+
+export function tryParseRelativePath(
+  input: string,
+  env: EnvArguments
+): RelativePath | undefined {
+  if (!input) {
+    return undefined;
+  }
+
+  // todo: we need to handle errors here probably
+  return new RelativePath(env.projectRootDirectory, input);
 }
 
 export class InvalidArgError extends Error {}

@@ -5,17 +5,14 @@ import {
   Toolchain,
   ToolchainOptions,
 } from "../types.js";
-import {
-  isNpmPackageDependency,
-  isNpmPackageInstalled,
-} from "../utils/index.js";
+import { isNpmPackageDependency } from "../utils/index.js";
 import { ArgumentBase, getNormalizedCliString } from "./ArgumentBase.js";
 
 export class ToolchainArgument extends ArgumentBase<"toolchain"> {
   public name = "toolchain" as const;
   public promptMessage = "Select the toolchain your project was setup with";
 
-  registerCliOption(command: Command): void {
+  registerCliOption(command: Command, env: EnvArguments): void {
     const flags = this.getCliFlags("-t", "<toolchain>");
 
     command.option(

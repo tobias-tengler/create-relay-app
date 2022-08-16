@@ -1,12 +1,13 @@
 import { execSync } from "child_process";
 import { Command } from "commander";
+import path from "path";
 import {
   CliArguments,
   EnvArguments,
   PackageManager,
   PackageManagerOptions,
 } from "../types.js";
-import { findFileInDirectory, inferPackageManager } from "../utils/index.js";
+import { doesExist, inferPackageManager } from "../utils/index.js";
 import { ArgumentBase, getNormalizedCliString } from "./ArgumentBase.js";
 
 export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
@@ -18,7 +19,7 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
     this.cliArg = "--package-manager";
   }
 
-  registerCliOption(command: Command): void {
+  registerCliOption(command: Command, env: EnvArguments): void {
     const flags = this.getCliFlags("-p", "<manager>");
 
     command.option(
@@ -63,24 +64,21 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
         try {
           execSync("yarn --version", { stdio: "ignore" });
 
-          const hasLockfile = await findFileInDirectory(
-            env.projectRootDirectory,
-            "yarn.lock"
-          );
+          const lockFile = path.join(env.projectRootDirectory, "yarn.lock");
 
-          if (hasLockfile) {
+          if (doesExist(lockFile)) {
             // Yarn is installed and the project contains a yarn.lock file.
             return "yarn";
           }
         } catch {
           execSync("pnpm --version", { stdio: "ignore" });
 
-          const hasLockfile = await findFileInDirectory(
+          const lockFile = path.join(
             env.projectRootDirectory,
             "pnpm-lock.yaml"
           );
 
-          if (hasLockfile) {
+          if (doesExist(lockFile)) {
             // pnpm is installed and the project contains a pnpm-lock.yml file.
             return "pnpm";
           }

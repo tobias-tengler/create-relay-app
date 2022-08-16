@@ -1,7 +1,8 @@
 import { Command } from "commander";
 import path from "path";
+import { RelativePath } from "../RelativePath.js";
 import { CliArguments, EnvArguments } from "../types.js";
-import { h, isSubDirectory, prettifyPath } from "../utils/index.js";
+import { h, isSubDirectory } from "../utils/index.js";
 import { ArgumentBase } from "./ArgumentBase.js";
 
 export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
@@ -13,7 +14,7 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
     this.cliArg = "--schema-file";
   }
 
-  registerCliOption(command: Command): void {
+  registerCliOption(command: Command, env: EnvArguments): void {
     const flags = this.getCliFlags("-f", "<path>");
 
     command.option(flags, "path to a GraphQL schema file");
@@ -22,7 +23,7 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
   promptForValue(
     existingArgs: Partial<CliArguments>,
     env: EnvArguments
-  ): Promise<string> {
+  ): Promise<CliArguments["schemaFile"]> {
     return this.showInquirerPrompt(
       {
         type: "input",
@@ -34,7 +35,7 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
   }
 
   isValid(
-    value: string,
+    value: CliArguments["schemaFile"],
     existingArgs: Partial<CliArguments>,
     env: EnvArguments
   ): true | string {
@@ -42,11 +43,13 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
       return "Required";
     }
 
-    if (!value.endsWith(".graphql")) {
-      return `File needs to end in ${h(".graphql")}`;
+    const graphqlExt = ".graphql";
+
+    if (!value.name.endsWith(graphqlExt)) {
+      return `File needs to end in ${h(graphqlExt)}`;
     }
 
-    if (!isSubDirectory(env.projectRootDirectory, value)) {
+    if (!isSubDirectory(env.projectRootDirectory, value.abs)) {
       return `Must be directory below ${h(env.projectRootDirectory)}`;
     }
 
@@ -56,15 +59,17 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
   async getDefaultValue(
     existingArgs: Partial<CliArguments>,
     env: EnvArguments
-  ): Promise<string> {
+  ): Promise<CliArguments["schemaFile"]> {
     const filename = "schema.graphql";
 
-    let srcPath: string = existingArgs.src!;
+    let srcPath: string = existingArgs.src!.rel;
 
     if (existingArgs.toolchain === "next") {
-      srcPath = "src";
+      srcPath = "./src";
     }
 
-    return prettifyPath(path.join(srcPath, filename));
+    const filepath = path.join(srcPath, filename);
+
+    return new RelativePath(env.projectRootDirectory, filepath);
   }
 }

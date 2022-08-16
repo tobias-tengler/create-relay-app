@@ -34,13 +34,7 @@ import {
   InstallNpmDevDependenciesTask,
 } from "./tasks/index.js";
 import { CliArguments, ProjectSettings } from "./types.js";
-import {
-  headline,
-  h,
-  importantHeadline,
-  printError,
-  prettifyRelativePath,
-} from "./utils/index.js";
+import { headline, h, importantHeadline, printError } from "./utils/index.js";
 
 // INIT ENVIRONMENT
 
@@ -106,7 +100,7 @@ const settings: ProjectSettings = {
     cliArgs.typescript,
     cliArgs.toolchain
   ),
-  relayEnvFilepath: getProjectRelayEnvFilepath(env, cliArgs),
+  relayEnvFile: getProjectRelayEnvFilepath(env, cliArgs),
   ...(await getToolchainSettings(env, cliArgs)),
 };
 
@@ -141,16 +135,11 @@ console.log(headline("Next steps"));
 console.log();
 
 console.log(
-  `1. Replace ${h(
-    prettifyRelativePath(settings.projectRootDirectory, settings.schemaFile)
-  )} with your own GraphQL schema file.`
+  `1. Replace ${h(settings.schemaFile.rel)} with your own GraphQL schema file.`
 );
 console.log(
   `2. Replace the value of the ${h("HTTP_ENDPOINT")} variable in the ${h(
-    prettifyRelativePath(
-      settings.projectRootDirectory,
-      settings.relayEnvFilepath
-    )
+    settings.relayEnvFile.rel
   )} file.`
 );
 
