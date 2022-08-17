@@ -88,6 +88,12 @@ try {
   exit(1);
 }
 
+if (cwd !== env.targetDirectory) {
+  // prettier-ignore
+  console.log(`Determined project root directory to be ` + h(env.targetDirectory));
+  console.log();
+}
+
 // Define all of the possible CLI arguments.
 const argumentHandler = new ArgumentHandler([
   new ToolchainArgument(env),
