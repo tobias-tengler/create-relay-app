@@ -4,7 +4,7 @@ import { PackageJsonFile } from "./PackageJsonFile.js";
 
 export class Environment {
   constructor(
-    private readonly cwd: string,
+    public readonly cwd: string,
     ownPackageJsonFilepath: string,
     private readonly fs: Filesystem
   ) {
