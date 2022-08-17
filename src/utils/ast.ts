@@ -111,7 +111,11 @@ export function mergeProperties(
 
   for (const prop of newProps) {
     const existingIndex = existingCopy.findIndex(
-      (p) => t.isObjectProperty(p) && p.key === prop.key
+      (p) =>
+        t.isObjectProperty(p) &&
+        t.isIdentifier(p.key) &&
+        t.isIdentifier(prop.key) &&
+        p.key.name === prop.key.name
     );
 
     if (existingIndex !== -1) {
