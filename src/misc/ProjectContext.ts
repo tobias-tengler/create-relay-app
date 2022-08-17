@@ -71,7 +71,8 @@ function getRelayEnvFilepath(
 ): RelativePath {
   const filename = "RelayEnvironment" + (args.typescript ? ".ts" : ".js");
 
-  const srcDirectory = args.toolchain === "next" ? "./src" : args.src;
+  const srcDirectory =
+    args.toolchain === "next" ? env.rel("src").rel : args.src;
 
   const filepath = path.join(srcDirectory, filename);
 

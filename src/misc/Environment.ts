@@ -37,9 +37,9 @@ export class Environment {
       return undefined;
     }
 
-    const abs = new RelativePath(this.cwd, cwdRelPath).abs;
+    const cwdAbs = new RelativePath(this.cwd, cwdRelPath).abs;
 
-    return new RelativePath(this.targetDirectory, abs);
+    return new RelativePath(this.targetDirectory, cwdAbs);
   }
 
   ownPackageDirectory: string;

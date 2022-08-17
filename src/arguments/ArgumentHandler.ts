@@ -38,9 +38,7 @@ export class ArgumentHandler {
     // Parse CLI options.
     await program.parseAsync();
 
-    const cliArgs = program.opts<CliArguments>();
-
-    console.log({ cliArgs });
+    const cliArgs = program.opts<Partial<CliArguments>>();
 
     this.validateArgs(cliArgs);
 

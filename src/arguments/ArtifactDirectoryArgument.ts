@@ -2,7 +2,6 @@ import { Command } from "commander";
 import path from "path";
 import { Environment } from "../misc/Environment.js";
 import { Filesystem } from "../misc/Filesystem.js";
-import { RelativePath } from "../misc/RelativePath.js";
 import { CliArguments } from "../types.js";
 import { h } from "../utils/index.js";
 import { ArgumentBase } from "./ArgumentBase.js";
@@ -19,7 +18,11 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
   registerCliOption(command: Command): void {
     const flags = this.getCliFlags("-a", "<path>");
 
-    command.option(flags, "directory to place all Relay artifacts in");
+    command.option(
+      flags,
+      "directory to place all Relay artifacts in",
+      (value) => this.env.relToTarget(value)?.rel
+    );
   }
 
   promptForValue(
@@ -29,6 +32,7 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
       {
         type: "input",
         validate: (input) => this.isValid(input, existingArgs),
+        filter: (input) => this.env.relToTarget(input)?.rel || "",
       },
       existingArgs
     );
@@ -76,7 +80,7 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
     if (existingArgs.toolchain === "next") {
       // Artifacts need to be located outside the ./pages directory,
       // or they will be treated as pages.
-      return Promise.resolve("./__generated__");
+      return Promise.resolve(this.env.rel("__generated__").abs);
     }
 
     return Promise.resolve("");

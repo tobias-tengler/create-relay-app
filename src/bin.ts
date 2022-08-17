@@ -104,15 +104,17 @@ const argumentHandler = new ArgumentHandler([
   new PackageManagerArgument(fs, env),
 ]);
 
-let cliArgs: CliArguments;
+let userArgs: CliArguments;
 
 // Try to parse the CLI arguments
 try {
   // Get the arguments provided to the program.
-  const cliProvidedArgs = await argumentHandler.parse(env);
+  const cliArgs = await argumentHandler.parse(env);
+
+  console.log({ cliArgs });
 
   // todo: this is kind of awkward here
-  if (!cliProvidedArgs.ignoreGitChanges) {
+  if (!cliArgs.ignoreGitChanges) {
     const git = new Git();
     const hasUnsavedChanges = await git.hasUnsavedChanges(env.targetDirectory);
 
@@ -124,9 +126,9 @@ try {
   }
 
   // Prompt for all of the missing arguments, required to execute the program.
-  cliArgs = await argumentHandler.promptForMissing(cliProvidedArgs);
+  userArgs = await argumentHandler.promptForMissing(cliArgs);
 
-  console.log("final", { cliArgs });
+  console.log({ userArgs });
 
   console.log();
 } catch (error) {
@@ -143,12 +145,12 @@ try {
 
 // Instantiate a package manager, based on the user's choice.
 const packageManager = getPackageManger(
-  cliArgs.packageManager,
+  userArgs.packageManager,
   env.targetDirectory
 );
 
 // Build a context that contains all of the configuration.
-const context = new ProjectContext(env, cliArgs, packageManager, fs);
+const context = new ProjectContext(env, userArgs, packageManager, fs);
 
 // Define tasks that should be executed.
 const runner = new TaskRunner([

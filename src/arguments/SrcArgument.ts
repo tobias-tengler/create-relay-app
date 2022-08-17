@@ -16,7 +16,11 @@ export class SrcArgument extends ArgumentBase<"src"> {
   registerCliOption(command: Command): void {
     const flags = this.getCliFlags("-s", "<path>");
 
-    command.option(flags, "root directory of your application code");
+    command.option(
+      flags,
+      "root directory of your application code",
+      (value) => this.env.relToTarget(value)?.rel
+    );
   }
 
   promptForValue(
@@ -26,6 +30,7 @@ export class SrcArgument extends ArgumentBase<"src"> {
       {
         type: "input",
         validate: (input) => this.isValid(input, existingArgs),
+        filter: (input) => this.env.relToTarget(input)?.rel || "",
       },
       existingArgs
     );
@@ -54,9 +59,9 @@ export class SrcArgument extends ArgumentBase<"src"> {
     existingArgs: Partial<CliArguments>
   ): Promise<CliArguments["src"]> {
     if (existingArgs.toolchain === "next") {
-      return Promise.resolve("./");
+      return Promise.resolve(this.env.targetDirectory);
     }
 
-    return Promise.resolve("./src");
+    return Promise.resolve(this.env.rel("src").abs);
   }
 }

@@ -2,7 +2,6 @@ import { Command } from "commander";
 import path from "path";
 import { Environment } from "../misc/Environment.js";
 import { Filesystem } from "../misc/Filesystem.js";
-import { RelativePath } from "../misc/RelativePath.js";
 import { CliArguments } from "../types.js";
 import { h } from "../utils/index.js";
 import { ArgumentBase } from "./ArgumentBase.js";
@@ -19,7 +18,11 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
   registerCliOption(command: Command): void {
     const flags = this.getCliFlags("-f", "<path>");
 
-    command.option(flags, "path to a GraphQL schema file");
+    command.option(
+      flags,
+      "path to a GraphQL schema file",
+      (value) => this.env.relToTarget(value)?.rel
+    );
   }
 
   promptForValue(
@@ -29,6 +32,7 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
       {
         type: "input",
         validate: (input) => this.isValid(input, existingArgs),
+        filter: (input) => this.env.relToTarget(input)?.rel || "",
       },
       existingArgs
     );
@@ -69,11 +73,11 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
     let srcPath: string = existingArgs.src!;
 
     if (existingArgs.toolchain === "next") {
-      srcPath = "./src";
+      srcPath = this.env.rel("src").rel;
     }
 
     const filepath = path.join(srcPath, filename);
 
-    return Promise.resolve(this.env.rel(filepath).rel);
+    return Promise.resolve(this.env.rel(filepath).abs);
   }
 }
