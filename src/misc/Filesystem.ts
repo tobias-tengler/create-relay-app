@@ -63,49 +63,4 @@ export class Filesystem {
   createDirectory(directoryPath: string): Promise<void> {
     return fsExtra.mkdir(directoryPath, { recursive: true });
   }
-
-  async traverseUpToFindFile(
-    directory: string,
-    filename: string
-  ): Promise<string | null> {
-    let currentDirectory = directory;
-    let previousDirectory: string | null = null;
-
-    while (!!currentDirectory) {
-      const filepath = path.join(currentDirectory, filename);
-
-      if (this.exists(filepath)) {
-        return filepath;
-      }
-
-      previousDirectory = currentDirectory;
-      currentDirectory = path.join(currentDirectory, "..");
-
-      if (previousDirectory === currentDirectory) {
-        // We reached the root.
-        break;
-      }
-    }
-
-    return null;
-  }
-
-  async searchFilesInDirectory(
-    directory: string,
-    pattern: string
-  ): Promise<string[]> {
-    return new Promise((resolve) => {
-      try {
-        glob(pattern, { cwd: directory }, (error, matches) => {
-          if (error || !matches || !matches.some((m) => !!m)) {
-            resolve([]);
-          } else {
-            resolve(matches);
-          }
-        });
-      } catch {
-        resolve([]);
-      }
-    });
-  }
 }

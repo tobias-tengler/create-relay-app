@@ -21,7 +21,7 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
     command.option(
       flags,
       "path to a GraphQL schema file",
-      (value) => this.env.relToTarget(value)?.rel
+      (value) => this.env.rel(value)?.rel
     );
   }
 
@@ -32,7 +32,7 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
       {
         type: "input",
         validate: (input) => this.isValid(input, existingArgs),
-        filter: (input) => this.env.relToTarget(input)?.rel || "",
+        filter: (input) => this.env.rel(input)?.rel || "",
       },
       existingArgs
     );
@@ -58,8 +58,8 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
       return `Must be a file`;
     }
 
-    if (!this.fs.isSubDirectory(this.env.targetDirectory, value)) {
-      return `Must be a file somewhere below ${h(this.env.targetDirectory)}`;
+    if (!this.fs.isSubDirectory(this.env.cwd, value)) {
+      return `Must be a file somewhere below ${h(this.env.cwd)}`;
     }
 
     return true;
@@ -73,11 +73,11 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
     let srcPath: string = existingArgs.src!;
 
     if (existingArgs.toolchain === "next") {
-      srcPath = this.env.rel("src").rel;
+      srcPath = "./src";
     }
 
     const filepath = path.join(srcPath, filename);
 
-    return Promise.resolve(this.env.rel(filepath).abs);
+    return Promise.resolve(this.env.rel(filepath).rel);
   }
 }

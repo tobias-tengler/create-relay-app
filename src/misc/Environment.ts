@@ -1,3 +1,4 @@
+import path from "path";
 import { PACKAGE_FILE } from "../consts.js";
 import { Filesystem } from "./Filesystem.js";
 import { PackageJsonFile } from "./PackageJsonFile.js";
@@ -14,38 +15,22 @@ export class Environment {
   }
 
   async init(): Promise<void> {
-    // Find the package.json of the project we are targetting.
-    const packageJsonFilepath = await this.fs.traverseUpToFindFile(
-      this.cwd,
-      PACKAGE_FILE
-    );
+    const packageJsonFilepath = path.join(this.cwd, PACKAGE_FILE);
 
-    if (!packageJsonFilepath) {
+    if (!this.fs.exists(packageJsonFilepath)) {
       throw new MissingPackageJsonError();
     }
 
     this.packageJson = new PackageJsonFile(packageJsonFilepath, this.fs);
-    this.targetDirectory = this.fs.getParent(packageJsonFilepath);
   }
 
   rel(relPath: string | undefined): RelativePath {
-    return new RelativePath(this.targetDirectory, relPath);
-  }
-
-  relToTarget(cwdRelPath: string | undefined): RelativePath | undefined {
-    if (!cwdRelPath) {
-      return undefined;
-    }
-
-    const cwdAbs = new RelativePath(this.cwd, cwdRelPath).abs;
-
-    return new RelativePath(this.targetDirectory, cwdAbs);
+    return new RelativePath(this.cwd, relPath);
   }
 
   ownPackageDirectory: string;
   ownPackageJson: PackageJsonFile;
   packageJson: PackageJsonFile = null!;
-  targetDirectory: string = null!;
 }
 
 export class MissingPackageJsonError extends Error {}

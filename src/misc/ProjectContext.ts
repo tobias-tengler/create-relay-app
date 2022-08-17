@@ -1,4 +1,5 @@
 import path from "path";
+import { RELAY_ENV } from "../consts.js";
 import {
   CliArguments,
   RelayCompilerLanguage,
@@ -69,10 +70,16 @@ function getRelayEnvFilepath(
   env: Environment,
   args: CliArguments
 ): RelativePath {
-  const filename = "RelayEnvironment" + (args.typescript ? ".ts" : ".js");
+  const filename = RELAY_ENV + (args.typescript ? ".ts" : ".js");
 
-  const srcDirectory =
-    args.toolchain === "next" ? env.rel("src").rel : args.src;
+  let srcDirectory = args.src;
+
+  // The src directory for next is likely the project root,
+  // so we always default to the ./src directory to place the
+  // RelayEnvironment file in.
+  if (args.toolchain === "next") {
+    srcDirectory = "./src";
+  }
 
   const filepath = path.join(srcDirectory, filename);
 

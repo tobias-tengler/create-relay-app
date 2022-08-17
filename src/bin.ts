@@ -88,12 +88,6 @@ try {
   exit(1);
 }
 
-if (cwd !== env.targetDirectory) {
-  // prettier-ignore
-  console.log(`Determined project root directory to be ` + h(env.targetDirectory));
-  console.log();
-}
-
 // Define all of the possible CLI arguments.
 const argumentHandler = new ArgumentHandler([
   new ToolchainArgument(env),
@@ -116,11 +110,11 @@ try {
   // todo: this is kind of awkward here
   if (!cliArgs.ignoreGitChanges) {
     const git = new Git();
-    const hasUnsavedChanges = await git.hasUnsavedChanges(env.targetDirectory);
+    const hasUnsavedChanges = await git.hasUnsavedChanges(env.cwd);
 
     if (hasUnsavedChanges) {
       // prettier-ignore
-      printError(`Please commit or discard all changes in the ${h(env.targetDirectory)} directory before continuing.`);
+      printError(`Please commit or discard all changes in the ${h(env.cwd)} directory before continuing.`);
       exit(1);
     }
   }
@@ -144,10 +138,7 @@ try {
 }
 
 // Instantiate a package manager, based on the user's choice.
-const packageManager = getPackageManger(
-  userArgs.packageManager,
-  env.targetDirectory
-);
+const packageManager = getPackageManger(userArgs.packageManager, env.cwd);
 
 // Build a context that contains all of the configuration.
 const context = new ProjectContext(env, userArgs, packageManager, fs);

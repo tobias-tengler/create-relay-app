@@ -19,7 +19,7 @@ export class SrcArgument extends ArgumentBase<"src"> {
     command.option(
       flags,
       "root directory of your application code",
-      (value) => this.env.relToTarget(value)?.rel
+      (value) => this.env.rel(value)?.rel
     );
   }
 
@@ -30,7 +30,7 @@ export class SrcArgument extends ArgumentBase<"src"> {
       {
         type: "input",
         validate: (input) => this.isValid(input, existingArgs),
-        filter: (input) => this.env.relToTarget(input)?.rel || "",
+        filter: (input) => this.env.rel(input)?.rel || "",
       },
       existingArgs
     );
@@ -48,8 +48,8 @@ export class SrcArgument extends ArgumentBase<"src"> {
       return `Must be a directory`;
     }
 
-    if (!this.fs.isSubDirectory(this.env.targetDirectory, value)) {
-      return `Must be directory below ${h(this.env.targetDirectory)}`;
+    if (!this.fs.isSubDirectory(this.env.cwd, value)) {
+      return `Must be directory below ${h(this.env.cwd)}`;
     }
 
     return true;
@@ -59,9 +59,9 @@ export class SrcArgument extends ArgumentBase<"src"> {
     existingArgs: Partial<CliArguments>
   ): Promise<CliArguments["src"]> {
     if (existingArgs.toolchain === "next") {
-      return Promise.resolve(this.env.targetDirectory);
+      return Promise.resolve("./");
     }
 
-    return Promise.resolve(this.env.rel("src").abs);
+    return Promise.resolve("./src");
   }
 }

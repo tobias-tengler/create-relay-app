@@ -21,7 +21,7 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
     command.option(
       flags,
       "directory to place all Relay artifacts in",
-      (value) => this.env.relToTarget(value)?.rel
+      (value) => this.env.rel(value)?.rel
     );
   }
 
@@ -32,7 +32,7 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
       {
         type: "input",
         validate: (input) => this.isValid(input, existingArgs),
-        filter: (input) => this.env.relToTarget(input)?.rel || "",
+        filter: (input) => (input ? this.env.rel(input)?.rel || "" : ""),
       },
       existingArgs
     );
@@ -59,8 +59,8 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
       return `Last directory segment should be called ${h("__generated__")}`;
     }
 
-    if (!this.fs.isSubDirectory(this.env.targetDirectory, value)) {
-      return `Must be directory below ${h(this.env.targetDirectory)}`;
+    if (!this.fs.isSubDirectory(this.env.cwd, value)) {
+      return `Must be directory below ${h(this.env.cwd)}`;
     }
 
     if (existingArgs.toolchain === "next") {
@@ -80,7 +80,7 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
     if (existingArgs.toolchain === "next") {
       // Artifacts need to be located outside the ./pages directory,
       // or they will be treated as pages.
-      return Promise.resolve(this.env.rel("__generated__").abs);
+      return Promise.resolve("./__generated__");
     }
 
     return Promise.resolve("");
