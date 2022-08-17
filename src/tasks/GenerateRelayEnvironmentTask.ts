@@ -21,7 +21,7 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
   private async addRelayEnvironmentFile() {
     this.updateMessage(this.message + " " + h(this.context.relayEnvFile.rel));
 
-    if (await this.context.fs.doesExist(this.context.relayEnvFile.abs)) {
+    if (this.context.fs.exists(this.context.relayEnvFile.abs)) {
       this.skip("File exists");
       return;
     }

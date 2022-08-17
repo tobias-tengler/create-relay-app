@@ -34,7 +34,7 @@ export class Cra_AddBabelMacroTypeDefinitionsTask extends TaskBase {
 
     this.updateMessage(this.message + " to " + h(reactTypeDefFilepath.rel));
 
-    if (!this.context.fs.doesExist(reactTypeDefFilepath.abs)) {
+    if (!this.context.fs.exists(reactTypeDefFilepath.abs)) {
       throw new Error(`Could not find ${h(reactTypeDefFilepath.rel)}`);
     }
 

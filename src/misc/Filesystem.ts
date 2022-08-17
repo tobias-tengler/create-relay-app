@@ -1,12 +1,37 @@
 import path from "path";
 import fs from "fs/promises";
-import { existsSync } from "fs";
+import { existsSync, lstatSync } from "fs";
 import fsExtra from "fs-extra";
 import glob from "glob";
 
 export class Filesystem {
   getParent(filepath: string): string {
     return path.dirname(filepath);
+  }
+
+  isDirectory(directoryPath: string): boolean {
+    if (!this.exists(directoryPath)) {
+      // If the path does not exist, we check that it doesn't
+      // have a file extension to determine whether it's a
+      // directory path.
+      const ext = path.extname(directoryPath);
+
+      return !ext;
+    }
+
+    return lstatSync(directoryPath).isDirectory();
+  }
+
+  isFile(filePath: string): boolean {
+    if (!this.exists(filePath)) {
+      // If the path does not exist, we check if it has a
+      // file extension to determine whether it's a file or not.
+      const ext = path.extname(filePath);
+
+      return !!ext;
+    }
+
+    return lstatSync(filePath).isFile();
   }
 
   isSubDirectory(parent: string, dir: string): boolean {
@@ -19,7 +44,7 @@ export class Filesystem {
     return fs.copyFile(src, dest);
   }
 
-  doesExist(filepath: string): boolean {
+  exists(filepath: string): boolean {
     return existsSync(filepath);
   }
 
@@ -49,7 +74,7 @@ export class Filesystem {
     while (!!currentDirectory) {
       const filepath = path.join(currentDirectory, filename);
 
-      if (await this.doesExist(filepath)) {
+      if (this.exists(filepath)) {
         return filepath;
       }
 

@@ -21,7 +21,7 @@ export class GenerateGraphQlSchemaFileTask extends TaskBase {
   async run(): Promise<void> {
     this.updateMessage(this.message + " " + h(this.context.schemaFile.rel));
 
-    if (this.context.fs.doesExist(this.context.schemaFile.abs)) {
+    if (this.context.fs.exists(this.context.schemaFile.abs)) {
       this.skip("File exists");
       return;
     }

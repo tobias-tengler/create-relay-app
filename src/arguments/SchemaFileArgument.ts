@@ -50,8 +50,12 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
       return `File needs to end in ${h(graphqlExt)}`;
     }
 
+    if (!this.fs.isFile(value)) {
+      return `Must be a file`;
+    }
+
     if (!this.fs.isSubDirectory(this.env.targetDirectory, value)) {
-      return `Must be directory below ${h(this.env.targetDirectory)}`;
+      return `Must be a file somewhere below ${h(this.env.targetDirectory)}`;
     }
 
     return true;

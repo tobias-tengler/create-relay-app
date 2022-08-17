@@ -39,6 +39,10 @@ export class SrcArgument extends ArgumentBase<"src"> {
       return `Required`;
     }
 
+    if (!this.fs.isDirectory(value)) {
+      return `Must be a directory`;
+    }
+
     if (!this.fs.isSubDirectory(this.env.targetDirectory, value)) {
       return `Must be directory below ${h(this.env.targetDirectory)}`;
     }

@@ -63,7 +63,7 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
 
           const lockFile = path.join(this.env.targetDirectory, "yarn.lock");
 
-          if (this.fs.doesExist(lockFile)) {
+          if (this.fs.exists(lockFile)) {
             // Yarn is installed and the project contains a yarn.lock file.
             return "yarn";
           }
@@ -75,7 +75,7 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
             "pnpm-lock.yaml"
           );
 
-          if (this.fs.doesExist(lockFile)) {
+          if (this.fs.exists(lockFile)) {
             // pnpm is installed and the project contains a pnpm-lock.yml file.
             return "pnpm";
           }

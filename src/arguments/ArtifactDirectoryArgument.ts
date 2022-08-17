@@ -48,6 +48,10 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
       return true;
     }
 
+    if (!this.fs.isDirectory(value)) {
+      return `Must be a directory`;
+    }
+
     if (path.basename(value) !== "__generated__") {
       return `Last directory segment should be called ${h("__generated__")}`;
     }
