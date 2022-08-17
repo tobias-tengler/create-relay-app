@@ -61,7 +61,7 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
     return true;
   }
 
-  async getDefaultValue(
+  getDefaultValue(
     existingArgs: Partial<CliArguments>
   ): Promise<CliArguments["schemaFile"]> {
     const filename = "schema.graphql";
@@ -74,6 +74,6 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
 
     const filepath = path.join(srcPath, filename);
 
-    return this.env.rel(filepath).rel;
+    return Promise.resolve(this.env.rel(filepath).rel);
   }
 }

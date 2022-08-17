@@ -9,8 +9,7 @@ import { ArgumentBase } from "./ArgumentBase.js";
 
 export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory"> {
   public name = "artifactDirectory" as const;
-  public promptMessage =
-    "Select, if needed, a directory to place all Relay artifacts in";
+  public promptMessage = "Optional: Select a directory for all Relay artifacts";
 
   constructor(private fs: Filesystem, private env: Environment) {
     super();
@@ -71,15 +70,15 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
     return true;
   }
 
-  async getDefaultValue(
+  getDefaultValue(
     existingArgs: Partial<CliArguments>
   ): Promise<CliArguments["artifactDirectory"]> {
     if (existingArgs.toolchain === "next") {
       // Artifacts need to be located outside the ./pages directory,
       // or they will be treated as pages.
-      return "./__generated__";
+      return Promise.resolve("./__generated__");
     }
 
-    return "";
+    return Promise.resolve("");
   }
 }

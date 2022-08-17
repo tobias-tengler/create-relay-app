@@ -50,13 +50,13 @@ export class SrcArgument extends ArgumentBase<"src"> {
     return true;
   }
 
-  async getDefaultValue(
+  getDefaultValue(
     existingArgs: Partial<CliArguments>
   ): Promise<CliArguments["src"]> {
     if (existingArgs.toolchain === "next") {
-      return "./";
+      return Promise.resolve("./");
     }
 
-    return "./src";
+    return Promise.resolve("./src");
   }
 }

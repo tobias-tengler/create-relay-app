@@ -17,7 +17,7 @@ export class ToolchainArgument extends ArgumentBase<"toolchain"> {
     command.option(
       flags,
       "the toolchain used to bundle / serve the project",
-      this.parseToolChain
+      (value) => this.parseToolChain(value)
     );
   }
 

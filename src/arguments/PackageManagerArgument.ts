@@ -26,7 +26,7 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
     command.option(
       flags,
       "the package manager to use for installing packages",
-      this.parsePackageManager
+      (value) => this.parsePackageManager(value)
     );
   }
 
@@ -49,7 +49,7 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
     return true;
   }
 
-  async getDefaultValue(
+  getDefaultValue(
     existingArgs: Partial<CliArguments>
   ): Promise<PackageManagerType> {
     try {
@@ -65,7 +65,7 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
 
           if (this.fs.exists(lockFile.abs)) {
             // Yarn is installed and the project contains a yarn.lock file.
-            return "yarn";
+            return Promise.resolve("yarn");
           }
         } catch {
           execSync("pnpm --version", { stdio: "ignore" });
@@ -74,13 +74,13 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
 
           if (this.fs.exists(lockFile.abs)) {
             // pnpm is installed and the project contains a pnpm-lock.yml file.
-            return "pnpm";
+            return Promise.resolve("pnpm");
           }
         }
       }
     } catch {}
 
-    return "npm";
+    return Promise.resolve("npm");
   }
 
   parsePackageManager(rawInput?: string): PackageManagerType | null {
