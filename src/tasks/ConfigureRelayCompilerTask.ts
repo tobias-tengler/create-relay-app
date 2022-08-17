@@ -43,9 +43,9 @@ export class ConfigureRelayCompilerTask extends TaskBase {
       string | string[] | boolean
     >;
 
-    relaySection["src"] = this.context.src.rel;
+    relaySection["src"] = this.context.srcPath.rel;
     relaySection["language"] = this.context.compilerLanguage;
-    relaySection["schema"] = this.context.schemaFile.rel;
+    relaySection["schema"] = this.context.schemaPath.rel;
     relaySection["exclude"] = [
       "**/node_modules/**",
       "**/__mocks__/**",
@@ -59,8 +59,8 @@ export class ConfigureRelayCompilerTask extends TaskBase {
       relaySection["eagerEsModules"] = true;
     }
 
-    if (this.context.artifactDirectory) {
-      relaySection["artifactDirectory"] = this.context.artifactDirectory.rel;
+    if (this.context.artifactPath) {
+      relaySection["artifactDirectory"] = this.context.artifactPath.rel;
     }
 
     packageJson["relay"] = relaySection;

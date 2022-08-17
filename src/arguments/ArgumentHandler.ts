@@ -40,22 +40,11 @@ export class ArgumentHandler {
 
     const cliArgs = program.opts<CliArguments>();
 
-    // File paths specified are relative to the cwd.
-    // We need to resolve them to absolute paths,
-    // otherwise they will be treated as relative to the project directory.
-    const normalizedCliArgs: Partial<CliArguments> = {
-      ...cliArgs,
-      // prettier-ignore
-      schemaFile: this.normalizeRawCliPath(cliArgs.schemaFile, env.cwd, env.targetDirectory),
-      // prettier-ignore
-      src: this.normalizeRawCliPath(cliArgs.src, env.cwd, env.targetDirectory),
-      // prettier-ignore
-      artifactDirectory: this.normalizeRawCliPath(cliArgs.artifactDirectory, env.cwd, env.targetDirectory),
-    };
+    console.log({ cliArgs });
 
-    this.validateArgs(normalizedCliArgs);
+    this.validateArgs(cliArgs);
 
-    return normalizedCliArgs;
+    return cliArgs;
   }
 
   async promptForMissing(
@@ -109,19 +98,5 @@ export class ArgumentHandler {
 
       throw argumentDefinition.getInvalidArgError(value, undefined, valid);
     }
-  }
-
-  private normalizeRawCliPath(
-    input: string | undefined,
-    cwd: string,
-    root: string
-  ): string | undefined {
-    if (!input) {
-      return undefined;
-    }
-
-    const abs = new RelativePath(cwd, input).abs;
-
-    return new RelativePath(root, abs).rel;
   }
 }

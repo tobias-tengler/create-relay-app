@@ -72,10 +72,8 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
       srcPath = "./src";
     }
 
-    const filepath = path.join(this.env.targetDirectory, srcPath, filename);
+    const filepath = path.join(srcPath, filename);
 
-    const relPath = new RelativePath(this.env.targetDirectory, filepath);
-
-    return relPath.rel;
+    return this.env.rel(filepath).rel;
   }
 }

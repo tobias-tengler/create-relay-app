@@ -19,19 +19,19 @@ export class GenerateGraphQlSchemaFileTask extends TaskBase {
   }
 
   async run(): Promise<void> {
-    this.updateMessage(this.message + " " + h(this.context.schemaFile.rel));
+    this.updateMessage(this.message + " " + h(this.context.schemaPath.rel));
 
-    if (this.context.fs.exists(this.context.schemaFile.abs)) {
+    if (this.context.fs.exists(this.context.schemaPath.abs)) {
       this.skip("File exists");
       return;
     }
 
     // todo: handle error
-    this.context.fs.createDirectory(this.context.schemaFile.parentDirectory);
+    this.context.fs.createDirectory(this.context.schemaPath.parentDirectory);
 
     // todo: handle error
     await this.context.fs.writeToFile(
-      this.context.schemaFile.abs,
+      this.context.schemaPath.abs,
       schemaGraphQLContent
     );
   }

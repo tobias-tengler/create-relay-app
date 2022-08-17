@@ -4,6 +4,7 @@ import { EOL } from "os";
 import { BABEL_RELAY_MACRO } from "../../consts.js";
 import { ProjectContext } from "../../misc/ProjectContext.js";
 import { RelativePath } from "../../misc/RelativePath.js";
+import path from "path";
 
 const babelMacroTypeDef = `${EOL}
 declare module "babel-plugin-relay/macro" {
@@ -27,9 +28,8 @@ export class Cra_AddBabelMacroTypeDefinitionsTask extends TaskBase {
       return;
     }
 
-    const reactTypeDefFilepath = new RelativePath(
-      this.context.env.targetDirectory,
-      "src/react-app-env.d.ts"
+    const reactTypeDefFilepath = this.context.env.rel(
+      path.join("src", "react-app-env.d.ts")
     );
 
     this.updateMessage(this.message + " to " + h(reactTypeDefFilepath.rel));

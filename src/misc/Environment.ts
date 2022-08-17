@@ -1,6 +1,7 @@
 import { PACKAGE_FILE } from "../consts.js";
 import { Filesystem } from "./Filesystem.js";
 import { PackageJsonFile } from "./PackageJsonFile.js";
+import { RelativePath } from "./RelativePath.js";
 
 export class Environment {
   constructor(
@@ -25,6 +26,20 @@ export class Environment {
 
     this.packageJson = new PackageJsonFile(packageJsonFilepath, this.fs);
     this.targetDirectory = this.fs.getParent(packageJsonFilepath);
+  }
+
+  rel(relPath: string | undefined): RelativePath {
+    return new RelativePath(this.targetDirectory, relPath);
+  }
+
+  relToTarget(cwdRelPath: string | undefined): RelativePath | undefined {
+    if (!cwdRelPath) {
+      return undefined;
+    }
+
+    const abs = new RelativePath(this.cwd, cwdRelPath).abs;
+
+    return new RelativePath(this.targetDirectory, abs);
   }
 
   ownPackageDirectory: string;

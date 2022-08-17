@@ -34,9 +34,9 @@ export class TypescriptArgument extends ArgumentBase<"typescript"> {
   }
 
   async getDefaultValue(existingArgs: Partial<CliArguments>): Promise<boolean> {
-    const tsconfigFile = path.join(this.env.targetDirectory, TS_CONFIG_FILE);
+    const tsconfigFile = this.env.rel(TS_CONFIG_FILE);
 
-    if (this.fs.exists(tsconfigFile)) {
+    if (this.fs.exists(tsconfigFile.abs)) {
       return true;
     }
 

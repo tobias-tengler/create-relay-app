@@ -61,10 +61,7 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
     }
 
     if (existingArgs.toolchain === "next") {
-      const pagesDirectory = new RelativePath(
-        this.env.targetDirectory,
-        "./pages"
-      );
+      const pagesDirectory = this.env.rel("./pages");
 
       if (this.fs.isSubDirectory(pagesDirectory.abs, value)) {
         return `Can not be under ${h(pagesDirectory.rel)}`;

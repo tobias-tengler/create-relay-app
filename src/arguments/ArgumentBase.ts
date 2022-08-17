@@ -7,6 +7,7 @@ type PromptOptions<TName extends keyof CliArguments> = {
   type: "list" | "confirm" | "input";
   choices?: readonly CliArguments[TName][];
   validate?(input: CliArguments[TName]): true | string;
+  filter?(input: string): CliArguments[TName];
 };
 
 export abstract class ArgumentBase<TName extends keyof CliArguments> {

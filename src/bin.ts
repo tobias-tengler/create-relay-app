@@ -126,6 +126,8 @@ try {
   // Prompt for all of the missing arguments, required to execute the program.
   cliArgs = await argumentHandler.promptForMissing(cliProvidedArgs);
 
+  console.log("final", { cliArgs });
+
   console.log();
 } catch (error) {
   if (error instanceof InvalidArgError) {
@@ -182,7 +184,7 @@ console.log(headline("Next steps"));
 console.log();
 
 // prettier-ignore
-console.log(`1. Replace ${h(context.schemaFile.rel)} with your own GraphQL schema file.`);
+console.log(`1. Replace ${h(context.schemaPath.rel)} with your own GraphQL schema file.`);
 // prettier-ignore
 console.log(`2. Replace the value of the ${h("HTTP_ENDPOINT")} variable in the ${h(context.relayEnvFile.rel)} file.`);
 

@@ -20,10 +20,7 @@ export class Next_ConfigureNextCompilerTask extends TaskBase {
   async run(): Promise<void> {
     const configFilename = "next.config.js";
 
-    const configFile = new RelativePath(
-      this.context.env.targetDirectory,
-      configFilename
-    );
+    const configFile = this.context.env.rel(configFilename);
 
     this.updateMessage(this.message + " in " + h(configFile.rel));
 
@@ -105,7 +102,7 @@ export class Next_ConfigureNextCompilerTask extends TaskBase {
         let relay_ObjProps: t.ObjectProperty[] = [
           t.objectProperty(
             t.identifier("src"),
-            t.stringLiteral(this.context.src.rel)
+            t.stringLiteral(this.context.srcPath.rel)
           ),
           t.objectProperty(
             t.identifier("language"),
@@ -113,11 +110,11 @@ export class Next_ConfigureNextCompilerTask extends TaskBase {
           ),
         ];
 
-        if (this.context.artifactDirectory) {
+        if (this.context.artifactPath) {
           relay_ObjProps.push(
             t.objectProperty(
               t.identifier("artifactDirectory"),
-              t.stringLiteral(this.context.artifactDirectory.rel)
+              t.stringLiteral(this.context.artifactPath.rel)
             )
           );
         }

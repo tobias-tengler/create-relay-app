@@ -22,10 +22,7 @@ export class Vite_ConfigureVitePluginRelayTask extends TaskBase {
     const configFilename =
       "vite.config" + (this.context.args.typescript ? ".ts" : ".js");
 
-    const configFile = new RelativePath(
-      this.context.env.targetDirectory,
-      configFilename
-    );
+    const configFile = this.context.env.rel(configFilename);
 
     this.updateMessage(this.message + " in " + h(configFile.rel));
 

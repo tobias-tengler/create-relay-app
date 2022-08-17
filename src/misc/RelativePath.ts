@@ -5,13 +5,17 @@ export class RelativePath {
   readonly abs: string;
   readonly rel: string;
 
-  constructor(root: string, rel: string) {
+  constructor(root: string, rel?: string) {
     this.root = root;
 
-    if (path.isAbsolute(rel)) {
-      this.abs = rel;
+    if (rel) {
+      if (path.isAbsolute(rel)) {
+        this.abs = rel;
+      } else {
+        this.abs = path.join(this.root, rel);
+      }
     } else {
-      this.abs = path.join(this.root, rel);
+      this.abs = root;
     }
 
     this.rel = prettifyPath(path.relative(this.root, this.abs));

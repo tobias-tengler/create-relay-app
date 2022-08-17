@@ -12,20 +12,19 @@ import { RelativePath } from "./RelativePath.js";
 export class ProjectContext {
   constructor(
     public env: Environment,
-    public args: CliArguments,
+    args: CliArguments,
     public manager: PackageManager,
     public fs: Filesystem
   ) {
-    this.src = new RelativePath(env.targetDirectory, args.src);
-    this.schemaFile = new RelativePath(env.targetDirectory, args.schemaFile);
+    this.args = args;
+
+    this.schemaPath = this.env.rel(args.schemaFile);
+    this.srcPath = this.env.rel(args.src);
 
     if (args.artifactDirectory) {
-      this.artifactDirectory = new RelativePath(
-        env.targetDirectory,
-        args.artifactDirectory
-      );
+      this.artifactPath = this.env.rel(args.artifactDirectory);
     } else {
-      this.artifactDirectory = null;
+      this.artifactPath = null;
     }
 
     this.compilerLanguage = getRelayCompilerLanguage(
@@ -35,9 +34,11 @@ export class ProjectContext {
     this.relayEnvFile = getRelayEnvFilepath(env, args);
   }
 
-  schemaFile: RelativePath;
-  src: RelativePath;
-  artifactDirectory: RelativePath | null;
+  args: Omit<CliArguments, "src" | "schemaFile" | "artifactDirectory">;
+
+  schemaPath: RelativePath;
+  srcPath: RelativePath;
+  artifactPath: RelativePath | null;
   compilerLanguage: RelayCompilerLanguage;
 
   relayEnvFile: RelativePath;
@@ -70,9 +71,9 @@ function getRelayEnvFilepath(
 ): RelativePath {
   const filename = "RelayEnvironment" + (args.typescript ? ".ts" : ".js");
 
-  const relativeDirectory = args.toolchain === "next" ? "./src" : args.src;
+  const srcDirectory = args.toolchain === "next" ? "./src" : args.src;
 
-  const filepath = path.join(relativeDirectory, filename);
+  const filepath = path.join(srcDirectory, filename);
 
-  return new RelativePath(env.targetDirectory, filepath);
+  return env.rel(filepath);
 }

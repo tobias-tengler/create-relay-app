@@ -1,3 +1,5 @@
+import { RelativePath } from "./misc/RelativePath.js";
+
 export const ToolchainOptions = ["cra", "next", "vite"] as const;
 export const PackageManagerOptions = ["npm", "yarn", "pnpm"] as const;
 

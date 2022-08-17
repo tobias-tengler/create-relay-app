@@ -24,10 +24,7 @@ export class Next_AddRelayEnvironmentProvider extends TaskBase {
     const mainFilename =
       "_app" + (this.context.args.typescript ? ".tsx" : ".js");
 
-    const mainFile = new RelativePath(
-      this.context.env.targetDirectory,
-      path.join("pages", mainFilename)
-    );
+    const mainFile = this.context.env.rel(path.join("pages", mainFilename));
 
     this.updateMessage(this.message + " in " + h(mainFile.rel));
 

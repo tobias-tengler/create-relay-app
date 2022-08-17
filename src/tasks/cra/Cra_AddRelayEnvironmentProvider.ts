@@ -27,10 +27,7 @@ export class Cra_AddRelayEnvironmentProvider extends TaskBase {
     const mainFilename =
       "index" + (this.context.args.typescript ? ".tsx" : ".js");
 
-    const mainFile = new RelativePath(
-      this.context.env.targetDirectory,
-      path.join("src", mainFilename)
-    );
+    const mainFile = this.context.env.rel(path.join("src", mainFilename));
 
     this.updateMessage(this.message + " in " + h(mainFile.rel));
 

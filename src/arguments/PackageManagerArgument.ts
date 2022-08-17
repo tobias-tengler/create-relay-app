@@ -61,21 +61,18 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
         try {
           execSync("yarn --version", { stdio: "ignore" });
 
-          const lockFile = path.join(this.env.targetDirectory, "yarn.lock");
+          const lockFile = this.env.rel("yarn.lock");
 
-          if (this.fs.exists(lockFile)) {
+          if (this.fs.exists(lockFile.abs)) {
             // Yarn is installed and the project contains a yarn.lock file.
             return "yarn";
           }
         } catch {
           execSync("pnpm --version", { stdio: "ignore" });
 
-          const lockFile = path.join(
-            this.env.targetDirectory,
-            "pnpm-lock.yaml"
-          );
+          const lockFile = this.env.rel("pnpm-lock.yaml");
 
-          if (this.fs.exists(lockFile)) {
+          if (this.fs.exists(lockFile.abs)) {
             // pnpm is installed and the project contains a pnpm-lock.yml file.
             return "pnpm";
           }

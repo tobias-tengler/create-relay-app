@@ -10,19 +10,17 @@ export class GenerateArtifactDirectoryTask extends TaskBase {
   }
 
   isEnabled(): boolean {
-    return !!this.context.artifactDirectory;
+    return !!this.context.artifactPath;
   }
 
   async run(): Promise<void> {
-    if (!this.context.artifactDirectory) {
+    if (!this.context.artifactPath) {
       return;
     }
 
-    this.updateMessage(
-      this.message + " " + h(this.context.artifactDirectory.rel)
-    );
+    this.updateMessage(this.message + " " + h(this.context.artifactPath.rel));
 
     // todo: handle error
-    this.context.fs.createDirectory(this.context.artifactDirectory.abs);
+    this.context.fs.createDirectory(this.context.artifactPath.abs);
   }
 }
