@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { ChildProcess, exec } from "child_process";
 import { existsSync } from "fs";
-import { runCmd } from "./helpers";
+import { fireCmd, runCmd } from "./helpers";
 
 const TARGET_DIR = "./vite-js";
 const PORT = 4002;
@@ -27,14 +27,13 @@ test.beforeAll(async () => {
 
   await runCmd(`yarn --cwd ${TARGET_DIR} run build`);
 
-  webServerProcess = exec(
+  webServerProcess = fireCmd(
     `yarn --cwd ${TARGET_DIR} run preview -- --port ${PORT}`,
-    (error) => {
-      if (error) {
-        console.log("Failed to preview Vite app");
-      }
-    }
+    { stdio: "inherit" }
   );
+
+  // Give the server some time to come up
+  await new Promise((resolve) => setTimeout(resolve, 5000));
 });
 
 test("Execute Vite/JS graphql request", async ({ page }) => {

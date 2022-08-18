@@ -1,33 +1,28 @@
-import { spawn, SpawnOptionsWithoutStdio } from "child_process";
+import { ChildProcess, spawn, SpawnOptions } from "child_process";
 
-export function runCmd(cmd: string, opt?: SpawnOptionsWithoutStdio) {
+export function runCmd(cmd: string, opt?: SpawnOptions) {
   return new Promise<void>((resolve, reject) => {
     const [executable, ...args] = cmd.split(" ");
 
     const child = spawn(executable, args, {
+      stdio: "ignore",
       ...opt,
       shell: true,
     });
 
     if (child.stdout) {
-      console.log("has stdout");
       child.stdout.setEncoding("utf8");
       child.stdout.on("data", function (data) {
-        console.log("stdout: " + data);
+        console.log(data);
       });
     }
 
     if (child.stderr) {
-      console.log("has stderr");
       child.stderr.setEncoding("utf8");
       child.stderr.on("data", function (data) {
-        console.log("stderr: " + data);
+        console.log(data);
       });
     }
-
-    child.on("close", (code) => {
-      console.log("closed", code);
-    });
 
     child.on("close", (code) => {
       if (code !== 0) {
@@ -38,4 +33,30 @@ export function runCmd(cmd: string, opt?: SpawnOptionsWithoutStdio) {
       resolve();
     });
   });
+}
+
+export function fireCmd(cmd: string, opt?: SpawnOptions): ChildProcess {
+  const [executable, ...args] = cmd.split(" ");
+
+  const child = spawn(executable, args, {
+    stdio: "ignore",
+    ...opt,
+    shell: true,
+  });
+
+  if (child.stdout) {
+    child.stdout.setEncoding("utf8");
+    child.stdout.on("data", function (data) {
+      console.log(data);
+    });
+  }
+
+  if (child.stderr) {
+    child.stderr.setEncoding("utf8");
+    child.stderr.on("data", function (data) {
+      console.log(data);
+    });
+  }
+
+  return child;
 }

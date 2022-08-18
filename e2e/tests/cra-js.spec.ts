@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { ChildProcess, exec, spawn } from "child_process";
 import { existsSync } from "fs";
-import { runCmd } from "./helpers";
+import { fireCmd, runCmd } from "./helpers";
 
 const TARGET_DIR = "./cra-js";
 const PORT = 4000;
@@ -29,31 +29,9 @@ test.beforeAll(async () => {
   // todo: could be that we need to add it to path in CI
   await runCmd(`yarn global add serve`);
 
-  devServerProcess = spawn("serve", ["-s", "./build", "-l", PORT.toString()], {
+  devServerProcess = fireCmd(`serve -s ./build -l ${PORT}`, {
     cwd: TARGET_DIR,
-    // stdio: "inherit",
-    shell: true,
-    env: process.env,
-  });
-
-  if (devServerProcess.stdout) {
-    console.log("has stdout");
-    devServerProcess.stdout.setEncoding("utf8");
-    devServerProcess.stdout.on("data", function (data) {
-      console.log("stdout: " + data);
-    });
-  }
-
-  if (devServerProcess.stderr) {
-    console.log("has stderr");
-    devServerProcess.stderr.setEncoding("utf8");
-    devServerProcess.stderr.on("data", function (data) {
-      console.log("stderr: " + data);
-    });
-  }
-
-  devServerProcess.on("close", (code) => {
-    console.log("closed", code);
+    stdio: "inherit",
   });
 
   // Give the server some time to come up
