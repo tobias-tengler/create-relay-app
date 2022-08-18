@@ -35,7 +35,7 @@ test.beforeAll(async () => {
   await new Promise((resolve) => setTimeout(resolve, 5000));
 });
 
-test.only("Execute NEXT/JS graphql request", async ({ page }) => {
+test("Execute NEXT/JS graphql request", async ({ page }) => {
   await page.route("**/graphql", async (route) => {
     route.fulfill({
       status: 200,
