@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "test": "playwright test"
+    "test": "playwright test",
+    "postinstall": "playwright install --with-deps"
   },
   "devDependencies": {
     "@playwright/test": "^1.25.0"

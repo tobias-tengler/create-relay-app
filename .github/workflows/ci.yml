@@ -30,7 +30,6 @@ jobs:
       - run: yarn install --frozen-lockfile
       - run: yarn build
       - run: yarn --cwd ./e2e install --frozen-lockfile
-      - run: npx -y playwright install --with-deps
       - run: yarn --cwd ./e2e test
       - uses: actions/upload-artifact@v2
         if: ${{ inputs.publishExperimental }}
