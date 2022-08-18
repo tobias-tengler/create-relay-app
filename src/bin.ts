@@ -39,8 +39,10 @@ import { headline, h, importantHeadline, printError } from "./utils/index.js";
 import { ProjectContext } from "./misc/ProjectContext.js";
 import { Environment, MissingPackageJsonError } from "./misc/Environment.js";
 import { Git } from "./misc/Git.js";
+import { CommandRunner } from "./misc/CommandRunner.js";
 
 const fs = new Filesystem();
+const cmdRunner = new CommandRunner();
 
 // We need to determine where our package was installed to,
 // since we later might need to access files from this location.
@@ -105,8 +107,6 @@ try {
   // Get the arguments provided to the program.
   const cliArgs = await argumentHandler.parse(env);
 
-  console.log({ cliArgs });
-
   // todo: this is kind of awkward here
   if (!cliArgs.ignoreGitChanges) {
     const git = new Git();
@@ -122,8 +122,6 @@ try {
   // Prompt for all of the missing arguments, required to execute the program.
   userArgs = await argumentHandler.promptForMissing(cliArgs);
 
-  console.log({ userArgs });
-
   console.log();
 } catch (error) {
   if (error instanceof InvalidArgError) {
@@ -138,7 +136,11 @@ try {
 }
 
 // Instantiate a package manager, based on the user's choice.
-const packageManager = getPackageManger(userArgs.packageManager, env.cwd);
+const packageManager = getPackageManger(
+  userArgs.packageManager,
+  cmdRunner,
+  env.cwd
+);
 
 // Build a context that contains all of the configuration.
 const context = new ProjectContext(env, userArgs, packageManager, fs);
@@ -159,12 +161,15 @@ const runner = new TaskRunner([
   new Next_AddRelayEnvironmentProvider(context),
 ]);
 
+let runnerHadError = false;
+
+runner.onError = () => (runnerHadError = true);
+
 // Execute all of the tasks sequentially.
 try {
   await runner.run();
 } catch {
   console.log();
-  // todo: provide error message
   printError("Some of the tasks failed unexpectedly.");
   exit(1);
 }
@@ -200,3 +205,9 @@ if (context.is("cra")) {
 }
 
 console.log();
+
+// We let the system output anything relevant
+// and only then fail at the end.
+if (runnerHadError) {
+  exit(1);
+}

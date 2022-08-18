@@ -5,6 +5,8 @@ import { TaskBase, TaskSkippedError } from "./TaskBase.js";
 export class TaskRunner {
   constructor(private taskDefs: TaskBase[]) {}
 
+  onError?(): void;
+
   async run(): Promise<void> {
     for (let i = 0; i < this.taskDefs.length; i++) {
       const task = this.taskDefs[i];
@@ -48,6 +50,10 @@ export class TaskRunner {
           console.log();
           console.log("  " + errorMsg);
           console.log();
+        }
+
+        if (this.onError) {
+          this.onError();
         }
       }
     }

@@ -1,9 +1,10 @@
-import { PackageManager, runCommand } from "./PackageManager.js";
+import { CommandRunner } from "../CommandRunner.js";
+import { PackageManager } from "./PackageManager.js";
 
 export class NpmPackageManager implements PackageManager {
   id = "npm" as const;
 
-  constructor(private readonly cwd: string) {}
+  constructor(private readonly cwd: string, private cmdRunner: CommandRunner) {}
 
   addDependency(packages: string | string[]): Promise<void> {
     return this.installDependency(packages, false);
@@ -29,6 +30,6 @@ export class NpmPackageManager implements PackageManager {
       args.push(...packages);
     }
 
-    return runCommand("npm", args, this.cwd);
+    return this.cmdRunner.run("npm", args, this.cwd);
   }
 }
