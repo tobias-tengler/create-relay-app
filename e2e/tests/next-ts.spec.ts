@@ -1,14 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { ChildProcess, exec, spawn } from "child_process";
+import { ChildProcess } from "child_process";
 import { copyFileSync, existsSync } from "fs";
-import {
-  fireCmd,
-  insertTestComponentBelowRelayProvider,
-  runCmd,
-} from "./helpers";
+import { fireCmd, runCmd } from "./helpers";
 
-const TARGET_DIR = "./cra-js";
-const PORT = 4000;
+const TARGET_DIR = "./next-ts";
+const PORT = 4005;
 
 let webServerProcess: ChildProcess;
 
@@ -16,7 +12,7 @@ test.beforeAll(async () => {
   test.setTimeout(180000);
 
   if (!existsSync(TARGET_DIR)) {
-    await runCmd(`yarn create react-app ${TARGET_DIR}`);
+    await runCmd(`yarn create next-app ${TARGET_DIR} --typescript`);
   }
 
   await runCmd(
@@ -24,21 +20,13 @@ test.beforeAll(async () => {
     { cwd: TARGET_DIR }
   );
 
-  copyFileSync(
-    "./assets/cra/TestComponent.jsx",
-    TARGET_DIR + "/src/TestComponent.jsx"
-  );
-
-  const indexPath = TARGET_DIR + "/src/index.js";
-  await insertTestComponentBelowRelayProvider(indexPath, "TestComponent");
+  copyFileSync("./assets/next/test.tsx", TARGET_DIR + "/pages/test.tsx");
 
   await runCmd(`yarn --cwd ${TARGET_DIR} run relay`);
 
   await runCmd(`yarn --cwd ${TARGET_DIR} run build`);
 
-  await runCmd(`yarn global add serve`);
-
-  webServerProcess = fireCmd(`serve -s ./build -l ${PORT}`, {
+  webServerProcess = fireCmd(`yarn start -- -p ${PORT}`, {
     cwd: TARGET_DIR,
     stdio: "inherit",
   });
@@ -47,28 +35,26 @@ test.beforeAll(async () => {
   await new Promise((resolve) => setTimeout(resolve, 5000));
 });
 
-test("Execute CRA/JS graphql request", async ({ page }) => {
+test("Execute NEXT/TS graphql request", async ({ page }) => {
   await page.route("**/graphql", async (route) => {
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ data: { field: "cra-js text" } }),
+      body: JSON.stringify({ data: { field: "next-ts text" } }),
     });
   });
 
-  await page.goto("http://localhost:" + PORT, { waitUntil: "networkidle" });
+  await page.goto("http://localhost:" + PORT + "/test", {
+    waitUntil: "networkidle",
+  });
 
   const innerText = await page.locator("#test-data").innerText();
 
-  await expect(innerText).toEqual("cra-js text");
+  await expect(innerText).toEqual("next-ts text");
 });
 
 test.afterAll(() => {
-  const killed = webServerProcess?.kill();
-
-  if (!killed) {
-    console.log("failed to kill dev server");
-  }
+  webServerProcess?.kill();
 
   // if (existsSync(scaffoldDir)) {
   //   fs.rm(scaffoldDir, { recursive: true });

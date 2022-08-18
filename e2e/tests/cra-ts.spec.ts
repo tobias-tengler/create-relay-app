@@ -10,7 +10,7 @@ import {
 const TARGET_DIR = "./cra-ts";
 const PORT = 4001;
 
-let devServerProcess: ChildProcess;
+let webServerProcess: ChildProcess;
 
 test.beforeAll(async () => {
   test.setTimeout(180000);
@@ -21,7 +21,7 @@ test.beforeAll(async () => {
 
   await runCmd(
     `node ../../dist/bin.js --ignore-git-changes --package-manager yarn -y`,
-    { cwd: TARGET_DIR, stdio: "inherit" }
+    { cwd: TARGET_DIR }
   );
 
   copyFileSync(
@@ -38,7 +38,7 @@ test.beforeAll(async () => {
 
   await runCmd(`yarn global add serve`);
 
-  devServerProcess = fireCmd(`serve -s ./build -l ${PORT}`, {
+  webServerProcess = fireCmd(`serve -s ./build -l ${PORT}`, {
     cwd: TARGET_DIR,
     stdio: "inherit",
   });
@@ -64,7 +64,7 @@ test("Execute CRA/TS graphql request", async ({ page }) => {
 });
 
 test.afterAll(() => {
-  devServerProcess?.kill();
+  webServerProcess?.kill();
 
   // if (existsSync(scaffoldDir)) {
   //   fs.rm(scaffoldDir, { recursive: true });
