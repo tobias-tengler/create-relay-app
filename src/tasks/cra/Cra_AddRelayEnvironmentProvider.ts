@@ -35,8 +35,6 @@ export class Cra_AddRelayEnvironmentProvider extends TaskBase {
 
     const ast = parseAst(code);
 
-    return;
-
     let providerWrapped = false;
 
     traverse.default(ast, {
