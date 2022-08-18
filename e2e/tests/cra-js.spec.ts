@@ -1,7 +1,11 @@
 import { test, expect } from "@playwright/test";
 import { ChildProcess, exec, spawn } from "child_process";
-import { existsSync } from "fs";
-import { fireCmd, runCmd } from "./helpers";
+import { copyFileSync, existsSync } from "fs";
+import {
+  fireCmd,
+  insertTestComponentBelowRelayProvider,
+  runCmd,
+} from "./helpers";
 
 const TARGET_DIR = "./cra-js";
 const PORT = 4000;
@@ -20,13 +24,18 @@ test.beforeAll(async () => {
     { cwd: TARGET_DIR }
   );
 
-  // todo: move testcomponent in
+  copyFileSync(
+    "./assets/cra/TestComponent.jsx",
+    TARGET_DIR + "/src/TestComponent.jsx"
+  );
+
+  const indexPath = TARGET_DIR + "/src/index.js";
+  await insertTestComponentBelowRelayProvider(indexPath, "TestComponent");
 
   await runCmd(`yarn --cwd ${TARGET_DIR} run relay`);
 
   await runCmd(`yarn --cwd ${TARGET_DIR} run build`);
 
-  // todo: could be that we need to add it to path in CI
   await runCmd(`yarn global add serve`);
 
   devServerProcess = fireCmd(`serve -s ./build -l ${PORT}`, {

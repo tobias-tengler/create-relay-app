@@ -1,7 +1,11 @@
 import { test, expect } from "@playwright/test";
 import { ChildProcess, exec } from "child_process";
-import { existsSync } from "fs";
-import { fireCmd, runCmd } from "./helpers";
+import { copyFileSync, existsSync } from "fs";
+import {
+  fireCmd,
+  insertTestComponentBelowRelayProvider,
+  runCmd,
+} from "./helpers";
 
 const TARGET_DIR = "./vite-ts";
 
@@ -22,7 +26,13 @@ test.beforeAll(async () => {
     }
   );
 
-  // todo: move testcomponent in
+  copyFileSync(
+    "./assets/vite/TestComponent.tsx",
+    TARGET_DIR + "/src/TestComponent.tsx"
+  );
+
+  const indexPath = TARGET_DIR + "/src/main.tsx";
+  await insertTestComponentBelowRelayProvider(indexPath, "TestComponent");
 
   await runCmd(`yarn --cwd ${TARGET_DIR} run relay`);
 
