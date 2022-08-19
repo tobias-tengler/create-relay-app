@@ -22,13 +22,13 @@ If you have setup your project using `create-relay-app`, most of the pieces for 
 
 ```tsx
 import { graphql, fetchQuery } from "relay-runtime";
-import { initRelayEnvironment } from "../../src/RelayEnvironment";
+import { initRelayEnvironment } from "../src/RelayEnvironment";
 import type { GetServerSideProps, NextPage } from "next";
 import type { RecordMap } from "relay-runtime/lib/store/RelayStoreTypes";
 import type {
   MyComponentQuery,
   MyComponentQuery$data,
-} from "../../__generated__/MyComponentQuery.graphql";
+} from "../__generated__/MyComponentQuery.graphql";
 
 const query = graphql`
   query MyComponentQuery {

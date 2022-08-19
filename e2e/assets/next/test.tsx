@@ -1,11 +1,11 @@
 import { graphql, fetchQuery } from "relay-runtime";
-import { initRelayEnvironment } from "../../src/RelayEnvironment";
+import { initRelayEnvironment } from "../src/RelayEnvironment";
 import type { GetServerSideProps, NextPage } from "next";
 import type { RecordMap } from "relay-runtime/lib/store/RelayStoreTypes";
 import type {
   testQuery,
   testQuery$data,
-} from "../../__generated__/testQuery.graphql";
+} from "../__generated__/testQuery.graphql";
 
 const query = graphql`
   query testQuery {

@@ -1,5 +1,5 @@
 import { graphql, fetchQuery } from "relay-runtime";
-import { initRelayEnvironment } from "../../src/RelayEnvironment";
+import { initRelayEnvironment } from "../src/RelayEnvironment";
 
 const query = graphql`
   query testQuery {
