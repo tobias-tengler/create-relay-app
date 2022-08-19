@@ -71,6 +71,10 @@ export const getServerSideProps: GetServerSideProps<
       // This is not intended for your component,
       // but it will be used by the _app component
       // to hydrate the Relay store on the client.
+      //
+      // IMPORTANT: The property name needs to be
+      // `initialRecords`, otherwise the _app
+      // component can not extract it.
       initialRecords,
     },
   };

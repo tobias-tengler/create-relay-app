@@ -30,10 +30,19 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
 
     let srcFile: string;
 
+    // todo: split this into toolchain specific tasks.
     if (this.context.args.typescript) {
-      srcFile = "./assets/env_ts";
+      if (this.context.is("next")) {
+        srcFile = "./assets/next-env_ts";
+      } else {
+        srcFile = "./assets/env_ts";
+      }
     } else {
-      srcFile = "./assets/env";
+      if (this.context.is("next")) {
+        srcFile = "./assets/next-env";
+      } else {
+        srcFile = "./assets/env";
+      }
     }
 
     const srcFilepath = path.join(
