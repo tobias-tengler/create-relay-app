@@ -26,7 +26,11 @@ export class InstallNpmDevDependenciesTask extends TaskBase {
       this.message + " " + packages.map((p) => h(p)).join(" ")
     );
 
-    await this.context.manager.addDevDependency(packages);
+    const latestPackages = packages.map((p) =>
+      p.substring(1).includes("@") ? p : p + "@latest"
+    );
+
+    await this.context.manager.addDevDependency(latestPackages);
   }
 
   private getPackages() {
