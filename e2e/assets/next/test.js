@@ -1,39 +1,23 @@
-import { graphql, fetchQuery } from "relay-runtime";
-import { initRelayEnvironment } from "../src/RelayEnvironment";
+import { Suspense } from "react";
+import { useLazyLoadQuery, graphql } from "react-relay";
 
-const query = graphql`
-  query testQuery {
-    field
-  }
-`;
-
-export default function Test({ data }) {
-  return <div id="test-data">{data.field}</div>;
+export default function Test() {
+  return (
+    <Suspense fallback={<div>Loading</div>}>
+      <InnerTestComponent />
+    </Suspense>
+  );
 }
 
-export const getServerSideProps = async () => {
-  // Get a fresh environment.
-  const environment = initRelayEnvironment();
+export const InnerTestComponent = () => {
+  const data = useLazyLoadQuery(
+    graphql`
+      query testQuery {
+        field
+      }
+    `,
+    {}
+  );
 
-  // Execute the query.
-  const observable = fetchQuery(environment, query, {});
-  const data = await observable.toPromise();
-
-  // Get the records that the query added to the store.
-  const initialRecords = environment.getStore().getSource().toJSON();
-
-  return {
-    props: {
-      // Pass the result of the query to your component
-      data: data,
-      // This is not intended for your component,
-      // but it will be used by the _app component
-      // to hydrate the Relay store on the client.
-      //
-      // IMPORTANT: The property name needs to be
-      // `initialRecords`, otherwise the _app
-      // component can not extract it.
-      initialRecords,
-    },
-  };
+  return <div id="test-data">{data.field}</div>;
 };
