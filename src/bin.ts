@@ -204,6 +204,16 @@ if (context.is("cra")) {
   console.log("https://github.com/tobias-tengler/create-relay-app/blob/main/docs/cra-babel-setup.md");
 }
 
+if (context.is("next")) {
+  console.log();
+  console.log(importantHeadline("Important"));
+  console.log();
+  // prettier-ignore
+  console.log(`Follow this guide, if you want to fetch data on the server instead of the client:`);
+  // prettier-ignore
+  console.log("https://github.com/tobias-tengler/create-relay-app/blob/main/docs/next-server-data-fetching.md");
+}
+
 console.log();
 
 // We let the system output anything relevant
