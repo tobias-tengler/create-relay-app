@@ -23,9 +23,9 @@ If you have setup your project using `create-relay-app`, most of the pieces for 
 ```tsx
 import { GetServerSideProps, NextPage } from "next";
 import { graphql, fetchQuery } from "relay-runtime";
-import type { RecordMap } from "relay-runtime/lib/store/RelayStoreTypes";
 import { initRelayEnvironment } from "../../src/RelayEnvironment";
-import {
+import type { RecordMap } from "relay-runtime/lib/store/RelayStoreTypes";
+import type {
   MyComponentQuery,
   MyComponentQuery$data,
 } from "../../__generated__/MyComponentQuery.graphql";
@@ -58,7 +58,7 @@ export const getServerSideProps: GetServerSideProps<
   const environment = initRelayEnvironment();
 
   // Execute the query.
-  const observable = fetchQuery<testQuery>(environment, query, {});
+  const observable = fetchQuery<MyComponentQuery>(environment, query, {});
   const data = await observable.toPromise();
 
   // Get the records that the query added to the store.

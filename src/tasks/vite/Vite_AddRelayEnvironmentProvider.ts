@@ -7,7 +7,10 @@ import { parseAst, printAst } from "../../utils/ast.js";
 import { h } from "../../utils/cli.js";
 import { TaskBase } from "../TaskBase.js";
 import t from "@babel/types";
-import { Cra_AddRelayEnvironmentProvider } from "../cra/Cra_AddRelayEnvironmentProvider.js";
+import {
+  Cra_AddRelayEnvironmentProvider,
+  wrapJsxInRelayProvider,
+} from "../cra/Cra_AddRelayEnvironmentProvider.js";
 
 export class Vite_AddRelayEnvironmentProvider extends TaskBase {
   message: string = "Add " + RELAY_ENV_PROVIDER;
@@ -52,7 +55,7 @@ export class Vite_AddRelayEnvironmentProvider extends TaskBase {
           return;
         }
 
-        Cra_AddRelayEnvironmentProvider.wrapJsxInProvider(
+        wrapJsxInRelayProvider(
           path,
           mainFile.parentDirectory,
           this.context.relayEnvFile.abs

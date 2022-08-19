@@ -55,7 +55,7 @@ export class Cra_AddRelayEnvironmentProvider extends TaskBase {
           return;
         }
 
-        Cra_AddRelayEnvironmentProvider.wrapJsxInProvider(
+        wrapJsxInRelayProvider(
           path,
           mainFile.parentDirectory,
           this.context.relayEnvFile.abs
@@ -75,48 +75,48 @@ export class Cra_AddRelayEnvironmentProvider extends TaskBase {
 
     await this.context.fs.writeToFile(mainFile.abs, updatedCode);
   }
-
-  static wrapJsxInProvider(
-    jsxPath: NodePath<t.JSXElement>,
-    fileDirectory: string,
-    relayEnvPath: string
-  ) {
-    const relativeImportPath = new RelativePath(
-      fileDirectory,
-      removeExtension(relayEnvPath)
-    );
-
-    const envId = insertNamedImport(jsxPath, RELAY_ENV, relativeImportPath.rel);
-
-    const envProviderId = t.jsxIdentifier(
-      insertNamedImport(jsxPath, RELAY_ENV_PROVIDER, REACT_RELAY_PACKAGE).name
-    );
-
-    if (
-      t.isJSXIdentifier(jsxPath.node.openingElement.name) &&
-      jsxPath.node.openingElement.name.name === envProviderId.name
-    ) {
-      throw new TaskSkippedError(
-        `JSX already wrapped with ${h(RELAY_ENV_PROVIDER)}`
-      );
-    }
-
-    // Wrap JSX into RelayEnvironmentProvider.
-    jsxPath.replaceWith(
-      t.jsxElement(
-        t.jsxOpeningElement(envProviderId, [
-          t.jsxAttribute(
-            t.jsxIdentifier("environment"),
-            t.jsxExpressionContainer(envId)
-          ),
-        ]),
-        t.jsxClosingElement(envProviderId),
-        [jsxPath.node]
-      )
-    );
-  }
 }
 
-function removeExtension(filename: string): string {
+export function wrapJsxInRelayProvider(
+  jsxPath: NodePath<t.JSXElement>,
+  fileDirectory: string,
+  relayEnvPath: string
+) {
+  const relativeImportPath = new RelativePath(
+    fileDirectory,
+    removeExtension(relayEnvPath)
+  );
+
+  const envId = insertNamedImport(jsxPath, RELAY_ENV, relativeImportPath.rel);
+
+  const envProviderId = t.jsxIdentifier(
+    insertNamedImport(jsxPath, RELAY_ENV_PROVIDER, REACT_RELAY_PACKAGE).name
+  );
+
+  if (
+    t.isJSXIdentifier(jsxPath.node.openingElement.name) &&
+    jsxPath.node.openingElement.name.name === envProviderId.name
+  ) {
+    throw new TaskSkippedError(
+      `JSX already wrapped with ${h(RELAY_ENV_PROVIDER)}`
+    );
+  }
+
+  // Wrap JSX into RelayEnvironmentProvider.
+  jsxPath.replaceWith(
+    t.jsxElement(
+      t.jsxOpeningElement(envProviderId, [
+        t.jsxAttribute(
+          t.jsxIdentifier("environment"),
+          t.jsxExpressionContainer(envId)
+        ),
+      ]),
+      t.jsxClosingElement(envProviderId),
+      [jsxPath.node]
+    )
+  );
+}
+
+export function removeExtension(filename: string): string {
   return filename.substring(0, filename.lastIndexOf(".")) || filename;
 }

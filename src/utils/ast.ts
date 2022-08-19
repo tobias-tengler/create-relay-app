@@ -1,8 +1,8 @@
 import generate from "@babel/generator";
 import { ParseResult, parse } from "@babel/parser";
 import { NodePath } from "@babel/traverse";
-import { format } from "prettier";
 import t from "@babel/types";
+import { format } from "prettier";
 
 export function parseAst(code: string): ParseResult<t.File> {
   return parse(code, {

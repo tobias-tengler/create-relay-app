@@ -1,13 +1,20 @@
 import traverse from "@babel/traverse";
 import path from "path";
-import { env } from "process";
-import { RELAY_ENV_PROVIDER } from "../../consts.js";
+import { REACT_RELAY_PACKAGE, RELAY_ENV_PROVIDER } from "../../consts.js";
 import { ProjectContext } from "../../misc/ProjectContext.js";
 import { RelativePath } from "../../misc/RelativePath.js";
-import { parseAst, printAst } from "../../utils/ast.js";
+import { insertNamedImport, parseAst, printAst } from "../../utils/ast.js";
 import { h } from "../../utils/cli.js";
-import { Cra_AddRelayEnvironmentProvider } from "../cra/Cra_AddRelayEnvironmentProvider.js";
-import { TaskBase } from "../TaskBase.js";
+import { TaskBase, TaskSkippedError } from "../TaskBase.js";
+import t from "@babel/types";
+import { removeExtension } from "../cra/Cra_AddRelayEnvironmentProvider.js";
+
+const envCreation = `
+const environment = useMemo(
+    () => initRelayEnvironment(pageProps.initialRecords),
+    [pageProps.initialRecords]
+);
+`;
 
 export class Next_AddRelayEnvironmentProvider extends TaskBase {
   message: string = "Add " + RELAY_ENV_PROVIDER;
@@ -32,6 +39,8 @@ export class Next_AddRelayEnvironmentProvider extends TaskBase {
 
     const ast = parseAst(code);
 
+    const envCreationAst = parseAst(envCreation).program.body[0];
+
     let providerWrapped = false;
 
     traverse.default(ast, {
@@ -41,10 +50,42 @@ export class Next_AddRelayEnvironmentProvider extends TaskBase {
           return;
         }
 
-        Cra_AddRelayEnvironmentProvider.wrapJsxInProvider(
-          path,
+        insertNamedImport(path, "useMemo", "react");
+
+        path.parentPath.insertBefore(envCreationAst);
+
+        const relativeImportPath = new RelativePath(
           mainFile.parentDirectory,
-          this.context.relayEnvFile.abs
+          removeExtension(this.context.relayEnvFile.abs)
+        );
+
+        insertNamedImport(path, "initRelayEnvironment", relativeImportPath.rel);
+
+        const envProviderId = t.jsxIdentifier(
+          insertNamedImport(path, RELAY_ENV_PROVIDER, REACT_RELAY_PACKAGE).name
+        );
+
+        if (
+          t.isJSXIdentifier(path.node.openingElement.name) &&
+          path.node.openingElement.name.name === envProviderId.name
+        ) {
+          throw new TaskSkippedError(
+            `JSX already wrapped with ${h(RELAY_ENV_PROVIDER)}`
+          );
+        }
+
+        // Wrap JSX into RelayEnvironmentProvider.
+        path.replaceWith(
+          t.jsxElement(
+            t.jsxOpeningElement(envProviderId, [
+              t.jsxAttribute(
+                t.jsxIdentifier("environment"),
+                t.jsxExpressionContainer(t.identifier("environment"))
+              ),
+            ]),
+            t.jsxClosingElement(envProviderId),
+            [path.node]
+          )
         );
 
         providerWrapped = true;
