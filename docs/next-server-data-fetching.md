@@ -21,9 +21,9 @@ However this will force the page component to render on the client. If you want 
 If you have setup your project using `create-relay-app`, most of the pieces for this should already be in place and you only need to add a `getServerSideProps` or `getStaticProps` to your component file:
 
 ```tsx
-import { GetServerSideProps, NextPage } from "next";
 import { graphql, fetchQuery } from "relay-runtime";
 import { initRelayEnvironment } from "../../src/RelayEnvironment";
+import type { GetServerSideProps, NextPage } from "next";
 import type { RecordMap } from "relay-runtime/lib/store/RelayStoreTypes";
 import type {
   MyComponentQuery,
@@ -37,7 +37,7 @@ const query = graphql`
 `;
 
 type Props = {
-  data: testQuery$data;
+  data: MyComponentQuery$data;
 };
 
 // Notice how we are not using PropsWithRecords<Props>,
