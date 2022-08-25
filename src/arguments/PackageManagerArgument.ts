@@ -52,35 +52,30 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
   getDefaultValue(
     existingArgs: Partial<CliArguments>
   ): Promise<PackageManagerType> {
-    try {
-      const inferred = inferPackageManager();
+    const inferred = inferPackageManager();
 
-      // If we have the default package manager,
-      // we do another round of checks on the project directory.
-      if (inferred === "npm") {
-        try {
-          execSync("yarn --version", { stdio: "ignore" });
+    const yarnLockFile = this.env.rel("yarn.lock");
+    const pnpmLockFile = this.env.rel("pnpm-lock.yaml");
 
-          const lockFile = this.env.rel("yarn.lock");
+    if (inferred !== "yarn" && this.fs.exists(yarnLockFile.abs)) {
+      try {
+        execSync("yarn --version", { stdio: "ignore" });
 
-          if (this.fs.exists(lockFile.abs)) {
-            // Yarn is installed and the project contains a yarn.lock file.
-            return Promise.resolve("yarn");
-          }
-        } catch {
-          execSync("pnpm --version", { stdio: "ignore" });
+        // Project has a yarn.lock file and yarn is installed.
+        return Promise.resolve("yarn");
+      } catch {}
+    }
 
-          const lockFile = this.env.rel("pnpm-lock.yaml");
+    if (inferred !== "pnpm" && this.fs.exists(pnpmLockFile.abs)) {
+      try {
+        execSync("pnpm --version", { stdio: "ignore" });
 
-          if (this.fs.exists(lockFile.abs)) {
-            // pnpm is installed and the project contains a pnpm-lock.yml file.
-            return Promise.resolve("pnpm");
-          }
-        }
-      }
-    } catch {}
+        // Project has a pnpm-lock.yaml file and pnpm is installed.
+        return Promise.resolve("pnpm");
+      } catch {}
+    }
 
-    return Promise.resolve("npm");
+    return Promise.resolve(inferred);
   }
 
   parsePackageManager(rawInput?: string): PackageManagerType | null {

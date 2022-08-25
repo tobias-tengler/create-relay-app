@@ -29,12 +29,12 @@ export class ConfigureEolOfArtifactsTask extends TaskBase {
 
     const gitAttributesExpression = artifactFilePattern + " auto eol=lf";
 
-    if (!(await this.context.fs.exists(gitAttributesPath.abs))) {
+    if (!this.context.fs.exists(gitAttributesPath.abs)) {
       // .gitattributes does not exist - we create it.
 
       this.context.fs.writeToFile(
         gitAttributesPath.abs,
-        gitAttributesExpression
+        gitAttributesExpression + EOL
       );
     } else {
       // .gitattributes exist - we check if our expression exists.
@@ -51,7 +51,7 @@ export class ConfigureEolOfArtifactsTask extends TaskBase {
 
       await this.context.fs.appendToFile(
         gitAttributesPath.abs,
-        EOL + gitAttributesExpression
+        EOL + gitAttributesExpression + EOL
       );
     }
   }
