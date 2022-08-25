@@ -5,6 +5,7 @@ export * from "./ConfigureRelayCompilerTask.js";
 export * from "./GenerateArtifactDirectoryTask.js";
 export * from "./GenerateGraphQlSchemaFileTask.js";
 export * from "./GenerateRelayEnvironmentTask.js";
+export * from "./ConfigureEolOfArtifactsTask.js";
 export * from "./cra/Cra_AddBabelMacroTypeDefinitionsTask.js";
 export * from "./cra/Cra_AddRelayEnvironmentProvider.js";
 export * from "./vite/Vite_ConfigureVitePluginRelayTask.js";

@@ -33,6 +33,7 @@ import {
   Cra_AddRelayEnvironmentProvider,
   Vite_AddRelayEnvironmentProvider,
   Next_AddRelayEnvironmentProvider,
+  ConfigureEolOfArtifactsTask,
 } from "./tasks/index.js";
 import { CliArguments } from "./types.js";
 import { headline, h, importantHeadline, printError } from "./utils/index.js";
@@ -153,6 +154,7 @@ const runner = new TaskRunner([
   new GenerateRelayEnvironmentTask(context),
   new GenerateGraphQlSchemaFileTask(context),
   new GenerateArtifactDirectoryTask(context),
+  new ConfigureEolOfArtifactsTask(context),
   new Cra_AddBabelMacroTypeDefinitionsTask(context),
   new Vite_ConfigureVitePluginRelayTask(context),
   new Next_ConfigureNextCompilerTask(context),
