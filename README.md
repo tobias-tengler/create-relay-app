@@ -42,6 +42,8 @@ Contrary to many existing tools that aim to solve similiar use cases, this proje
 npm/yarn/pnpm create @tobiastengler/relay-app@latest
 ```
 
+4. Follow the displayed _Next steps_ to complete the setup (You can also find them [here](./docs/steps-after-setup.md))
+
 > Note: We are working on getting the `create-relay-app` name!
 
 This will prompt you for a bunch of questions around your project setup. If you do not want to specify these options interactively, you can also specify them through the [CLI arguments](./docs/cli-arguments.md). Passing `-y` will [infer all arguments](./docs/default-values.md) based on your project.
