@@ -44,6 +44,18 @@ export class ProjectContext {
 
   relayEnvFile: RelativePath;
 
+  get gitAttributesFile() {
+    return this.env.rel(".gitattributes");
+  }
+
+  get artifactExtension() {
+    if (this.args.typescript) {
+      return ".graphql.ts";
+    } else {
+      return ".graphql.js";
+    }
+  }
+
   is(toolchain: ToolchainType): boolean {
     return this.args.toolchain === toolchain;
   }

@@ -93,6 +93,7 @@ export function wrapJsxInRelayProvider(
     insertNamedImport(jsxPath, RELAY_ENV_PROVIDER, REACT_RELAY_PACKAGE).name
   );
 
+  // todo: check if the provider exists anywhere in the tree instead
   if (
     t.isJSXIdentifier(jsxPath.node.openingElement.name) &&
     jsxPath.node.openingElement.name.name === envProviderId.name

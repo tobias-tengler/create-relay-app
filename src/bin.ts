@@ -187,6 +187,8 @@ console.log();
 console.log(`1. Replace ${h(context.schemaPath.rel)} with your own GraphQL schema file.`);
 // prettier-ignore
 console.log(`2. Replace the value of the ${h("HTTP_ENDPOINT")} variable in the ${h(context.relayEnvFile.rel)} file.`);
+// prettier-ignore
+console.log(`3. Ignore ${h(context.artifactExtension)} files in your linter / formatter configuration (ESLint, prettier, etc.).`)
 
 // Create React app comes with some annoyances, so we warn the user about it,
 // and provide possible solutions that can be manually implemented.

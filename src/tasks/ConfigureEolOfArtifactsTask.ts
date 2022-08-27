@@ -15,19 +15,11 @@ export class ConfigureEolOfArtifactsTask extends TaskBase {
   }
 
   async run(): Promise<void> {
-    const gitAttributesPath = this.context.env.rel(".gitattributes");
+    const gitAttributesPath = this.context.gitAttributesFile;
 
     this.updateMessage(this.message + " in " + h(gitAttributesPath.rel));
 
-    let artifactFilePattern: string;
-
-    if (this.context.args.typescript) {
-      artifactFilePattern = "*.graphql.ts";
-    } else {
-      artifactFilePattern = "*.graphql.js";
-    }
-
-    const gitAttributesExpression = artifactFilePattern + " auto eol=lf";
+    const gitAttributesExpression = `*${this.context.artifactExtension} auto eol=lf`;
 
     if (!this.context.fs.exists(gitAttributesPath.abs)) {
       // .gitattributes does not exist - we create it.

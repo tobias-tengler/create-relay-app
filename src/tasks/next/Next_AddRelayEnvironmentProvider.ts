@@ -65,6 +65,7 @@ export class Next_AddRelayEnvironmentProvider extends TaskBase {
           insertNamedImport(path, RELAY_ENV_PROVIDER, REACT_RELAY_PACKAGE).name
         );
 
+        // todo: check if it's anywhere in the JSX
         if (
           t.isJSXIdentifier(path.node.openingElement.name) &&
           path.node.openingElement.name.name === envProviderId.name

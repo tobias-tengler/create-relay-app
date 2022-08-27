@@ -90,7 +90,7 @@ export class Vite_ConfigureVitePluginRelayTask extends TaskBase {
             (p) => t.isIdentifier(p) && p.name === relayImportId.name
           )
         ) {
-          this.skip("Plugin already configured");
+          this.skip("Already configured");
           return;
         }
 

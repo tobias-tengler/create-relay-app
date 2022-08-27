@@ -22,11 +22,6 @@ export class Cra_AddBabelMacroTypeDefinitionsTask extends TaskBase {
   }
 
   async run(): Promise<void> {
-    if (!this.context.is("cra") && !this.context.args.typescript) {
-      this.skip("Not a Typescript Create React App project");
-      return;
-    }
-
     const reactTypeDefFilepath = this.context.env.rel(
       path.join("src", "react-app-env.d.ts")
     );
@@ -42,7 +37,7 @@ export class Cra_AddBabelMacroTypeDefinitionsTask extends TaskBase {
     );
 
     if (typeDefContent.includes('declare module "babel-plugin-relay/macro"')) {
-      this.skip("Type definitions already exist");
+      this.skip("Already exists");
       return;
     }
 
