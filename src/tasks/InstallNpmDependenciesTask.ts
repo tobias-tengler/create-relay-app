@@ -1,5 +1,5 @@
 import { TaskBase } from "./TaskBase.js";
-import { REACT_RELAY_PACKAGE } from "../consts.js";
+import { GRAPHQL_WS_PACKAGE, REACT_RELAY_PACKAGE } from "../consts.js";
 import { h } from "../utils/cli.js";
 import { ProjectContext } from "../misc/ProjectContext.js";
 
@@ -21,6 +21,10 @@ export class InstallNpmDependenciesTask extends TaskBase {
     }
 
     const packages = [REACT_RELAY_PACKAGE];
+
+    if (this.context.args.withSubscriptions) {
+      packages.push(GRAPHQL_WS_PACKAGE);
+    }
 
     this.updateMessage(
       this.message + " " + packages.map((p) => h(p)).join(" ")

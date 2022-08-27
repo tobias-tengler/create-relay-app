@@ -11,6 +11,7 @@ export type RelayCompilerLanguage = "javascript" | "typescript" | "flow";
 export type CliArguments = {
   toolchain: ToolchainType;
   typescript: boolean;
+  withSubscriptions: boolean;
   schemaFile: string;
   src: string;
   artifactDirectory: string;

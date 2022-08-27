@@ -12,6 +12,7 @@ import {
   SrcArgument,
   ToolchainArgument,
   TypescriptArgument,
+  WithSubscriptionsArgument,
 } from "./arguments/index.js";
 import { BABEL_RELAY_MACRO, PACKAGE_FILE } from "./consts.js";
 import { Filesystem } from "./misc/Filesystem.js";
@@ -98,6 +99,7 @@ const argumentHandler = new ArgumentHandler([
   new SrcArgument(fs, env),
   new SchemaFileArgument(fs, env),
   new ArtifactDirectoryArgument(fs, env),
+  new WithSubscriptionsArgument(),
   new PackageManagerArgument(fs, env),
 ]);
 
