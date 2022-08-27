@@ -1,16 +1,10 @@
-import traverse from "@babel/traverse";
 import path from "path";
 import { RELAY_ENV_PROVIDER } from "../../consts.js";
 import { ProjectContext } from "../../misc/ProjectContext.js";
-import { RelativePath } from "../../misc/RelativePath.js";
 import { parseAst, printAst } from "../../utils/ast.js";
 import { h } from "../../utils/cli.js";
 import { TaskBase } from "../TaskBase.js";
-import t from "@babel/types";
-import {
-  Cra_AddRelayEnvironmentProvider,
-  wrapJsxInRelayProvider,
-} from "../cra/Cra_AddRelayEnvironmentProvider.js";
+import { configureRelayProviderInReactDomRender } from "../cra/Cra_AddRelayEnvironmentProvider.js";
 
 export class Vite_AddRelayEnvironmentProvider extends TaskBase {
   message: string = "Add " + RELAY_ENV_PROVIDER;
@@ -35,41 +29,11 @@ export class Vite_AddRelayEnvironmentProvider extends TaskBase {
 
     const ast = parseAst(code);
 
-    let providerWrapped = false;
-
-    traverse.default(ast, {
-      JSXElement: (path) => {
-        if (providerWrapped) {
-          return;
-        }
-
-        const parent = path.parentPath.node;
-
-        // Find ReactDOM.render(...)
-        if (
-          !t.isCallExpression(parent) ||
-          !t.isMemberExpression(parent.callee) ||
-          !t.isIdentifier(parent.callee.property) ||
-          parent.callee.property.name !== "render"
-        ) {
-          return;
-        }
-
-        wrapJsxInRelayProvider(
-          path,
-          mainFile.parentDirectory,
-          this.context.relayEnvFile.abs
-        );
-
-        providerWrapped = true;
-
-        path.skip();
-      },
-    });
-
-    if (!providerWrapped) {
-      throw new Error("Could not find JSX being passed to ReactDOM.render");
-    }
+    configureRelayProviderInReactDomRender(
+      ast,
+      mainFile,
+      this.context.relayEnvFile
+    );
 
     const updatedCode = printAst(ast, code);
 

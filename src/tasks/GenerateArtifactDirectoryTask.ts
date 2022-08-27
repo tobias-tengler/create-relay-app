@@ -20,6 +20,11 @@ export class GenerateArtifactDirectoryTask extends TaskBase {
 
     this.updateMessage(this.message + " " + h(this.context.artifactPath.rel));
 
+    if (this.context.fs.exists(this.context.artifactPath.abs)) {
+      this.skip("Directory exists");
+      return;
+    }
+
     // todo: handle error
     this.context.fs.createDirectory(this.context.artifactPath.abs);
   }

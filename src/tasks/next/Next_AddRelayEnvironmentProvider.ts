@@ -7,7 +7,11 @@ import { insertNamedImport, parseAst, printAst } from "../../utils/ast.js";
 import { h } from "../../utils/cli.js";
 import { TaskBase, TaskSkippedError } from "../TaskBase.js";
 import t from "@babel/types";
-import { removeExtension } from "../cra/Cra_AddRelayEnvironmentProvider.js";
+import {
+  removeExtension,
+  hasRelayProvider,
+  wrapJsxInRelayProvider,
+} from "../cra/Cra_AddRelayEnvironmentProvider.js";
 
 const envCreation = `
 const environment = useMemo(
@@ -50,9 +54,13 @@ export class Next_AddRelayEnvironmentProvider extends TaskBase {
           return;
         }
 
-        insertNamedImport(path, "useMemo", "react");
+        const isProviderConfigured = hasRelayProvider(path);
 
-        path.parentPath.insertBefore(envCreationAst);
+        if (isProviderConfigured) {
+          throw new TaskSkippedError("Already added");
+        }
+
+        insertNamedImport(path, "useMemo", "react");
 
         const relativeImportPath = new RelativePath(
           mainFile.parentDirectory,
@@ -61,32 +69,17 @@ export class Next_AddRelayEnvironmentProvider extends TaskBase {
 
         insertNamedImport(path, "initRelayEnvironment", relativeImportPath.rel);
 
+        // Insert the useMemo creating the environment in the function body.
+        path.parentPath.insertBefore(envCreationAst);
+
         const envProviderId = t.jsxIdentifier(
           insertNamedImport(path, RELAY_ENV_PROVIDER, REACT_RELAY_PACKAGE).name
         );
 
-        // todo: check if it's anywhere in the JSX
-        if (
-          t.isJSXIdentifier(path.node.openingElement.name) &&
-          path.node.openingElement.name.name === envProviderId.name
-        ) {
-          throw new TaskSkippedError(
-            `JSX already wrapped with ${h(RELAY_ENV_PROVIDER)}`
-          );
-        }
-
-        // Wrap JSX into RelayEnvironmentProvider.
-        path.replaceWith(
-          t.jsxElement(
-            t.jsxOpeningElement(envProviderId, [
-              t.jsxAttribute(
-                t.jsxIdentifier("environment"),
-                t.jsxExpressionContainer(t.identifier("environment"))
-              ),
-            ]),
-            t.jsxClosingElement(envProviderId),
-            [path.node]
-          )
+        wrapJsxInRelayProvider(
+          path,
+          envProviderId,
+          t.identifier("environment")
         );
 
         providerWrapped = true;
