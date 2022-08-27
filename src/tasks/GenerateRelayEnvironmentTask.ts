@@ -77,7 +77,7 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
     b.addLine();
 
     // Add fetchFn
-    let fetchFn = `const fetchFn = async (request, variables) => {
+    let fetchFn = `const fetchFn: FetchFunction = async (request, variables) => {
       const resp = await fetch(${HTTP_ENDPOINT}, {
         method: "POST",
         headers: {
@@ -94,8 +94,9 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
       return await resp.json();
     };`;
 
-    if (this.context.args.typescript) {
-      fetchFn = fetchFn.replace("fetchFn", "fetchFn: FetchFunction");
+    if (!this.context.args.typescript) {
+      // Remove Typescript type
+      fetchFn = fetchFn.replace("fetchFn: FetchFunction", "fetchFn");
     }
 
     b.addLine(fetchFn);
@@ -169,7 +170,7 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
 
     // Export environment
     if (this.context.is("next")) {
-      b.addLine(`let relayEnvironment: Environment | undefined;
+      let initEnv = `let relayEnvironment: Environment | undefined;
 
         export function initRelayEnvironment(initialRecords?: RecordMap) {
           const environment = relayEnvironment ?? createRelayEnvironment();
@@ -192,7 +193,17 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
           }
 
           return relayEnvironment;
-        }`);
+        }`;
+
+      if (!this.context.args.typescript) {
+        // Remove Typescript type
+        initEnv = initEnv.replace(
+          "initialRecords?: RecordMap",
+          "initialRecords"
+        );
+      }
+
+      b.addLine(initEnv);
     } else {
       b.addLine(`export const RelayEnvironment = createRelayEnvironment();`);
     }
