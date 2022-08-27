@@ -5,4 +5,4 @@ export * from "./SchemaFileArgument.js";
 export * from "./SrcArgument.js";
 export * from "./ToolchainArgument.js";
 export * from "./TypescriptArgument.js";
-export * from "./WithSubscriptionsArgument.js";
+export * from "./SubscriptionsArgument.js";

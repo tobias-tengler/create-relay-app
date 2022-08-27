@@ -22,7 +22,7 @@ export class InstallNpmDependenciesTask extends TaskBase {
 
     const packages = [REACT_RELAY_PACKAGE];
 
-    if (this.context.args.withSubscriptions) {
+    if (this.context.args.subscriptions) {
       packages.push(GRAPHQL_WS_PACKAGE);
     }
 

@@ -2,19 +2,14 @@ import { Command } from "commander";
 import { CliArguments } from "../types.js";
 import { ArgumentBase } from "./ArgumentBase.js";
 
-export class WithSubscriptionsArgument extends ArgumentBase<"withSubscriptions"> {
-  public name = "withSubscriptions" as const;
+export class SubscriptionsArgument extends ArgumentBase<"subscriptions"> {
+  public name = "subscriptions" as const;
   public promptMessage = "Do you want to setup Subscriptions";
-
-  constructor() {
-    super();
-    this.cliArg = "--with-subscriptions";
-  }
 
   registerCliOption(command: Command): void {
     const flags = this.getCliFlags();
 
-    command.option(flags, "setup subscriptions");
+    command.option(flags, "use subscriptions");
   }
 
   promptForValue(existingArgs: Partial<CliArguments>): Promise<boolean> {
