@@ -3,7 +3,7 @@ import { dim } from "../utils/cli.js";
 import { TaskBase, TaskSkippedError } from "./TaskBase.js";
 
 export class TaskRunner {
-  constructor(private taskDefs: TaskBase[]) {}
+  constructor(private taskDefs: (false | TaskBase)[]) {}
 
   onError?(): void;
 
@@ -11,7 +11,7 @@ export class TaskRunner {
     for (let i = 0; i < this.taskDefs.length; i++) {
       const task = this.taskDefs[i];
 
-      if (!task.isEnabled()) {
+      if (!task || !task.isEnabled()) {
         continue;
       }
 

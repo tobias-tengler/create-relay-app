@@ -105,6 +105,9 @@ const argumentHandler = new ArgumentHandler([
   new PackageManagerArgument(fs, env),
 ]);
 
+const git = new Git();
+const isGitRepo = await git.isGitRepository(env.cwd);
+
 let userArgs: CliArguments;
 
 // Try to parse the CLI arguments
@@ -112,9 +115,7 @@ try {
   // Get the arguments provided to the program.
   const cliArgs = await argumentHandler.parse(env);
 
-  // todo: this is kind of awkward here
-  if (!cliArgs.ignoreGitChanges) {
-    const git = new Git();
+  if (isGitRepo && !cliArgs.ignoreGitChanges) {
     const hasUnsavedChanges = await git.hasUnsavedChanges(env.cwd);
 
     if (hasUnsavedChanges) {
@@ -158,12 +159,12 @@ const runner = new TaskRunner([
   new GenerateRelayEnvironmentTask(context),
   new GenerateGraphQlSchemaFileTask(context),
   new GenerateArtifactDirectoryTask(context),
-  new ConfigureEolOfArtifactsTask(context),
+  isGitRepo && new ConfigureEolOfArtifactsTask(context),
   new Cra_AddBabelMacroTypeDefinitionsTask(context),
-  new Vite_ConfigureVitePluginRelayTask(context),
-  new Next_ConfigureNextCompilerTask(context),
   new Cra_AddRelayEnvironmentProvider(context),
+  new Vite_ConfigureVitePluginRelayTask(context),
   new Vite_AddRelayEnvironmentProvider(context),
+  new Next_ConfigureNextCompilerTask(context),
   new Next_AddRelayEnvironmentProvider(context),
 ]);
 
