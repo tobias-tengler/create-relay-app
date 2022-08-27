@@ -35,6 +35,8 @@ import {
   Vite_AddRelayEnvironmentProvider,
   Next_AddRelayEnvironmentProvider,
   ConfigureEolOfArtifactsTask,
+  HTTP_ENDPOINT,
+  WEBSOCKET_ENDPOINT,
 } from "./tasks/index.js";
 import { CliArguments } from "./types.js";
 import { headline, h, importantHeadline, printError } from "./utils/index.js";
@@ -187,8 +189,12 @@ console.log();
 
 // prettier-ignore
 console.log(`1. Replace ${h(context.schemaPath.rel)} with your own GraphQL schema file.`);
+
 // prettier-ignore
-console.log(`2. Replace the value of the ${h("HTTP_ENDPOINT")} variable in the ${h(context.relayEnvFile.rel)} file.`);
+const endpoints = h(HTTP_ENDPOINT) + (!context.args.subscriptions ? "" : " / " + h(WEBSOCKET_ENDPOINT))
+// prettier-ignore
+console.log(`2. Replace the value of the ${endpoints} variable in the ${h(context.relayEnvFile.rel)} file.`);
+
 // prettier-ignore
 console.log(`3. Ignore ${h(context.artifactExtension)} files in your linter / formatter configuration (ESLint, prettier, etc.).`)
 

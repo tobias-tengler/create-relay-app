@@ -1,8 +1,10 @@
-import path from "path";
 import { TaskBase } from "./TaskBase.js";
 import { h, prettifyCode } from "../utils/index.js";
 import { ProjectContext } from "../misc/ProjectContext.js";
 import { EOL } from "os";
+
+export const HTTP_ENDPOINT = "HTTP_ENDPOINT";
+export const WEBSOCKET_ENDPOINT = "WEBSOCKET_ENDPOINT";
 
 export class GenerateRelayEnvironmentTask extends TaskBase {
   message: string = "Generate Relay environment";
@@ -57,10 +59,10 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
     b.addLine();
 
     // Add configurations
-    b.addLine(`const HTTP_ENDPOINT = "http://localhost:5000/graphql";`);
+    b.addLine(`const ${HTTP_ENDPOINT} = "http://localhost:5000/graphql";`);
 
     if (this.context.args.subscriptions) {
-      b.addLine(`const WEBSOCKET_ENDPOINT = "ws://localhost:5000/graphql";`);
+      b.addLine(`const ${WEBSOCKET_ENDPOINT} = "ws://localhost:5000/graphql";`);
     }
 
     b.addLine();
@@ -68,7 +70,7 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
     // Add fetchFn
     if (this.context.args.typescript) {
       b.addLine(`const fetchFn: FetchFunction = async (request, variables) => {
-        const resp = await fetch(HTTP_ENDPOINT, {
+        const resp = await fetch(${HTTP_ENDPOINT}, {
           method: "POST",
           headers: {
             Accept: "application/json",
@@ -85,7 +87,7 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
       };`);
     } else {
       b.addLine(`const fetchFn = async (request, variables) => {
-        const resp = await fetch(HTTP_ENDPOINT, {
+        const resp = await fetch({HTTP_ENDPOINT}, {
           method: "POST",
           headers: {
             Accept: "application/json",
@@ -107,7 +109,7 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
     // Add subscribeFn
     if (this.context.args.subscriptions) {
       b.addLine(`const subscriptionsClient = createClient({
-        url: WEBSOCKET_ENDPOINT,
+        url: ${WEBSOCKET_ENDPOINT},
       });`);
 
       b.addLine();
