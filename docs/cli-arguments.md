@@ -68,6 +68,10 @@ _Example_
 --artifact-directory ./src/__generated__
 ```
 
+### --subscriptions
+
+If specified, we will setup subscriptions via [graphql-ws](https://github.com/enisdenjo/graphql-ws) in your network layer.
+
 ### -p, --package-manager &lt;manager&gt;
 
 Specify the Node.js package manager to use when packages need to be installed.

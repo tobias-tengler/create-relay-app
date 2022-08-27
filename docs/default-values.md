@@ -28,15 +28,17 @@ If the [toolchain](./cli-arguments.md#t---toolchain-lttoolchaingt) is `next`, `.
 
 If the [toolchain](./cli-arguments.md#t---toolchain-lttoolchaingt) is `next`, `./__generated__`, otherwise it's not specified, unless specified otherwise.
 
+### --subscriptions
+
+`false`, unless specified.
+
 ### --package-manager
 
-If you run the script using `yarn` or `pnpm`, we use them as the default.
+If the script was **not** run with `yarn`, but there is a `yarn.lock` file and `yarn` is installed, we will choose `yarn`.
 
-If we can't determine which package manger has run the script, we choose:
+If the script was **not** run with `pnpm`, but there is a `pnpm-lock.yml` file and `pnpm` is installed, we will choose `pnpm`.
 
-- `yarn`, if `yarn` is installed **and** a `yarn.lock` file exists at the root of the project.
-- `pnpm`, if `pnpm` is installed **and** a `pnpm-lock.yml` file exists at the root of the project.
-- `npm` in all other cases.
+In all other cases we will choose the package manager that executed the script or `npm`.
 
 ### --ignore-git-changes
 
