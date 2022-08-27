@@ -34,22 +34,31 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
     const b = new CodeBuilder();
 
     // Add imports
+    const relayRuntimeImports: string[] = [
+      "Environment",
+      "Network",
+      "RecordSource",
+      "Store",
+    ];
+
+    if (this.context.args.subscriptions) {
+      relayRuntimeImports.push("Observable");
+    }
+
     if (this.context.args.typescript) {
+      relayRuntimeImports.push("FetchFunction");
+
       if (this.context.args.subscriptions) {
-        // prettier-ignore
-        b.addLine(`import { FetchFunction, SubscribeFunction, Observable, Environment, Network, RecordSource, Store } from "relay-runtime";`)
-      } else {
-        // prettier-ignore
-        b.addLine(`import { FetchFunction, Environment, Network, RecordSource, Store } from "relay-runtime";`)
+        relayRuntimeImports.push("SubscribeFunction");
       }
-    } else {
-      if (this.context.args.subscriptions) {
-        // prettier-ignore
-        b.addLine(`import { Observable, Environment, Network, RecordSource, Store } from "relay-runtime";`)
-      } else {
-        // prettier-ignore
-        b.addLine(`import { Environment, Network, RecordSource, Store } from "relay-runtime";`)
-      }
+    }
+
+    // prettier-ignore
+    b.addLine(`import { ${relayRuntimeImports.join(", ")} } from "relay-runtime";`)
+
+    if (this.context.is("next")) {
+      // prettier-ignore
+      b.addLine(`import type { RecordMap } from "relay-runtime/lib/store/RelayStoreTypes";`)
     }
 
     if (this.context.args.subscriptions) {
@@ -68,41 +77,28 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
     b.addLine();
 
     // Add fetchFn
+    let fetchFn = `const fetchFn = async (request, variables) => {
+      const resp = await fetch(${HTTP_ENDPOINT}, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          // <-- Additional headers like 'Authorization' would go here
+        },
+        body: JSON.stringify({
+          query: request.text, // <-- The GraphQL document composed by Relay
+          variables,
+        }),
+      });
+
+      return await resp.json();
+    };`;
+
     if (this.context.args.typescript) {
-      b.addLine(`const fetchFn: FetchFunction = async (request, variables) => {
-        const resp = await fetch(${HTTP_ENDPOINT}, {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-            // <-- Additional headers like 'Authorization' would go here
-          },
-          body: JSON.stringify({
-            query: request.text, // <-- The GraphQL document composed by Relay
-            variables,
-          }),
-        });
-
-        return await resp.json();
-      };`);
-    } else {
-      b.addLine(`const fetchFn = async (request, variables) => {
-        const resp = await fetch({HTTP_ENDPOINT}, {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-            // <-- Additional headers like 'Authorization' would go here
-          },
-          body: JSON.stringify({
-            query: request.text, // <-- The GraphQL document composed by Relay
-            variables,
-          }),
-        });
-
-        return await resp.json();
-      };`);
+      fetchFn = fetchFn.replace("fetchFn", "fetchFn: FetchFunction");
     }
+
+    b.addLine(fetchFn);
 
     b.addLine();
 
@@ -156,21 +152,18 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
     b.addLine();
 
     // Create environment
+    let createEnv = `function createRelayEnvironment() {
+      return new Environment({
+        network: Network.create(fetchFn),
+        store: new Store(new RecordSource()),
+      });
+    }`;
+
     if (this.context.args.subscriptions) {
-      b.addLine(`function createRelayEnvironment() {
-        return new Environment({
-          network: Network.create(fetchFn, subscribeFn),
-          store: new Store(new RecordSource()),
-        });
-      }`);
-    } else {
-      b.addLine(`function createRelayEnvironment() {
-        return new Environment({
-          network: Network.create(fetchFn),
-          store: new Store(new RecordSource()),
-        });
-      }`);
+      createEnv = createEnv.replace("fetchFn", "fetchFn, subscribeFn");
     }
+
+    b.addLine(createEnv);
 
     b.addLine();
 
