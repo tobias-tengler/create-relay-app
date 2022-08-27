@@ -14,8 +14,13 @@ export function parseAst(code: string): ParseResult<t.File> {
 export function printAst(ast: ParseResult<t.File>, oldCode: string): string {
   const newCode = generate.default(ast, { retainLines: true }, oldCode).code;
 
-  return format(newCode, {
+  return prettifyCode(newCode);
+}
+
+export function prettifyCode(code: string): string {
+  return format(code, {
     bracketSameLine: false,
+    endOfLine: "auto",
     parser: "babel-ts",
   });
 }

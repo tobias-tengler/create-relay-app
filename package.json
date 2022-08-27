@@ -29,8 +29,7 @@
     "create react app"
   ],
   "files": [
-    "./dist",
-    "./assets"
+    "./dist"
   ],
   "bin": "./dist/bin.js",
   "type": "module",
