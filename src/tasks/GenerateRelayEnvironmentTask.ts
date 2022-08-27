@@ -51,15 +51,15 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
       if (this.context.args.subscriptions) {
         relayRuntimeImports.push("SubscribeFunction");
       }
+
+      if (this.context.is("next")) {
+        // prettier-ignore
+        b.addLine(`import type { RecordMap } from "relay-runtime/lib/store/RelayStoreTypes";`)
+      }
     }
 
     // prettier-ignore
     b.addLine(`import { ${relayRuntimeImports.join(", ")} } from "relay-runtime";`)
-
-    if (this.context.is("next")) {
-      // prettier-ignore
-      b.addLine(`import type { RecordMap } from "relay-runtime/lib/store/RelayStoreTypes";`)
-    }
 
     if (this.context.args.subscriptions) {
       b.addLine(`import { createClient } from "graphql-ws";`);
