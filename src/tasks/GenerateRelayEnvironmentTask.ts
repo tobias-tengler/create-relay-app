@@ -201,6 +201,8 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
           "initialRecords?: RecordMap",
           "initialRecords"
         );
+
+        initEnv = initEnv.replace(": Environment | undefined", "");
       }
 
       b.addLine(initEnv);

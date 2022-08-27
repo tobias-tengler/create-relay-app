@@ -12,7 +12,6 @@ export function runCmd(cmd: string, opt?: SpawnOptions) {
     const [executable, ...args] = cmd.split(" ");
 
     const child = spawn(executable, args, {
-      stdio: "ignore",
       ...opt,
       shell: true,
     });
