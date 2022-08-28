@@ -105,48 +105,60 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
 
     // Add subscribeFn
     if (this.context.args.subscriptions) {
-      b.addLine(`const subscriptionsClient = createClient({
-        url: ${WEBSOCKET_ENDPOINT},
-      });`);
-
-      b.addLine();
-
       if (this.context.args.typescript) {
-        b.addLine(`const subscribeFn: SubscribeFunction = (request, variables) => {
-          // To understand why we return Observable<any>,
-          // please see: https://github.com/enisdenjo/graphql-ws/issues/316#issuecomment-1047605774
-          return Observable.create<any>((sink) => {
-            if (!request.text) {
-              return sink.error(new Error("Operation text cannot be empty"));
-            }
+        b.addLine(`let subscribeFn: SubscribeFunction;
 
-            return subscriptionsClient.subscribe(
-              {
-                operationName: request.name,
-                query: request.text,
-                variables,
-              },
-              sink
-            );
-          });
-        };`);
+          if (typeof window !== "undefined") {
+            // We only want to setup subscriptions if we are on the client.
+            const subscriptionsClient = createClient({
+              url: WEBSOCKET_ENDPOINT,
+            });
+
+            subscribeFn = (request, variables) => {
+              // To understand why we return Observable<any>,
+              // please see: https://github.com/enisdenjo/graphql-ws/issues/316#issuecomment-1047605774
+              return Observable.create<any>((sink) => {
+                if (!request.text) {
+                  return sink.error(new Error("Operation text cannot be empty"));
+                }
+
+                return subscriptionsClient.subscribe(
+                  {
+                    operationName: request.name,
+                    query: request.text,
+                    variables,
+                  },
+                  sink
+                );
+              });
+            };
+          }`);
       } else {
-        b.addLine(`const subscribeFn = (request, variables) => {
-          return Observable.create((sink) => {
-            if (!request.text) {
-              return sink.error(new Error("Operation text cannot be empty"));
-            }
+        b.addLine(`let subscribeFn;
 
-            return subscriptionsClient.subscribe(
-              {
-                operationName: request.name,
-                query: request.text,
-                variables,
-              },
-              sink
-            );
-          });
-        };`);
+          if (typeof window !== "undefined") {
+            // We only want to setup subscriptions if we are on the client.
+            const subscriptionsClient = createClient({
+              url: WEBSOCKET_ENDPOINT,
+            });
+
+            subscribeFn = (request, variables) => {
+              return Observable.create((sink) => {
+                if (!request.text) {
+                  return sink.error(new Error("Operation text cannot be empty"));
+                }
+
+                return subscriptionsClient.subscribe(
+                  {
+                    operationName: request.name,
+                    query: request.text,
+                    variables,
+                  },
+                  sink
+                );
+              });
+            };
+          }`);
       }
     }
 

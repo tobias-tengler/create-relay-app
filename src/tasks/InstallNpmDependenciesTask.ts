@@ -23,7 +23,7 @@ export class InstallNpmDependenciesTask extends TaskBase {
     const packages = [REACT_RELAY_PACKAGE];
 
     if (this.context.args.subscriptions) {
-      packages.push(GRAPHQL_WS_PACKAGE);
+      packages.push(GRAPHQL_WS_PACKAGE, "graphql@15.x");
     }
 
     this.updateMessage(
