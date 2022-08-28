@@ -44,6 +44,8 @@ export abstract class ArgumentBase<TName extends keyof CliArguments> {
 
     if (val === null || (typeof val === "string" && !val)) {
       val = chalk.italic("empty") as CliArguments[TName];
+    } else if (typeof value === "boolean") {
+      val = (!!value ? "Yes" : "No") as CliArguments[TName];
     }
 
     console.log(`${chalk.green("?")} ${this.promptMessage} ${chalk.cyan(val)}`);
