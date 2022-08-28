@@ -45,24 +45,10 @@ export function fireCmd(cmd: string, opt?: SpawnOptions): ChildProcess {
   const [executable, ...args] = cmd.split(" ");
 
   const child = spawn(executable, args, {
-    stdio: "ignore",
     ...opt,
+    stdio: "inherit",
     shell: true,
   });
-
-  if (child.stdout) {
-    child.stdout.setEncoding("utf8");
-    child.stdout.on("data", function (data) {
-      console.log(data);
-    });
-  }
-
-  if (child.stderr) {
-    child.stderr.setEncoding("utf8");
-    child.stderr.on("data", function (data) {
-      console.log(data);
-    });
-  }
 
   return child;
 }
