@@ -213,11 +213,9 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
     const prettifiedCode = prettifyCode(b.code);
 
     // todo: handle error
-    console.log("create directory", this.context.relayEnvFile.parentDirectory);
     this.context.fs.createDirectory(this.context.relayEnvFile.parentDirectory);
 
     // todo: handle error
-    console.log("write to file", this.context.relayEnvFile.abs);
     await this.context.fs.writeToFile(
       this.context.relayEnvFile.abs,
       prettifiedCode
