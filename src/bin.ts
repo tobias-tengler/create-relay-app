@@ -217,6 +217,17 @@ if (context.is("cra")) {
   console.log("https://github.com/tobias-tengler/create-relay-app/blob/main/docs/cra-babel-setup.md");
 }
 
+// todo: remove once the vite-plugin-relay PR is merged
+if (context.is("vite")) {
+  console.log();
+  console.log(importantHeadline("Important"));
+  console.log();
+  // prettier-ignore
+  console.log(`We currently depend on an experimental version of the ${h("vite-plugin-relay")}:`);
+  // prettier-ignore
+  console.log("https://github.com/oscartbeaumont/vite-plugin-relay/pull/424");
+}
+
 if (context.is("next")) {
   console.log();
   console.log(importantHeadline("Important"));
