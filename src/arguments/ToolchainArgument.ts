@@ -5,7 +5,7 @@ import { ArgumentBase, getNormalizedCliString } from "./ArgumentBase.js";
 
 export class ToolchainArgument extends ArgumentBase<"toolchain"> {
   public name = "toolchain" as const;
-  public promptMessage = "Select the toolchain your project was setup with";
+  public promptMessage = "What's the toolchain of your project";
 
   constructor(private env: Environment) {
     super();

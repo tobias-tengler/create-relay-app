@@ -8,7 +8,7 @@ import { ArgumentBase } from "./ArgumentBase.js";
 
 export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory"> {
   public name = "artifactDirectory" as const;
-  public promptMessage = "Optional: Select a directory for all Relay artifacts";
+  public promptMessage = "(Optional) Where to place Relay artifacts";
 
   constructor(private fs: Filesystem, private env: Environment) {
     super();

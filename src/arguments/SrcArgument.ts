@@ -7,7 +7,7 @@ import { ArgumentBase } from "./ArgumentBase.js";
 
 export class SrcArgument extends ArgumentBase<"src"> {
   public name = "src" as const;
-  public promptMessage = "Select the root directory of your application code";
+  public promptMessage = "Where's the root directory of your application code";
 
   constructor(private fs: Filesystem, private env: Environment) {
     super();

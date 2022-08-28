@@ -8,7 +8,7 @@ import { ArgumentBase } from "./ArgumentBase.js";
 
 export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
   public name = "schemaFile" as const;
-  public promptMessage = "Select the path to your GraphQL schema file";
+  public promptMessage = "Where's your GraphQL schema file";
 
   constructor(private fs: Filesystem, private env: Environment) {
     super();

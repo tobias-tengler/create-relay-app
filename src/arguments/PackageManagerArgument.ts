@@ -13,7 +13,7 @@ import { ArgumentBase, getNormalizedCliString } from "./ArgumentBase.js";
 
 export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
   public name = "packageManager" as const;
-  public promptMessage = "Select the package manager to install packages with";
+  public promptMessage = "What package manager to install packages with";
 
   constructor(private fs: Filesystem, private env: Environment) {
     super();
