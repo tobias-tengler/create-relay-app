@@ -7,7 +7,7 @@ import { h } from "../../utils/cli.js";
 import { TaskBase } from "../TaskBase.js";
 
 export class Vite_ConfigureVitePluginRelayTask extends TaskBase {
-  // todo: use vite-plugin-relay, once suffix is dropped
+  // todo: use VITE_PLUGIN_RELAY, once suffix is dropped
   message: string = `Configure ${h("vite-plugin-relay")}`;
 
   constructor(private context: ProjectContext) {

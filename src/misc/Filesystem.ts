@@ -48,19 +48,59 @@ export class Filesystem {
     return existsSync(filepath);
   }
 
-  readFromFile(filepath: string): Promise<string> {
-    return fs.readFile(filepath, "utf-8");
+  async readFromFile(filepath: string): Promise<string> {
+    try {
+      return await fs.readFile(filepath, "utf-8");
+    } catch (error) {
+      throw new ReadFromFileError(filepath, error);
+    }
   }
 
-  writeToFile(filepath: string, content: string): Promise<void> {
-    return fs.writeFile(filepath, content, "utf-8");
+  async writeToFile(filepath: string, content: string): Promise<void> {
+    try {
+      await fs.writeFile(filepath, content, "utf-8");
+    } catch (error) {
+      throw new WriteToFileError(filepath, error);
+    }
   }
 
-  appendToFile(filepath: string, content: string): Promise<void> {
-    return fs.appendFile(filepath, content, "utf-8");
+  async appendToFile(filepath: string, content: string): Promise<void> {
+    try {
+      await fs.appendFile(filepath, content, "utf-8");
+    } catch (error) {
+      throw new AppendToFileError(filepath, error);
+    }
   }
 
-  createDirectory(directoryPath: string): Promise<void> {
-    return fsExtra.mkdir(directoryPath, { recursive: true });
+  async createDirectory(directoryPath: string): Promise<void> {
+    try {
+      await fsExtra.mkdir(directoryPath, { recursive: true });
+    } catch (error) {
+      throw new CreateDirectoryError(directoryPath, error);
+    }
+  }
+}
+
+class CreateDirectoryError extends Error {
+  constructor(path: string, cause: any) {
+    super(`Failed to create directory: ${path}`, { cause });
+  }
+}
+
+class WriteToFileError extends Error {
+  constructor(path: string, cause: any) {
+    super(`Failed to write to file: ${path}`, { cause });
+  }
+}
+
+class AppendToFileError extends Error {
+  constructor(path: string, cause: any) {
+    super(`Failed to append to file: ${path}`, { cause });
+  }
+}
+
+class ReadFromFileError extends Error {
+  constructor(path: string, cause: any) {
+    super(`Failed to read from file: ${path}`, { cause });
   }
 }

@@ -25,7 +25,6 @@ export class GenerateArtifactDirectoryTask extends TaskBase {
       return;
     }
 
-    // todo: handle error
     await this.context.fs.createDirectory(this.context.artifactPath.abs);
   }
 }

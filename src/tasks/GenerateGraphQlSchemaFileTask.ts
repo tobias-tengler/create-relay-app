@@ -26,12 +26,10 @@ export class GenerateGraphQlSchemaFileTask extends TaskBase {
       return;
     }
 
-    // todo: handle error
     await this.context.fs.createDirectory(
       this.context.schemaPath.parentDirectory
     );
 
-    // todo: handle error
     await this.context.fs.writeToFile(
       this.context.schemaPath.abs,
       schemaGraphQLContent
