@@ -22,4 +22,26 @@ Make sure your tools ignore `.graphql.ts` / `.graphql.js` files.
 
 > Note: If you are using GIT, the script will already fix the line ending of Relay artifacts to `LF` using a `.gitattributes` file.
 
-<!-- todo: add important notes from console as well -->
+### Create-React-App
+
+If you are using Create-React-App, you need to remember to import `graphql` from `babel-plugin-relay/macro` instead of `react-relay` or any other package exporting it:
+
+```typescript
+import graphql from "babel-plugin-relay/macro";
+
+const query = graphql`
+    query App_Query {
+        # ...
+    }
+`;
+```
+
+If you wish to stick to importing from `react-relay`, there are some other options you can explore [here](./cra-babel-setup.md).
+
+### Vite.js
+
+[vite-plugin-relay](https://github.com/oscartbeaumont/vite-plugin-relay) does not yet support Vite 3. In the meantime you'll have to [manually setup the plugin](./vite-plugin-setup.md) yourself.
+
+### Next.js
+
+If you are using Next.js and you want to do server-side rendering with Relay, check out [this guide](./next-server-data-fetching.md).
