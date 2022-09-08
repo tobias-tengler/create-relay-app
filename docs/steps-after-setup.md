@@ -12,11 +12,11 @@ At the top you should see a `HTTP_ENDPOINT` variable. Switch the value to the UR
 
 If you have choosen to configure subscriptions, there will also be a `WEBSOCKET_ENDPOINT` variable. Point it to the URL of your GraphQL server, where you want to send subscriptions to (must be a WebSocket URL).
 
-### 3. Ensure that your tooling does not tinker with Relay's artifacts
+### 3. Ensure that your tooling does not modify Relay's artifacts
 
-You might have certain tools configured that format or lint your tool. Relay's artifact should not be tinkered with or you might get validation errors from the `relay-compiler`.
+You might have certain tools configured that format or lint your code. Relay's artifact should not be modified by these tools or you might get validation errors from the `relay-compiler`.
 
-Make sure your tools ignore `.graphql.ts` / `.graphql.js` files.
+Make sure your tools ignore `*.graphql.ts` / `*.graphql.js` files.
 
 [Prettier](https://github.com/prettier/prettier) for example has a [`.prettierignore`](https://prettier.io/docs/en/ignore.html#ignoring-files-prettierignore) file and [ESLint](https://github.com/eslint/eslint) a [`.eslintignore`](https://eslint.org/docs/latest/user-guide/configuring/ignoring-code#the-eslintignore-file) file.
 
