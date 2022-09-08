@@ -15,7 +15,7 @@ const relay: PluginOption = {
   transform(src, id) {
     let code = src;
 
-    if (/.(t|j)sx?/.test(id) && src.includes("graphql`")) {
+    if (/.(t|j)sx?/.test(id) && src.indexOf("graphql`") !== -1) {
       const out = transformSync(src, {
         plugins: [["babel-plugin-relay"]],
         code: true,
@@ -40,7 +40,6 @@ const relay: PluginOption = {
 > ⚠️ Warning:
 >
 > - If you are not using Typescript, remove the `PluginOption` import as well as its usage.
-> - If you are using an ECMAScript standard below ES6 you need to replace the `src.includes("graphql")` with `src.indexOf("graphql") !== -1`.
 
 2. Configure the plugin in the `plugins` on `defineConfig`:
 
