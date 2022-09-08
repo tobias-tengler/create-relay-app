@@ -32,9 +32,9 @@ Contrary to many existing tools that aim to solve similiar use cases, this proje
 ## Usage
 
 1. Scaffold a new project using the toolchain of your choice (as long as [it's supported](#supported-toolchains))
-   - Next.js: `yarn create next-app --typescript`
-   - Vite.js: `yarn create vite --template react-ts`
-   - Create React App: `yarn create react-app <new-project-directory> --template typescript`
+   - Next.js: `npm/yarn/pnpm create next-app --typescript`
+   - Vite.js: `npm/yarn/pnpm create vite --template react-ts`
+   - Create React App: `npm/yarn/pnpm create react-app <new-project-directory> --template typescript`
 2. If you are inside a Git repository, ensure your working directory is clean, by commiting or discarding any changes.
 3. Run the script inside of the scaffolded directory:
 
@@ -42,8 +42,15 @@ Contrary to many existing tools that aim to solve similiar use cases, this proje
 npm/yarn/pnpm create @tobiastengler/relay-app@latest
 ```
 
+This will prompt you for a bunch of questions around your project setup. If you do not want to specify these options interactively, you can also specify them through the [CLI arguments](./docs/cli-arguments.md). Passing `-y` will [infer all arguments](./docs/default-values.md) based on your project.
+
 4. Follow the displayed _Next steps_ to complete the setup (You can also find them [here](./docs/steps-after-setup.md))
 
-> Note: We are working on getting the `create-relay-app` name!
+## Documentation
 
-This will prompt you for a bunch of questions around your project setup. If you do not want to specify these options interactively, you can also specify them through the [CLI arguments](./docs/cli-arguments.md). Passing `-y` will [infer all arguments](./docs/default-values.md) based on your project.
+- [Available CLI arguments](./docs/cli-arguments.md)
+- [Learn how defaults for arguments are inferred](./docs/default-values.md)
+- [Manual steps after running the script](./docs/steps-after-setup.md)
+- [Setting up the Vite plugin for Vite 3](./docs/vite-plugin-setup.md)
+- [Server-side data fetching with Next.js](./docs/next-server-data-fetching.md)
+- [babel-plugin-relay in combination with Create-React-App](./docs/cra-babel-setup.md)
