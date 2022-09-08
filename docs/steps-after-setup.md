@@ -21,3 +21,5 @@ Make sure your tools ignore `.graphql.ts` / `.graphql.js` files.
 [Prettier](https://github.com/prettier/prettier) for example has a [`.prettierignore`](https://prettier.io/docs/en/ignore.html#ignoring-files-prettierignore) file and [ESLint](https://github.com/eslint/eslint) a [`.eslintignore`](https://eslint.org/docs/latest/user-guide/configuring/ignoring-code#the-eslintignore-file) file.
 
 > Note: If you are using GIT, the script will already fix the line ending of Relay artifacts to `LF` using a `.gitattributes` file.
+
+<!-- todo: add important notes from console as well -->
