@@ -162,7 +162,8 @@ const runner = new TaskRunner([
   isGitRepo && new ConfigureEolOfArtifactsTask(context),
   new Cra_AddBabelMacroTypeDefinitionsTask(context),
   new Cra_AddRelayEnvironmentProvider(context),
-  new Vite_ConfigureVitePluginRelayTask(context),
+  // todo: re-add once vite-plugin-relay is fixed
+  // new Vite_ConfigureVitePluginRelayTask(context),
   new Vite_AddRelayEnvironmentProvider(context),
   new Next_ConfigureNextCompilerTask(context),
   new Next_AddRelayEnvironmentProvider(context),
@@ -218,15 +219,15 @@ if (context.is("cra")) {
 }
 
 // todo: remove once the vite-plugin-relay PR is merged
-if (context.is("vite")) {
-  console.log();
-  console.log(importantHeadline("Important"));
-  console.log();
-  // prettier-ignore
-  console.log(`We currently depend on an experimental version of the ${h("vite-plugin-relay")}:`);
-  // prettier-ignore
-  console.log("https://github.com/oscartbeaumont/vite-plugin-relay/pull/424");
-}
+// if (context.is("vite")) {
+//   console.log();
+//   console.log(importantHeadline("Important"));
+//   console.log();
+//   // prettier-ignore
+//   console.log(`We currently depend on an experimental version of the ${h("vite-plugin-relay")}:`);
+//   // prettier-ignore
+//   console.log("https://github.com/oscartbeaumont/vite-plugin-relay/pull/424");
+// }
 
 if (context.is("next")) {
   console.log();

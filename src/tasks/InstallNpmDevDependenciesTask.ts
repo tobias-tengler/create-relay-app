@@ -45,9 +45,10 @@ export class InstallNpmDevDependenciesTask extends TaskBase {
       relayDevDep.push(BABEL_RELAY_PACKAGE);
     }
 
-    if (this.context.is("vite")) {
-      relayDevDep.push(VITE_RELAY_PACKAGE);
-    }
+    // todo: re-add once vite-plugin-relay is fixed
+    // if (this.context.is("vite")) {
+    //   relayDevDep.push(VITE_RELAY_PACKAGE);
+    // }
 
     return relayDevDep;
   }

@@ -1,14 +1,13 @@
 import traverse from "@babel/traverse";
 import t from "@babel/types";
+import { VITE_RELAY_PACKAGE } from "../../consts.js";
 import { ProjectContext } from "../../misc/ProjectContext.js";
-import { RelativePath } from "../../misc/RelativePath.js";
 import { parseAst, insertDefaultImport, printAst } from "../../utils/ast.js";
 import { h } from "../../utils/cli.js";
 import { TaskBase } from "../TaskBase.js";
 
 export class Vite_ConfigureVitePluginRelayTask extends TaskBase {
-  // todo: use VITE_PLUGIN_RELAY, once suffix is dropped
-  message: string = `Configure ${h("vite-plugin-relay")}`;
+  message: string = `Configure ${h(VITE_RELAY_PACKAGE)}`;
 
   constructor(private context: ProjectContext) {
     super();
@@ -35,9 +34,7 @@ export class Vite_ConfigureVitePluginRelayTask extends TaskBase {
         const relayImportId = insertDefaultImport(
           path,
           "relay",
-          // todo: replace with VITE_RELAY_PACKAGE,
-          // once it no longer has the explict version
-          "vite-plugin-relay"
+          VITE_RELAY_PACKAGE
         );
 
         const node = path.node;
