@@ -40,4 +40,4 @@ If you wish to stick to importing from `react-relay`, there are some other optio
 
 ### Next.js
 
-If you are using Next.js and you want to do server-side rendering with Relay, check out [this guide](./next-server-data-fetching.md).
+If you are using Next.js and you want to do server-side rendering with Relay, check out [this guide](./next-data-fetching.md).

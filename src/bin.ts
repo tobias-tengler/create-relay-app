@@ -226,7 +226,7 @@ if (context.is("next")) {
   // prettier-ignore
   console.log(`Follow this guide, if you want to fetch data on the server instead of the client:`);
   // prettier-ignore
-  console.log("https://github.com/tobias-tengler/create-relay-app/blob/main/docs/next-server-data-fetching.md");
+  console.log("https://github.com/tobias-tengler/create-relay-app/blob/main/docs/next-data-fetching.md");
 }
 
 console.log();
