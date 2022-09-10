@@ -162,8 +162,7 @@ const runner = new TaskRunner([
   isGitRepo && new ConfigureEolOfArtifactsTask(context),
   new Cra_AddBabelMacroTypeDefinitionsTask(context),
   new Cra_AddRelayEnvironmentProvider(context),
-  // todo: re-add once vite-plugin-relay is fixed
-  // new Vite_ConfigureVitePluginRelayTask(context),
+  new Vite_ConfigureVitePluginRelayTask(context),
   new Vite_AddRelayEnvironmentProvider(context),
   new Next_ConfigureNextCompilerTask(context),
   new Next_AddRelayEnvironmentProvider(context),
@@ -216,19 +215,6 @@ if (context.is("cra")) {
   console.log("If you do not want to use the macro, you can check out the following document for guidance:");
   // prettier-ignore
   console.log("https://github.com/tobias-tengler/create-relay-app/blob/main/docs/cra-babel-setup.md");
-}
-
-// todo: remove once vite-plugin-relay is fixed
-if (context.is("vite")) {
-  console.log();
-  console.log(importantHeadline("Important"));
-  console.log();
-  // prettier-ignore
-  console.log(`${h("vite-plugin-relay")} is not functional at the moment.`);
-  // prettier-ignore
-  console.log(`You need to setup the Vite plugin yourself, by following this guide:`);
-  // prettier-ignore
-  console.log("https://github.com/tobias-tengler/create-relay-app/blob/main/docs/vite-plugin-setup.md");
 }
 
 if (context.is("next")) {
