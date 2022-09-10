@@ -1,5 +1,8 @@
 export const TS_CONFIG_FILE = "tsconfig.json";
 export const PACKAGE_FILE = "package.json";
+export const APP_ROOT = "./src";
+export const NEXT_APP_ROOT = "./";
+export const NEXT_SRC_PATH = "./src";
 
 export const TYPESCRIPT_PACKAGE = "typescript";
 export const BABEL_RELAY_PACKAGE = "babel-plugin-relay";

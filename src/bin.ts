@@ -37,6 +37,7 @@ import {
   ConfigureEolOfArtifactsTask,
   HTTP_ENDPOINT,
   WEBSOCKET_ENDPOINT,
+  Next_AddTypeHelpers,
 } from "./tasks/index.js";
 import { CliArguments } from "./types.js";
 import { headline, h, importantHeadline, printError } from "./utils/index.js";
@@ -166,6 +167,7 @@ const runner = new TaskRunner([
   new Vite_AddRelayEnvironmentProvider(context),
   new Next_ConfigureNextCompilerTask(context),
   new Next_AddRelayEnvironmentProvider(context),
+  new Next_AddTypeHelpers(context),
 ]);
 
 let runnerHadError = false;

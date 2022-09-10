@@ -1,5 +1,5 @@
 import path from "path";
-import { RELAY_ENV } from "../consts.js";
+import { NEXT_SRC_PATH, RELAY_ENV } from "../consts.js";
 import {
   CliArguments,
   RelayCompilerLanguage,
@@ -90,7 +90,7 @@ function getRelayEnvFilepath(
   // so we always default to the ./src directory to place the
   // RelayEnvironment file in.
   if (args.toolchain === "next") {
-    srcDirectory = "./src";
+    srcDirectory = NEXT_SRC_PATH;
   }
 
   const filepath = path.join(srcDirectory, filename);

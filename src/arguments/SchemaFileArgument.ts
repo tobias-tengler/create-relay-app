@@ -1,5 +1,6 @@
 import { Command } from "commander";
 import path from "path";
+import { NEXT_SRC_PATH } from "../consts.js";
 import { Environment } from "../misc/Environment.js";
 import { Filesystem } from "../misc/Filesystem.js";
 import { CliArguments } from "../types.js";
@@ -73,7 +74,7 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
     let srcPath: string = existingArgs.src!;
 
     if (existingArgs.toolchain === "next") {
-      srcPath = "./src";
+      srcPath = NEXT_SRC_PATH;
     }
 
     const filepath = path.join(srcPath, filename);

@@ -12,3 +12,4 @@ export * from "./vite/Vite_ConfigureVitePluginRelayTask.js";
 export * from "./vite/Vite_AddRelayEnvironmentProvider.js";
 export * from "./next/Next_ConfigureNextCompilerTask.js";
 export * from "./next/Next_AddRelayEnvironmentProvider.js";
+export * from "./next/Next_AddTypeHelpers.js";

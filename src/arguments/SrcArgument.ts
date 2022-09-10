@@ -1,4 +1,5 @@
 import { Command } from "commander";
+import { NEXT_APP_ROOT, APP_ROOT } from "../consts.js";
 import { Environment } from "../misc/Environment.js";
 import { Filesystem } from "../misc/Filesystem.js";
 import { CliArguments } from "../types.js";
@@ -59,9 +60,9 @@ export class SrcArgument extends ArgumentBase<"src"> {
     existingArgs: Partial<CliArguments>
   ): Promise<CliArguments["src"]> {
     if (existingArgs.toolchain === "next") {
-      return Promise.resolve("./");
+      return Promise.resolve(NEXT_APP_ROOT);
     }
 
-    return Promise.resolve("./src");
+    return Promise.resolve(APP_ROOT);
   }
 }
