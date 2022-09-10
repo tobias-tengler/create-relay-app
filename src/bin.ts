@@ -166,8 +166,8 @@ const runner = new TaskRunner([
   new Vite_ConfigureVitePluginRelayTask(context),
   new Vite_AddRelayEnvironmentProvider(context),
   new Next_ConfigureNextCompilerTask(context),
-  new Next_AddRelayEnvironmentProvider(context),
   new Next_AddTypeHelpers(context),
+  new Next_AddRelayEnvironmentProvider(context),
 ]);
 
 let runnerHadError = false;

@@ -21,6 +21,9 @@ const environment = useMemo(
 );
 `;
 
+const APP_PROPS = "AppProps";
+const RELAY_PAGE_PROPS = "RelayPageProps";
+
 export class Next_AddRelayEnvironmentProvider extends TaskBase {
   message: string = "Add " + RELAY_ENV_PROVIDER;
 
@@ -64,6 +67,7 @@ export class Next_AddRelayEnvironmentProvider extends TaskBase {
         // We need to modify the type of the _app arguments,
         // starting with Next 12.3.
         if (this.context.args.typescript) {
+          // Import RelayPageProps.
           const relayTypesPath = Next_AddTypeHelpers.getRelayTypesPath(
             this.context
           );
@@ -72,7 +76,38 @@ export class Next_AddRelayEnvironmentProvider extends TaskBase {
             removeExtension(relayTypesPath.abs)
           );
 
-          insertNamedImport(path, "RelayPageProps", relayTypesImportPath.rel);
+          insertNamedImport(path, RELAY_PAGE_PROPS, relayTypesImportPath.rel);
+
+          // Change argument of type AppProps to AppProps<RelayPageProps>.
+          const functionBodyPath = path.parentPath.parentPath;
+          if (!functionBodyPath.isBlockStatement()) {
+            throw new Error("Expected parentPath to be a block statement.");
+          }
+
+          const functionPath = functionBodyPath.parentPath;
+          if (
+            !functionPath.isFunctionDeclaration() ||
+            !t.isFunctionDeclaration(functionPath.node)
+          ) {
+            throw new Error(
+              "Expected parentPath to be a function declaration."
+            );
+          }
+
+          const appPropsArg = functionPath.node.params[0];
+
+          if (!appPropsArg) {
+            throw new Error("Expected function to have one argument.");
+          }
+
+          const genericAppProps = t.genericTypeAnnotation(
+            t.identifier(APP_PROPS),
+            t.typeParameterInstantiation([
+              t.genericTypeAnnotation(t.identifier(RELAY_PAGE_PROPS)),
+            ])
+          );
+
+          appPropsArg.typeAnnotation = t.typeAnnotation(genericAppProps);
         }
 
         insertNamedImport(path, "useMemo", "react");
