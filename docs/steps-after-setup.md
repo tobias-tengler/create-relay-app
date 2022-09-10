@@ -38,10 +38,6 @@ const query = graphql`
 
 If you wish to stick to importing from `react-relay`, there are some other options you can explore [here](./cra-babel-setup.md).
 
-### Vite.js
-
-[vite-plugin-relay](https://github.com/oscartbeaumont/vite-plugin-relay) does not yet support Vite 3. In the meantime you'll have to [manually setup the plugin](./vite-plugin-setup.md) yourself.
-
 ### Next.js
 
 If you are using Next.js and you want to do server-side rendering with Relay, check out [this guide](./next-server-data-fetching.md).

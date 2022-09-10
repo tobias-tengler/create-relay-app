@@ -51,6 +51,5 @@ This will prompt you for a bunch of questions around your project setup. If you 
 - [Available CLI arguments](./docs/cli-arguments.md)
 - [Learn how defaults for arguments are inferred](./docs/default-values.md)
 - [Manual steps after running the script](./docs/steps-after-setup.md)
-- [Setting up the Vite plugin for Vite 3](./docs/vite-plugin-setup.md)
 - [Server-side data fetching with Next.js](./docs/next-server-data-fetching.md)
 - [babel-plugin-relay in combination with Create-React-App](./docs/cra-babel-setup.md)
