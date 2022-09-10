@@ -30,7 +30,7 @@ export class Next_AddTypeHelpers extends TaskBase {
   }
 
   async run(): Promise<void> {
-    const filepath = this.getRelayTypesPath();
+    const filepath = Next_AddTypeHelpers.getRelayTypesPath(this.context);
 
     this.updateMessage(this.message + " " + h(filepath.rel));
 
@@ -39,8 +39,9 @@ export class Next_AddTypeHelpers extends TaskBase {
     await this.context.fs.writeToFile(filepath.abs, prettifiedCode);
   }
 
-  private getRelayTypesPath(): RelativePath {
+  static getRelayTypesPath(context: ProjectContext): RelativePath {
     const filepath = path.join(NEXT_SRC_PATH, "relay-types.ts");
-    return this.context.env.rel(filepath);
+
+    return context.env.rel(filepath);
   }
 }

@@ -12,6 +12,7 @@ import {
   hasRelayProvider,
   wrapJsxInRelayProvider,
 } from "../cra/Cra_AddRelayEnvironmentProvider.js";
+import { Next_AddTypeHelpers } from "./Next_AddTypeHelpers.js";
 
 const envCreation = `
 const environment = useMemo(
@@ -60,14 +61,28 @@ export class Next_AddRelayEnvironmentProvider extends TaskBase {
           throw new TaskSkippedError("Already added");
         }
 
+        // We need to modify the type of the _app arguments,
+        // starting with Next 12.3.
+        if (this.context.args.typescript) {
+          const relayTypesPath = Next_AddTypeHelpers.getRelayTypesPath(
+            this.context
+          );
+          const relayTypesImportPath = new RelativePath(
+            mainFile.parentDirectory,
+            removeExtension(relayTypesPath.abs)
+          );
+
+          insertNamedImport(path, "RelayPageProps", relayTypesImportPath.rel);
+        }
+
         insertNamedImport(path, "useMemo", "react");
 
-        const relativeImportPath = new RelativePath(
+        const relayEnvImportPath = new RelativePath(
           mainFile.parentDirectory,
           removeExtension(this.context.relayEnvFile.abs)
         );
 
-        insertNamedImport(path, "initRelayEnvironment", relativeImportPath.rel);
+        insertNamedImport(path, "initRelayEnvironment", relayEnvImportPath.rel);
 
         // Insert the useMemo creating the environment in the function body.
         path.parentPath.insertBefore(envCreationAst);
