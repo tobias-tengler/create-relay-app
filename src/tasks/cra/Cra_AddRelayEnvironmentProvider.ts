@@ -7,7 +7,12 @@ import {
 } from "../../consts.js";
 import { ProjectContext } from "../../misc/ProjectContext.js";
 import { RelativePath } from "../../misc/RelativePath.js";
-import { insertNamedImport, parseAst, printAst } from "../../utils/ast.js";
+import {
+  insertNamedImport,
+  insertNamedImports,
+  parseAst,
+  printAst,
+} from "../../utils/ast.js";
 import { h } from "../../utils/cli.js";
 import { TaskBase, TaskSkippedError } from "../TaskBase.js";
 import t from "@babel/types";

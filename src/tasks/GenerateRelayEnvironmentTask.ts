@@ -51,11 +51,6 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
       if (this.context.args.subscriptions) {
         relayRuntimeImports.push("SubscribeFunction");
       }
-
-      if (this.context.is("next")) {
-        // prettier-ignore
-        b.addLine(`import type { RecordMap } from "relay-runtime/lib/store/RelayStoreTypes";`)
-      }
     }
 
     // prettier-ignore
@@ -184,14 +179,8 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
     if (this.context.is("next")) {
       let initEnv = `let relayEnvironment: Environment | undefined;
 
-        export function initRelayEnvironment(initialRecords?: RecordMap) {
+        export function initRelayEnvironment() {
           const environment = relayEnvironment ?? createRelayEnvironment();
-
-          // If your page has Next.js data fetching methods that use Relay,
-          // the initial records will get hydrated here.
-          if (initialRecords) {
-            environment.getStore().publish(new RecordSource(initialRecords));
-          }
 
           // For SSG and SSR always create a new Relay environment.
           if (typeof window === "undefined") {
@@ -208,12 +197,6 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
         }`;
 
       if (!this.context.args.typescript) {
-        // Remove Typescript type
-        initEnv = initEnv.replace(
-          "initialRecords?: RecordMap",
-          "initialRecords"
-        );
-
         initEnv = initEnv.replace(": Environment | undefined", "");
       }
 

@@ -11,8 +11,12 @@ export function parseAst(code: string): ParseResult<t.File> {
   });
 }
 
+export function astToString(ast: ParseResult<t.File>, oldCode: string): string {
+  return generate.default(ast, { retainLines: true }, oldCode).code;
+}
+
 export function printAst(ast: ParseResult<t.File>, oldCode: string): string {
-  const newCode = generate.default(ast, { retainLines: true }, oldCode).code;
+  const newCode = astToString(ast, oldCode);
 
   return prettifyCode(newCode);
 }
@@ -30,25 +34,64 @@ export function insertNamedImport(
   importName: string,
   packageName: string
 ): t.Identifier {
-  const importIdentifier = t.identifier(importName);
+  return insertNamedImports(path, [importName], packageName)[0];
+}
 
+export function insertNamedImports(
+  path: NodePath,
+  imports: string[],
+  packageName: string
+): t.Identifier[] {
   const program = path.findParent((p) => p.isProgram()) as NodePath<t.Program>;
 
-  const existingImport = getNamedImport(program, importName, packageName);
+  const identifiers: t.Identifier[] = [];
+  const missingImports: string[] = [];
 
-  if (!!existingImport) {
-    return importIdentifier;
+  for (const namedImport of imports) {
+    const importIdentifier = t.identifier(namedImport);
+
+    const existingImport = getNamedImport(program, namedImport, packageName);
+
+    if (!!existingImport) {
+      identifiers.push(importIdentifier);
+      continue;
+    }
+
+    missingImports.push(namedImport);
   }
 
-  const importDeclaration = t.importDeclaration(
-    [t.importSpecifier(t.cloneNode(importIdentifier), importIdentifier)],
-    t.stringLiteral(packageName)
-  );
+  console.log({ imports, missingImports, identifiers });
 
-  // Insert import at start of file.
-  program.node.body.unshift(importDeclaration);
+  let importDeclaration: t.ImportDeclaration;
+  const isFirstImportFromPackage = missingImports.length === imports.length;
 
-  return importIdentifier;
+  if (isFirstImportFromPackage) {
+    console.log("create new");
+    importDeclaration = t.importDeclaration([], t.stringLiteral(packageName));
+  } else {
+    console.log("get existing");
+    importDeclaration = getImportDeclaration(program, packageName)!;
+  }
+
+  for (const namedImport of missingImports) {
+    const importIdentifier = t.identifier(namedImport);
+
+    const newImport = t.importSpecifier(
+      t.cloneNode(importIdentifier),
+      importIdentifier
+    );
+
+    importDeclaration.specifiers.push(newImport);
+
+    identifiers.push(importIdentifier);
+  }
+
+  if (isFirstImportFromPackage) {
+    // Insert import at start of file.
+    program.node.body.unshift(importDeclaration);
+  }
+
+  return identifiers;
 }
 
 export function insertDefaultImport(
@@ -78,6 +121,15 @@ export function insertDefaultImport(
   return importIdentifier;
 }
 
+function getImportDeclaration(
+  path: NodePath<t.Program>,
+  packageName: string
+): t.ImportDeclaration | null {
+  return path.node.body.find(
+    (s) => t.isImportDeclaration(s) && s.source.value === packageName
+  ) as t.ImportDeclaration | null;
+}
+
 export function getNamedImport(
   path: NodePath<t.Program>,
   importName: string,
@@ -93,7 +145,7 @@ export function getNamedImport(
   ) as t.ImportDeclaration;
 }
 
-export function getDefaultImport(
+function getDefaultImport(
   path: NodePath<t.Program>,
   importName: string,
   packageName: string

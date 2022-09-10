@@ -1,9 +1,19 @@
 import traverse from "@babel/traverse";
 import path from "path";
-import { REACT_RELAY_PACKAGE, RELAY_ENV_PROVIDER } from "../../consts.js";
+import {
+  REACT_RELAY_PACKAGE,
+  RELAY_ENV_PROVIDER,
+  RELAY_RUNTIME_PACKAGE,
+} from "../../consts.js";
 import { ProjectContext } from "../../misc/ProjectContext.js";
 import { RelativePath } from "../../misc/RelativePath.js";
-import { insertNamedImport, parseAst, printAst } from "../../utils/ast.js";
+import {
+  astToString,
+  insertNamedImport,
+  insertNamedImports,
+  parseAst,
+  prettifyCode,
+} from "../../utils/ast.js";
 import { h } from "../../utils/cli.js";
 import { TaskBase, TaskSkippedError } from "../TaskBase.js";
 import t from "@babel/types";
@@ -14,11 +24,19 @@ import {
 } from "../cra/Cra_AddRelayEnvironmentProvider.js";
 import { Next_AddTypeHelpers } from "./Next_AddTypeHelpers.js";
 
-const envCreation = `
-const environment = useMemo(
-    () => initRelayEnvironment(pageProps.initialRecords),
-    [pageProps.initialRecords]
-);
+const envCreationAndHydration = `
+const environment = useMemo(initRelayEnvironment, []);
+
+useEffect(() => {
+  const store = environment.getStore();
+
+  // Hydrate the store.
+  store.publish(new RecordSource(pageProps.initialRecords));
+
+  // Notify any existing subscribers.
+  store.notify();
+}, [environment, pageProps.initialRecords])
+
 `;
 
 const APP_PROPS = "AppProps";
@@ -47,8 +65,6 @@ export class Next_AddRelayEnvironmentProvider extends TaskBase {
 
     const ast = parseAst(code);
 
-    const envCreationAst = parseAst(envCreation).program.body[0];
-
     let providerWrapped = false;
 
     traverse.default(ast, {
@@ -57,6 +73,8 @@ export class Next_AddRelayEnvironmentProvider extends TaskBase {
         if (providerWrapped || !path.parentPath.isReturnStatement()) {
           return;
         }
+
+        const functionReturn = path.parentPath;
 
         const isProviderConfigured = hasRelayProvider(path);
 
@@ -79,7 +97,7 @@ export class Next_AddRelayEnvironmentProvider extends TaskBase {
           insertNamedImport(path, RELAY_PAGE_PROPS, relayTypesImportPath.rel);
 
           // Change argument of type AppProps to AppProps<RelayPageProps>.
-          const functionBodyPath = path.parentPath.parentPath;
+          const functionBodyPath = functionReturn.parentPath;
           if (!functionBodyPath.isBlockStatement()) {
             throw new Error("Expected parentPath to be a block statement.");
           }
@@ -110,7 +128,8 @@ export class Next_AddRelayEnvironmentProvider extends TaskBase {
           appPropsArg.typeAnnotation = t.typeAnnotation(genericAppProps);
         }
 
-        insertNamedImport(path, "useMemo", "react");
+        insertNamedImports(path, ["useMemo", "useEffect"], "react");
+        insertNamedImport(path, "RecordSource", RELAY_RUNTIME_PACKAGE);
 
         const relayEnvImportPath = new RelativePath(
           mainFile.parentDirectory,
@@ -119,8 +138,7 @@ export class Next_AddRelayEnvironmentProvider extends TaskBase {
 
         insertNamedImport(path, "initRelayEnvironment", relayEnvImportPath.rel);
 
-        // Insert the useMemo creating the environment in the function body.
-        path.parentPath.insertBefore(envCreationAst);
+        functionReturn.addComment("leading", "--MARKER", true);
 
         const envProviderId = t.jsxIdentifier(
           insertNamedImport(path, RELAY_ENV_PROVIDER, REACT_RELAY_PACKAGE).name
@@ -142,7 +160,10 @@ export class Next_AddRelayEnvironmentProvider extends TaskBase {
       throw new Error("Could not find JSX");
     }
 
-    const updatedCode = printAst(ast, code);
+    let updatedCode = astToString(ast, code);
+
+    updatedCode = updatedCode.replace("//--MARKER", envCreationAndHydration);
+    updatedCode = prettifyCode(updatedCode);
 
     await this.context.fs.writeToFile(mainFile.abs, updatedCode);
   }

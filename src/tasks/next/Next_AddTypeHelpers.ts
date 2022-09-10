@@ -44,6 +44,11 @@ export class Next_AddTypeHelpers extends TaskBase {
 
     this.updateMessage(this.message + " " + h(filepath.rel));
 
+    if (this.context.fs.exists(filepath.abs)) {
+      this.skip("File exists");
+      return;
+    }
+
     const prettifiedCode = prettifyCode(code);
 
     await this.context.fs.writeToFile(filepath.abs, prettifiedCode);
