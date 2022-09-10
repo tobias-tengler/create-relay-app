@@ -23,8 +23,8 @@ If you have setup your project using `create-relay-app`, most of the pieces for 
 ```tsx
 import { graphql, fetchQuery } from "relay-runtime";
 import { initRelayEnvironment } from "../src/RelayEnvironment";
-import type { GetServerSideProps, NextPage } from "next";
-import type { RecordMap } from "relay-runtime/lib/store/RelayStoreTypes";
+import type { NextPage } from "next";
+import type { RGetelayServerSideProps } from "../src/relay-types";
 import type {
   MyComponentQuery,
   MyComponentQuery$data,
@@ -40,20 +40,13 @@ type Props = {
   data: MyComponentQuery$data;
 };
 
-// Notice how we are not using PropsWithRecords<Props>,
+// Notice how we are just using Props here,
 // since the `initialRecords` are irrelevant for the component itself.
 const MyComponent: NextPage<Props> = ({ data }) => {
   // ...
 };
 
-// You can place this as a helper type wherever.
-type PropsWithRecords<T> = T & {
-  initialRecords: RecordMap;
-};
-
-export const getServerSideProps: GetServerSideProps<
-  PropsWithRecords<Props>
-> = async () => {
+export const getServerSideProps: GetRelayServerSideProps = async () => {
   // Get a fresh environment.
   const environment = initRelayEnvironment();
 

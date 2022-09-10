@@ -14,7 +14,7 @@ export type RelayPageProps = {
   initialRecords?: RecordMap;
 };
 
-export type RelayServerSideProps<TProps extends object = {}> =
+export type GetRelayServerSideProps<TProps extends object = {}> =
   GetServerSideProps<TProps & Required<RelayPageProps>>;
 `;
 
