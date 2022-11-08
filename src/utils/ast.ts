@@ -60,16 +60,12 @@ export function insertNamedImports(
     missingImports.push(namedImport);
   }
 
-  console.log({ imports, missingImports, identifiers });
-
   let importDeclaration: t.ImportDeclaration;
   const isFirstImportFromPackage = missingImports.length === imports.length;
 
   if (isFirstImportFromPackage) {
-    console.log("create new");
     importDeclaration = t.importDeclaration([], t.stringLiteral(packageName));
   } else {
-    console.log("get existing");
     importDeclaration = getImportDeclaration(program, packageName)!;
   }
 

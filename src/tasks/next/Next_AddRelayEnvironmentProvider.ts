@@ -24,6 +24,7 @@ import {
 } from "../cra/Cra_AddRelayEnvironmentProvider.js";
 import { Next_AddTypeHelpers } from "./Next_AddTypeHelpers.js";
 
+// todo: test this
 const envCreationAndHydration = `
 const environment = useMemo(initRelayEnvironment, []);
 
