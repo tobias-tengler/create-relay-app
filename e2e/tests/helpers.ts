@@ -19,14 +19,14 @@ export function runCmd(cmd: string, opt?: SpawnOptions) {
     if (child.stdout) {
       child.stdout.setEncoding("utf8");
       child.stdout.on("data", function (data) {
-        console.log(data);
+        process.stdout.write(data);
       });
     }
 
     if (child.stderr) {
       child.stderr.setEncoding("utf8");
       child.stderr.on("data", function (data) {
-        console.log(data);
+        process.stdout.write(data);
       });
     }
 

@@ -12,7 +12,7 @@ test.beforeAll(async () => {
   test.setTimeout(180000);
 
   if (!existsSync(TARGET_DIR)) {
-    await runCmd(`yarn create next-app ${TARGET_DIR} --javascript`);
+    await runCmd(`yarn create next-app ${TARGET_DIR} --javascript --eslint`);
   }
 
   await runCmd(
