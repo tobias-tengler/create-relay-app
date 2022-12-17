@@ -20,7 +20,7 @@ test.beforeAll(async () => {
   }
 
   await runCmd(
-    `node ../../dist/bin.js --ignore-git-changes --package-manager yarn -y`,
+    `node ../../dist/bin.js --ignore-git-changes --package-manager yarn`,
     { cwd: TARGET_DIR }
   );
 
