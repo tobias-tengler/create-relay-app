@@ -1,9 +1,8 @@
 import traverse from "@babel/traverse";
 import t from "@babel/types";
 import { ProjectContext } from "../../misc/ProjectContext.js";
-import { RelativePath } from "../../misc/RelativePath.js";
 import { parseAst, printAst, mergeProperties } from "../../utils/ast.js";
-import { h } from "../../utils/cli.js";
+import { bold } from "../../utils/cli.js";
 import { TaskBase } from "../TaskBase.js";
 
 export class Next_ConfigureNextCompilerTask extends TaskBase {
@@ -22,7 +21,7 @@ export class Next_ConfigureNextCompilerTask extends TaskBase {
 
     const configFile = this.context.env.rel(configFilename);
 
-    this.updateMessage(this.message + " in " + h(configFile.rel));
+    this.updateMessage(this.message + " in " + bold(configFile.rel));
 
     const configCode = await this.context.fs.readFromFile(configFile.abs);
 

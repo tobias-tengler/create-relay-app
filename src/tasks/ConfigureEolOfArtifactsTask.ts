@@ -1,6 +1,6 @@
 import { EOL } from "os";
 import { ProjectContext } from "../misc/ProjectContext.js";
-import { h } from "../utils/cli.js";
+import { bold } from "../utils/cli.js";
 import { TaskBase } from "./TaskBase.js";
 
 export class ConfigureEolOfArtifactsTask extends TaskBase {
@@ -17,7 +17,7 @@ export class ConfigureEolOfArtifactsTask extends TaskBase {
   async run(): Promise<void> {
     const gitAttributesPath = this.context.gitAttributesFile;
 
-    this.updateMessage(this.message + " in " + h(gitAttributesPath.rel));
+    this.updateMessage(this.message + " in " + bold(gitAttributesPath.rel));
 
     const gitAttributesExpression = `*${this.context.artifactExtension} auto eol=lf`;
 

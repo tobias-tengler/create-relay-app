@@ -1,5 +1,5 @@
 import { TaskBase } from "./TaskBase.js";
-import { h, prettifyCode } from "../utils/index.js";
+import { bold, prettifyCode } from "../utils/index.js";
 import { ProjectContext } from "../misc/ProjectContext.js";
 import { EOL } from "os";
 
@@ -24,7 +24,9 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
   // todo: this could maybe be simplified by also using the AST.
   //       this would also enable us to update an existing configuration.
   private async addRelayEnvironmentFile() {
-    this.updateMessage(this.message + " " + h(this.context.relayEnvFile.rel));
+    this.updateMessage(
+      this.message + " " + bold(this.context.relayEnvFile.rel)
+    );
 
     if (this.context.fs.exists(this.context.relayEnvFile.abs)) {
       this.skip("File exists");
@@ -90,7 +92,7 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
     };`;
 
     if (!this.context.args.typescript) {
-      // Remove Typescript type
+      // Remove TypeScript type
       fetchFn = fetchFn.replace("fetchFn: FetchFunction", "fetchFn");
     }
 

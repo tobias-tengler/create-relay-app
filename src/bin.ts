@@ -11,7 +11,7 @@ import {
   SchemaFileArgument,
   SrcArgument,
   ToolchainArgument,
-  TypescriptArgument,
+  TypeScriptArgument,
   SubscriptionsArgument,
 } from "./arguments/index.js";
 import { BABEL_RELAY_MACRO, PACKAGE_FILE } from "./consts.js";
@@ -40,7 +40,12 @@ import {
   Next_AddTypeHelpers,
 } from "./tasks/index.js";
 import { CliArguments } from "./types.js";
-import { headline, h, importantHeadline, printError } from "./utils/index.js";
+import {
+  headline,
+  bold,
+  importantHeadline,
+  printError,
+} from "./utils/index.js";
 import { ProjectContext } from "./misc/ProjectContext.js";
 import { Environment, MissingPackageJsonError } from "./misc/Environment.js";
 import { Git } from "./misc/Git.js";
@@ -49,8 +54,6 @@ import { CommandRunner } from "./misc/CommandRunner.js";
 const fs = new Filesystem();
 const cmdRunner = new CommandRunner();
 
-// We need to determine where our package was installed to,
-// since we later might need to access files from this location.
 const distDirectory = dirname(fileURLToPath(import.meta.url));
 const ownPackageJsonFilepath = path.join(distDirectory, "..", PACKAGE_FILE);
 
@@ -66,24 +69,25 @@ try {
 } catch (error) {
   if (error instanceof MissingPackageJsonError) {
     // prettier-ignore
-    printError(`Could not find a ${h(PACKAGE_FILE)} in the ${h(cwd)} directory.`);
+    printError(`Could not find a ${bold(PACKAGE_FILE)} in the ${bold(cwd)} directory.`);
 
     console.log();
     console.log(headline("Correct usage"));
     console.log();
 
-    console.log("1. Remember to first scaffold a project using:");
-    console.log("   Next.js: " + h(pacMan + "create next-app --typescript"));
-    console.log("   Vite.js: " + h(pacMan + "create vite --template react-ts"));
+    console.log("1. Remember to first scaffold a React project using:");
+    console.log("   Next.js: " + bold(pacMan + "create next-app --typescript"));
     // prettier-ignore
-    console.log("   Create React App: " + h(pacMan + "create react-app <new-project-directory> --template typescript"));
+    console.log("   Vite.js: " + bold(pacMan + "create vite --template react-ts"));
+    // prettier-ignore
+    console.log("   Create React App: " + bold(pacMan + "create react-app <new-project-directory> --template typescript"));
     console.log();
     console.log("2. Move into the scaffolded directory:");
-    console.log("   " + h("cd <new-project-directory>"));
+    console.log("   " + bold("cd <new-project-directory>"));
     console.log();
     // todo: replace with create-relay-app, if we hopefully get the name.
-    console.log(`3. Run the @tobiastengler/relay-app script again:`);
-    console.log("   " + h(pacMan + "create @tobiastengler/relay-app"));
+    console.log(`3. Run the original command again:`);
+    console.log("   " + bold(pacMan + "create @tobiastengler/relay-app"));
   } else if (error instanceof Error) {
     // prettier-ignore
     printError("Unexpected error while gathering environment information: " + error.message);
@@ -98,7 +102,7 @@ try {
 // Define all of the possible CLI arguments.
 const argumentHandler = new ArgumentHandler([
   new ToolchainArgument(env),
-  new TypescriptArgument(fs, env),
+  new TypeScriptArgument(fs, env),
   new SrcArgument(fs, env),
   new SchemaFileArgument(fs, env),
   new ArtifactDirectoryArgument(fs, env),
@@ -121,7 +125,7 @@ try {
 
     if (hasUnsavedChanges) {
       // prettier-ignore
-      printError(`Please commit or discard all changes in the ${h(env.cwd)} directory before continuing.`);
+      printError(`Please commit or discard all changes in the ${bold(env.cwd)} directory before continuing.`);
       exit(1);
     }
   }
@@ -191,15 +195,15 @@ console.log(headline("Next steps"));
 console.log();
 
 // prettier-ignore
-console.log(`1. Replace ${h(context.schemaPath.rel)} with your own GraphQL schema file.`);
+console.log(`1. Replace ${bold(context.schemaPath.rel)} with your own GraphQL schema file.`);
 
 // prettier-ignore
-const endpoints = h(HTTP_ENDPOINT) + (!context.args.subscriptions ? "" : " / " + h(WEBSOCKET_ENDPOINT))
+const endpoints = bold(HTTP_ENDPOINT) + (!context.args.subscriptions ? "" : " / " + bold(WEBSOCKET_ENDPOINT))
 // prettier-ignore
-console.log(`2. Replace the value of the ${endpoints} variable in the ${h(context.relayEnvFile.rel)} file.`);
+console.log(`2. Replace the value of the ${endpoints} variable in the ${bold(context.relayEnvFile.rel)} file.`);
 
 // prettier-ignore
-console.log(`3. Ignore ${h(context.artifactExtension)} files in your linter / formatter configuration (ESLint, prettier, etc.).`)
+console.log(`3. Ignore ${bold(context.artifactExtension)} files in your linter / formatter configuration (ESLint, prettier, etc.).`)
 
 // Create React app comes with some annoyances, so we warn the user about it,
 // and provide possible solutions that can be manually implemented.
@@ -208,11 +212,11 @@ if (context.is("cra")) {
   console.log(importantHeadline("Important"));
   console.log();
   // prettier-ignore
-  console.log(`Remember you need to import ${h("graphql")} like the following:`);
-  console.log("   " + h(`import graphql from \"${BABEL_RELAY_MACRO}\";`));
+  console.log(`Remember you need to import ${bold("graphql")} like the following:`);
+  console.log("   " + bold(`import graphql from \"${BABEL_RELAY_MACRO}\";`));
   console.log();
   // prettier-ignore
-  console.log(`Otherwise the transform of the ${h("graphql``")} tagged literal will not work!`);
+  console.log(`Otherwise the transform of the ${bold("graphql``")} tagged literal will not work!`);
   // prettier-ignore
   console.log("If you do not want to use the macro, you can check out the following document for guidance:");
   // prettier-ignore

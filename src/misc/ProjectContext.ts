@@ -62,11 +62,11 @@ export class ProjectContext {
 }
 
 function getRelayCompilerLanguage(
-  useTypescript: boolean,
+  useTypeScript: boolean,
   toolchain: ToolchainType
 ): RelayCompilerLanguage {
   if (
-    useTypescript ||
+    useTypeScript ||
     // Next does not support 'javascript' as an option,
     // only typescript or flow. So we opt for typescript
     // since it's more wide spread.

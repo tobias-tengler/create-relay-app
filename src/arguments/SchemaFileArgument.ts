@@ -4,7 +4,7 @@ import { NEXT_SRC_PATH } from "../consts.js";
 import { Environment } from "../misc/Environment.js";
 import { Filesystem } from "../misc/Filesystem.js";
 import { CliArguments } from "../types.js";
-import { h } from "../utils/index.js";
+import { bold } from "../utils/index.js";
 import { ArgumentBase } from "./ArgumentBase.js";
 
 export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
@@ -52,7 +52,7 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
     const filename = path.basename(value);
 
     if (!filename.endsWith(graphqlExt)) {
-      return `File needs to end in ${h(graphqlExt)}`;
+      return `File needs to end in ${bold(graphqlExt)}`;
     }
 
     if (!this.fs.isFile(value)) {
@@ -60,7 +60,7 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
     }
 
     if (!this.fs.isSubDirectory(this.env.cwd, value)) {
-      return `Must be a file somewhere below ${h(this.env.cwd)}`;
+      return `Must be a file somewhere below ${bold(this.env.cwd)}`;
     }
 
     return true;

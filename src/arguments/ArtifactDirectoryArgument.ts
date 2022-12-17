@@ -3,7 +3,7 @@ import path from "path";
 import { Environment } from "../misc/Environment.js";
 import { Filesystem } from "../misc/Filesystem.js";
 import { CliArguments } from "../types.js";
-import { h } from "../utils/index.js";
+import { bold } from "../utils/index.js";
 import { ArgumentBase } from "./ArgumentBase.js";
 
 export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory"> {
@@ -56,18 +56,18 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
     }
 
     if (path.basename(value) !== "__generated__") {
-      return `Last directory segment should be called ${h("__generated__")}`;
+      return `Last directory segment should be called ${bold("__generated__")}`;
     }
 
     if (!this.fs.isSubDirectory(this.env.cwd, value)) {
-      return `Must be directory below ${h(this.env.cwd)}`;
+      return `Must be directory below ${bold(this.env.cwd)}`;
     }
 
     if (existingArgs.toolchain === "next") {
       const pagesDirectory = this.env.rel("./pages");
 
       if (this.fs.isSubDirectory(pagesDirectory.abs, value)) {
-        return `Can not be under ${h(pagesDirectory.rel)}`;
+        return `Can not be under ${bold(pagesDirectory.rel)}`;
       }
     }
 

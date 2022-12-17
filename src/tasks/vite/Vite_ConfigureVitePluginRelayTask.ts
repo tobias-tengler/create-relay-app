@@ -3,11 +3,11 @@ import t from "@babel/types";
 import { VITE_RELAY_PACKAGE } from "../../consts.js";
 import { ProjectContext } from "../../misc/ProjectContext.js";
 import { parseAst, insertDefaultImport, printAst } from "../../utils/ast.js";
-import { h } from "../../utils/cli.js";
+import { bold } from "../../utils/cli.js";
 import { TaskBase } from "../TaskBase.js";
 
 export class Vite_ConfigureVitePluginRelayTask extends TaskBase {
-  message: string = `Configure ${h(VITE_RELAY_PACKAGE)}`;
+  message: string = `Configure ${bold(VITE_RELAY_PACKAGE)}`;
 
   constructor(private context: ProjectContext) {
     super();
@@ -23,7 +23,7 @@ export class Vite_ConfigureVitePluginRelayTask extends TaskBase {
 
     const configFile = this.context.env.rel(configFilename);
 
-    this.updateMessage(this.message + " in " + h(configFile.rel));
+    this.updateMessage(this.message + " in " + bold(configFile.rel));
 
     const configCode = await this.context.fs.readFromFile(configFile.abs);
 

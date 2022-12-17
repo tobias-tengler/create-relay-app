@@ -1,6 +1,6 @@
 import { TaskBase } from "./TaskBase.js";
 import { BABEL_RELAY_PACKAGE, VITE_RELAY_PACKAGE } from "../consts.js";
-import { h } from "../utils/cli.js";
+import { bold } from "../utils/cli.js";
 import { ProjectContext } from "../misc/ProjectContext.js";
 
 export class InstallNpmDevDependenciesTask extends TaskBase {
@@ -23,7 +23,7 @@ export class InstallNpmDevDependenciesTask extends TaskBase {
     const packages = this.getPackages();
 
     this.updateMessage(
-      this.message + " " + packages.map((p) => h(p)).join(" ")
+      this.message + " " + packages.map((p) => bold(p)).join(" ")
     );
 
     const latestPackages = packages.map((p) =>

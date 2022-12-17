@@ -1,5 +1,5 @@
 import { TaskBase } from "./TaskBase.js";
-import { h } from "../utils/index.js";
+import { bold } from "../utils/index.js";
 import { ProjectContext } from "../misc/ProjectContext.js";
 
 const schemaGraphQLContent = `# Replace this with your own GraphQL schema file!
@@ -19,7 +19,7 @@ export class GenerateGraphQlSchemaFileTask extends TaskBase {
   }
 
   async run(): Promise<void> {
-    this.updateMessage(this.message + " " + h(this.context.schemaPath.rel));
+    this.updateMessage(this.message + " " + bold(this.context.schemaPath.rel));
 
     if (this.context.fs.exists(this.context.schemaPath.abs)) {
       this.skip("File exists");

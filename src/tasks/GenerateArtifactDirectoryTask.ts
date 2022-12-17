@@ -1,5 +1,5 @@
 import { TaskBase } from "./TaskBase.js";
-import { h } from "../utils/index.js";
+import { bold } from "../utils/index.js";
 import { ProjectContext } from "../misc/ProjectContext.js";
 
 export class GenerateArtifactDirectoryTask extends TaskBase {
@@ -18,7 +18,9 @@ export class GenerateArtifactDirectoryTask extends TaskBase {
       return;
     }
 
-    this.updateMessage(this.message + " " + h(this.context.artifactPath.rel));
+    this.updateMessage(
+      this.message + " " + bold(this.context.artifactPath.rel)
+    );
 
     if (this.context.fs.exists(this.context.artifactPath.abs)) {
       this.skip("Directory exists");

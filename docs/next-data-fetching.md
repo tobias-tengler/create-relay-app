@@ -112,6 +112,6 @@ export const getServerSideProps: GetRelayServerSideProps<Props> = async () => {
 };
 ```
 
-For Typescript users I have created the types `GetRelayServerSideProps` and `GetRelayStaticProps` that will force you to return the `initialRecords`.
+For TypeScript users I have created the types `GetRelayServerSideProps` and `GetRelayStaticProps` that will force you to return the `initialRecords`.
 
 The `initialRecords` are then processed by the `_app` component, which should have already been setup to handle these records, if you used `create-relay-app` to setup the project.

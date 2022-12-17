@@ -13,7 +13,7 @@ import {
   parseAst,
   printAst,
 } from "../../utils/ast.js";
-import { h } from "../../utils/cli.js";
+import { bold } from "../../utils/cli.js";
 import { TaskBase, TaskSkippedError } from "../TaskBase.js";
 import t from "@babel/types";
 import { ParseResult } from "@babel/parser";
@@ -35,7 +35,7 @@ export class Cra_AddRelayEnvironmentProvider extends TaskBase {
 
     const mainFile = this.context.env.rel(path.join("src", mainFilename));
 
-    this.updateMessage(this.message + " in " + h(mainFile.rel));
+    this.updateMessage(this.message + " in " + bold(mainFile.rel));
 
     const code = await this.context.fs.readFromFile(mainFile.abs);
 

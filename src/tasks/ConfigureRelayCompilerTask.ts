@@ -1,12 +1,14 @@
 import { TaskBase } from "./TaskBase.js";
 import { PACKAGE_FILE } from "../consts.js";
-import { h } from "../utils/cli.js";
+import { bold } from "../utils/cli.js";
 import { ProjectContext } from "../misc/ProjectContext.js";
 
 const validateRelayArtifactsScript = "relay-compiler --validate";
 
 export class ConfigureRelayCompilerTask extends TaskBase {
-  message: string = `Configure ${h("relay-compiler")} in ${h(PACKAGE_FILE)}`;
+  message: string = `Configure ${bold("relay-compiler")} in ${bold(
+    PACKAGE_FILE
+  )}`;
 
   constructor(private context: ProjectContext) {
     super();

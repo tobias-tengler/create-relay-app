@@ -3,7 +3,7 @@ import { NEXT_SRC_PATH } from "../../consts.js";
 import { ProjectContext } from "../../misc/ProjectContext.js";
 import { RelativePath } from "../../misc/RelativePath.js";
 import { prettifyCode } from "../../utils/ast.js";
-import { h } from "../../utils/cli.js";
+import { bold } from "../../utils/cli.js";
 import { TaskBase } from "../TaskBase.js";
 
 const code = `
@@ -42,7 +42,7 @@ export class Next_AddTypeHelpers extends TaskBase {
   async run(): Promise<void> {
     const filepath = Next_AddTypeHelpers.getRelayTypesPath(this.context);
 
-    this.updateMessage(this.message + " " + h(filepath.rel));
+    this.updateMessage(this.message + " " + bold(filepath.rel));
 
     if (this.context.fs.exists(filepath.abs)) {
       this.skip("File exists");

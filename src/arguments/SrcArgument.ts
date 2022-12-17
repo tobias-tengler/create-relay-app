@@ -3,7 +3,7 @@ import { NEXT_APP_ROOT, APP_ROOT } from "../consts.js";
 import { Environment } from "../misc/Environment.js";
 import { Filesystem } from "../misc/Filesystem.js";
 import { CliArguments } from "../types.js";
-import { h } from "../utils/index.js";
+import { bold } from "../utils/index.js";
 import { ArgumentBase } from "./ArgumentBase.js";
 
 export class SrcArgument extends ArgumentBase<"src"> {
@@ -50,7 +50,7 @@ export class SrcArgument extends ArgumentBase<"src"> {
     }
 
     if (!this.fs.isSubDirectory(this.env.cwd, value)) {
-      return `Must be directory below ${h(this.env.cwd)}`;
+      return `Must be directory below ${bold(this.env.cwd)}`;
     }
 
     return true;

@@ -12,7 +12,7 @@ export function importantHeadline(message: string): string {
   return chalk.red.bold.underline(message);
 }
 
-export function h(message: string): string {
+export function bold(message: string): string {
   return chalk.cyan.bold(message);
 }
 

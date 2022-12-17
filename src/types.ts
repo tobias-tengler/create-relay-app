@@ -1,5 +1,3 @@
-import { RelativePath } from "./misc/RelativePath.js";
-
 export const ToolchainOptions = ["cra", "next", "vite"] as const;
 export const PackageManagerOptions = ["npm", "yarn", "pnpm"] as const;
 
@@ -18,5 +16,5 @@ export type CliArguments = {
   packageManager: PackageManagerType;
   ignoreGitChanges: boolean;
   skipInstall: boolean;
-  yes: boolean;
+  interactive: boolean;
 };

@@ -2,7 +2,6 @@ import { ArgumentBase } from "./ArgumentBase.js";
 import { CliArguments } from "../types.js";
 import { program } from "commander";
 import { Environment } from "../misc/Environment.js";
-import { RelativePath } from "../misc/RelativePath.js";
 
 export class ArgumentHandler {
   private readonly argumentDefinitions: ArgumentBase<keyof CliArguments>[];
@@ -33,7 +32,10 @@ export class ArgumentHandler {
         "--skip-install",
         "skip the install of npm packages (only for testing)"
       )
-      .option(`-y, --yes`, `answer \"yes\" to any prompts`);
+      .option(
+        `-i, --interactive`,
+        `display an interactive prompt that allows you to manually input your project's details`
+      );
 
     // Parse CLI options.
     await program.parseAsync();
@@ -59,7 +61,7 @@ export class ArgumentHandler {
         continue;
       }
 
-      if (!parsedArgs.yes) {
+      if (parsedArgs.interactive) {
         const answer = await argumentDefinition.promptForValue(allArgs);
 
         // @ts-ignore
@@ -88,13 +90,17 @@ export class ArgumentHandler {
         continue;
       }
 
-      const valid = argumentDefinition.isValid(value, args);
+      const successOrErrorReason = argumentDefinition.isValid(value, args);
 
-      if (valid === true) {
+      if (successOrErrorReason === true) {
         continue;
       }
 
-      throw argumentDefinition.getInvalidArgError(value, undefined, valid);
+      throw argumentDefinition.getInvalidArgError(
+        value,
+        undefined,
+        successOrErrorReason
+      );
     }
   }
 }

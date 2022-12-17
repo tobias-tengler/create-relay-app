@@ -9,7 +9,7 @@ export class SubscriptionsArgument extends ArgumentBase<"subscriptions"> {
   registerCliOption(command: Command): void {
     const flags = this.getCliFlags();
 
-    command.option(flags, "use subscriptions");
+    command.option(flags, "setup GraphQL subscriptions using graphql-ws");
   }
 
   promptForValue(existingArgs: Partial<CliArguments>): Promise<boolean> {

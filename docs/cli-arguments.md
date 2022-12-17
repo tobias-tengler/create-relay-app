@@ -2,9 +2,9 @@
 npm/yarn/pnpm create @tobiastengler/relay-app@latest [options]
 ```
 
-### -y, --yes
+### -i, --interactive
 
-Skips any prompts and chooses [default values](./default-values.md) for options that weren't supplied as CLI arguments.
+Displays an interactive prompt that allows you to manually input your project's details for options that weren't supplied as CLI arguments.
 
 ### -t, --toolchain &lt;toolchain&gt;
 
@@ -24,7 +24,7 @@ _Example_
 
 ### --typescript
 
-If specified, we assume your project is built with Typescript.
+If specified, we assume your project is built with TypeScript.
 
 ### -f, --schema-file &lt;path&gt;
 
@@ -70,7 +70,7 @@ _Example_
 
 ### --subscriptions
 
-If specified, we will setup subscriptions via [graphql-ws](https://github.com/enisdenjo/graphql-ws) in your network layer.
+If specified, we will setup GraphQL Subscriptions via [graphql-ws](https://github.com/enisdenjo/graphql-ws) in your network layer.
 
 ### -p, --package-manager &lt;manager&gt;
 

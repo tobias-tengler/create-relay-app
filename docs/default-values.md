@@ -1,6 +1,6 @@
 If certain options are not specified as [CLI arguments](./cli-arguments.md), we try to infer most of them from the directory you ran the script from.
 
-### --yes
+### --interactive
 
 `false`, unless specified.
 
@@ -14,7 +14,7 @@ Otherwise, we assume it's a _Create React App_ project, unless specified otherwi
 
 ### --typescript
 
-If the `typescript` package is installed **or** there is a `tsconfig.json` file in the root directory of your project, we assume you are using Typescript, unless specified otherwise.
+If the `typescript` package is installed **or** there is a `tsconfig.json` file in the root directory of your project, we assume you are using TypeScript, unless specified otherwise.
 
 ### --schema-file
 

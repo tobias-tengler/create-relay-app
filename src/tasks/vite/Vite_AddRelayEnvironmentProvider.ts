@@ -2,7 +2,7 @@ import path from "path";
 import { RELAY_ENV_PROVIDER } from "../../consts.js";
 import { ProjectContext } from "../../misc/ProjectContext.js";
 import { parseAst, printAst } from "../../utils/ast.js";
-import { h } from "../../utils/cli.js";
+import { bold } from "../../utils/cli.js";
 import { TaskBase } from "../TaskBase.js";
 import { configureRelayProviderInReactDomRender } from "../cra/Cra_AddRelayEnvironmentProvider.js";
 
@@ -23,7 +23,7 @@ export class Vite_AddRelayEnvironmentProvider extends TaskBase {
 
     const mainFile = this.context.env.rel(path.join("src", mainFilename));
 
-    this.updateMessage(this.message + " in " + h(mainFile.rel));
+    this.updateMessage(this.message + " in " + bold(mainFile.rel));
 
     const code = await this.context.fs.readFromFile(mainFile.abs);
 

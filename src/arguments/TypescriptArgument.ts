@@ -1,14 +1,13 @@
 import { Command } from "commander";
-import path from "path";
 import { TS_CONFIG_FILE, TYPESCRIPT_PACKAGE } from "../consts.js";
 import { Environment } from "../misc/Environment.js";
 import { Filesystem } from "../misc/Filesystem.js";
 import { CliArguments } from "../types.js";
 import { ArgumentBase } from "./ArgumentBase.js";
 
-export class TypescriptArgument extends ArgumentBase<"typescript"> {
+export class TypeScriptArgument extends ArgumentBase<"typescript"> {
   public name = "typescript" as const;
-  public promptMessage = "Does your project use Typescript";
+  public promptMessage = "Does your project use TypeScript";
 
   constructor(private fs: Filesystem, private env: Environment) {
     super();
@@ -17,7 +16,7 @@ export class TypescriptArgument extends ArgumentBase<"typescript"> {
   registerCliOption(command: Command): void {
     const flags = this.getCliFlags();
 
-    command.option(flags, "use Typescript");
+    command.option(flags, "use TypeScript");
   }
 
   promptForValue(existingArgs: Partial<CliArguments>): Promise<boolean> {
