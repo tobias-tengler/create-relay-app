@@ -1,3 +1,7 @@
+## Server Components
+
+If you're using Next.js v13 with the experimental `app` directory, the Relay Team put together a full example featuring Server Components [here](https://github.com/relayjs/relay-examples/tree/main/issue-tracker-next-v13).
+
 ## Client-side data fetching
 
 If you only want to start fetching data, once the JS is executed in the browser, you can stick to `useLazyLoadQuery` and `preloadQuery` without any additional setup:
