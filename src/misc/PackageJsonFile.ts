@@ -51,10 +51,8 @@ export class PackageJsonFile {
     try {
       const content = await this.parse();
 
-      const dependencies: Record<string, string> =
-        content["dependencies"] ?? {};
-      const devDpendencies: Record<string, string> =
-        content["devDependencies"] ?? {};
+      const dependencies: Record<string, string> = content["dependencies"] ?? {};
+      const devDpendencies: Record<string, string> = content["devDependencies"] ?? {};
 
       const installedPackages = Object.keys({
         ...dependencies,

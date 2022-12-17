@@ -14,15 +14,8 @@ export class PnpmPackageManager implements PackageManager {
     return this.installDependency(packages, true);
   }
 
-  private installDependency(
-    packages: string | string[],
-    isDevDependency: boolean
-  ) {
-    const args = [
-      "install",
-      "--save-exact",
-      isDevDependency ? "--save-dev" : "--save",
-    ];
+  private installDependency(packages: string | string[], isDevDependency: boolean) {
+    const args = ["install", "--save-exact", isDevDependency ? "--save-dev" : "--save"];
 
     if (typeof packages === "string") {
       args.push(packages);

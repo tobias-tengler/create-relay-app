@@ -5,11 +5,7 @@ import { PackageJsonFile } from "./PackageJsonFile.js";
 import { RelativePath } from "./RelativePath.js";
 
 export class Environment {
-  constructor(
-    public readonly cwd: string,
-    ownPackageJsonFilepath: string,
-    private readonly fs: Filesystem
-  ) {
+  constructor(public readonly cwd: string, ownPackageJsonFilepath: string, private readonly fs: Filesystem) {
     this.ownPackageDirectory = fs.getParent(ownPackageJsonFilepath);
     this.ownPackageJson = new PackageJsonFile(ownPackageJsonFilepath, this.fs);
   }

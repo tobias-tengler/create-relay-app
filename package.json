@@ -35,7 +35,8 @@
   "type": "module",
   "scripts": {
     "build": "tsc -b",
-    "start": "tsc --watch"
+    "start": "tsc --watch",
+    "format": "prettier --write ./src/**/*.ts"
   },
   "peerDependencies": {},
   "devDependencies": {

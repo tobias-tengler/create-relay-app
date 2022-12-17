@@ -24,9 +24,7 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
   // todo: this could maybe be simplified by also using the AST.
   //       this would also enable us to update an existing configuration.
   private async addRelayEnvironmentFile() {
-    this.updateMessage(
-      this.message + " " + bold(this.context.relayEnvFile.rel)
-    );
+    this.updateMessage(this.message + " " + bold(this.context.relayEnvFile.rel));
 
     if (this.context.fs.exists(this.context.relayEnvFile.abs)) {
       this.skip("File exists");
@@ -36,12 +34,7 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
     const b = new CodeBuilder();
 
     // Add imports
-    const relayRuntimeImports: string[] = [
-      "Environment",
-      "Network",
-      "RecordSource",
-      "Store",
-    ];
+    const relayRuntimeImports: string[] = ["Environment", "Network", "RecordSource", "Store"];
 
     if (this.context.args.subscriptions) {
       relayRuntimeImports.push("Observable");
@@ -209,14 +202,9 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
 
     const prettifiedCode = prettifyCode(b.code);
 
-    await this.context.fs.createDirectory(
-      this.context.relayEnvFile.parentDirectory
-    );
+    await this.context.fs.createDirectory(this.context.relayEnvFile.parentDirectory);
 
-    await this.context.fs.writeToFile(
-      this.context.relayEnvFile.abs,
-      prettifiedCode
-    );
+    await this.context.fs.writeToFile(this.context.relayEnvFile.abs, prettifiedCode);
   }
 }
 

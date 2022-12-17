@@ -1,27 +1,13 @@
 import traverse from "@babel/traverse";
 import path from "path";
-import {
-  REACT_RELAY_PACKAGE,
-  RELAY_ENV_PROVIDER,
-  RELAY_RUNTIME_PACKAGE,
-} from "../../consts.js";
+import { REACT_RELAY_PACKAGE, RELAY_ENV_PROVIDER, RELAY_RUNTIME_PACKAGE } from "../../consts.js";
 import { ProjectContext } from "../../misc/ProjectContext.js";
 import { RelativePath } from "../../misc/RelativePath.js";
-import {
-  astToString,
-  insertNamedImport,
-  insertNamedImports,
-  parseAst,
-  prettifyCode,
-} from "../../utils/ast.js";
+import { astToString, insertNamedImport, insertNamedImports, parseAst, prettifyCode } from "../../utils/ast.js";
 import { bold } from "../../utils/cli.js";
 import { TaskBase, TaskSkippedError } from "../TaskBase.js";
 import t from "@babel/types";
-import {
-  removeExtension,
-  hasRelayProvider,
-  wrapJsxInRelayProvider,
-} from "../cra/Cra_AddRelayEnvironmentProvider.js";
+import { removeExtension, hasRelayProvider, wrapJsxInRelayProvider } from "../cra/Cra_AddRelayEnvironmentProvider.js";
 import { Next_AddTypeHelpers } from "./Next_AddTypeHelpers.js";
 
 // todo: test this
@@ -55,8 +41,7 @@ export class Next_AddRelayEnvironmentProvider extends TaskBase {
   }
 
   async run(): Promise<void> {
-    const mainFilename =
-      "_app" + (this.context.args.typescript ? ".tsx" : ".js");
+    const mainFilename = "_app" + (this.context.args.typescript ? ".tsx" : ".js");
 
     const mainFile = this.context.env.rel(path.join("pages", mainFilename));
 
@@ -87,13 +72,8 @@ export class Next_AddRelayEnvironmentProvider extends TaskBase {
         // starting with Next 12.3.
         if (this.context.args.typescript) {
           // Import RelayPageProps.
-          const relayTypesPath = Next_AddTypeHelpers.getRelayTypesPath(
-            this.context
-          );
-          const relayTypesImportPath = new RelativePath(
-            mainFile.parentDirectory,
-            removeExtension(relayTypesPath.abs)
-          );
+          const relayTypesPath = Next_AddTypeHelpers.getRelayTypesPath(this.context);
+          const relayTypesImportPath = new RelativePath(mainFile.parentDirectory, removeExtension(relayTypesPath.abs));
 
           insertNamedImport(path, RELAY_PAGE_PROPS, relayTypesImportPath.rel);
 
@@ -104,13 +84,8 @@ export class Next_AddRelayEnvironmentProvider extends TaskBase {
           }
 
           const functionPath = functionBodyPath.parentPath;
-          if (
-            !functionPath.isFunctionDeclaration() ||
-            !t.isFunctionDeclaration(functionPath.node)
-          ) {
-            throw new Error(
-              "Expected parentPath to be a function declaration."
-            );
+          if (!functionPath.isFunctionDeclaration() || !t.isFunctionDeclaration(functionPath.node)) {
+            throw new Error("Expected parentPath to be a function declaration.");
           }
 
           const appPropsArg = functionPath.node.params[0];
@@ -121,9 +96,7 @@ export class Next_AddRelayEnvironmentProvider extends TaskBase {
 
           const genericAppProps = t.genericTypeAnnotation(
             t.identifier(APP_PROPS),
-            t.typeParameterInstantiation([
-              t.genericTypeAnnotation(t.identifier(RELAY_PAGE_PROPS)),
-            ])
+            t.typeParameterInstantiation([t.genericTypeAnnotation(t.identifier(RELAY_PAGE_PROPS))])
           );
 
           appPropsArg.typeAnnotation = t.typeAnnotation(genericAppProps);
@@ -141,15 +114,9 @@ export class Next_AddRelayEnvironmentProvider extends TaskBase {
 
         functionReturn.addComment("leading", "--MARKER", true);
 
-        const envProviderId = t.jsxIdentifier(
-          insertNamedImport(path, RELAY_ENV_PROVIDER, REACT_RELAY_PACKAGE).name
-        );
+        const envProviderId = t.jsxIdentifier(insertNamedImport(path, RELAY_ENV_PROVIDER, REACT_RELAY_PACKAGE).name);
 
-        wrapJsxInRelayProvider(
-          path,
-          envProviderId,
-          t.identifier("environment")
-        );
+        wrapJsxInRelayProvider(path, envProviderId, t.identifier("environment"));
 
         providerWrapped = true;
 

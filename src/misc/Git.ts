@@ -3,13 +3,9 @@ import { exec } from "child_process";
 export class Git {
   async isGitRepository(directory: string): Promise<boolean> {
     return await new Promise<boolean>((resolve) => {
-      exec(
-        "git rev-parse --is-inside-work-tree",
-        { cwd: directory },
-        (error) => {
-          resolve(!error);
-        }
-      );
+      exec("git rev-parse --is-inside-work-tree", { cwd: directory }, (error) => {
+        resolve(!error);
+      });
     });
   }
 

@@ -19,16 +19,10 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
   registerCliOption(command: Command): void {
     const flags = this.getCliFlags("-f", "<path>");
 
-    command.option(
-      flags,
-      "path to a GraphQL schema file",
-      (value) => this.env.rel(value)?.rel
-    );
+    command.option(flags, "path to a GraphQL schema file", (value) => this.env.rel(value)?.rel);
   }
 
-  promptForValue(
-    existingArgs: Partial<CliArguments>
-  ): Promise<CliArguments["schemaFile"]> {
+  promptForValue(existingArgs: Partial<CliArguments>): Promise<CliArguments["schemaFile"]> {
     return this.showInquirerPrompt(
       {
         type: "input",
@@ -39,10 +33,7 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
     );
   }
 
-  isValid(
-    value: CliArguments["schemaFile"],
-    existingArgs: Partial<CliArguments>
-  ): true | string {
+  isValid(value: CliArguments["schemaFile"], existingArgs: Partial<CliArguments>): true | string {
     if (!value) {
       return "Required";
     }
@@ -66,9 +57,7 @@ export class SchemaFileArgument extends ArgumentBase<"schemaFile"> {
     return true;
   }
 
-  getDefaultValue(
-    existingArgs: Partial<CliArguments>
-  ): Promise<CliArguments["schemaFile"]> {
+  getDefaultValue(existingArgs: Partial<CliArguments>): Promise<CliArguments["schemaFile"]> {
     const filename = "schema.graphql";
 
     let srcPath: string = existingArgs.src!;

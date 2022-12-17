@@ -16,10 +16,7 @@ import {
 } from "./arguments/index.js";
 import { BABEL_RELAY_MACRO, PACKAGE_FILE } from "./consts.js";
 import { Filesystem } from "./misc/Filesystem.js";
-import {
-  getPackageManger,
-  inferPackageManager,
-} from "./misc/packageManagers/index.js";
+import { getPackageManger, inferPackageManager } from "./misc/packageManagers/index.js";
 import {
   GenerateArtifactDirectoryTask,
   GenerateRelayEnvironmentTask,
@@ -40,12 +37,7 @@ import {
   Next_AddTypeHelpers,
 } from "./tasks/index.js";
 import { CliArguments } from "./types.js";
-import {
-  headline,
-  bold,
-  importantHeadline,
-  printError,
-} from "./utils/index.js";
+import { headline, bold, importantHeadline, printError } from "./utils/index.js";
 import { ProjectContext } from "./misc/ProjectContext.js";
 import { Environment, MissingPackageJsonError } from "./misc/Environment.js";
 import { Git } from "./misc/Git.js";
@@ -68,7 +60,6 @@ try {
   await env.init();
 } catch (error) {
   if (error instanceof MissingPackageJsonError) {
-    // prettier-ignore
     printError(`Could not find a ${bold(PACKAGE_FILE)} in the ${bold(cwd)} directory.`);
 
     console.log();
@@ -77,22 +68,17 @@ try {
 
     console.log("1. Remember to first scaffold a React project using:");
     console.log("   Next.js: " + bold(pacMan + "create next-app --typescript"));
-    // prettier-ignore
     console.log("   Vite.js: " + bold(pacMan + "create vite --template react-ts"));
-    // prettier-ignore
-    console.log("   Create React App: " + bold(pacMan + "create react-app <new-project-directory> --template typescript"));
+    console.log("   Create React App: " + bold(pacMan + "create react-app <project-name> --template typescript"));
     console.log();
     console.log("2. Move into the scaffolded directory:");
-    console.log("   " + bold("cd <new-project-directory>"));
+    console.log("   " + bold("cd <project-name>"));
     console.log();
-    // todo: replace with create-relay-app, if we hopefully get the name.
     console.log(`3. Run the original command again:`);
     console.log("   " + bold(pacMan + "create @tobiastengler/relay-app"));
   } else if (error instanceof Error) {
-    // prettier-ignore
     printError("Unexpected error while gathering environment information: " + error.message);
   } else {
-    // prettier-ignore
     printError("Unexpected error while gathering environment information");
   }
 
@@ -124,7 +110,6 @@ try {
     const hasUnsavedChanges = await git.hasUnsavedChanges(env.cwd);
 
     if (hasUnsavedChanges) {
-      // prettier-ignore
       printError(`Please commit or discard all changes in the ${bold(env.cwd)} directory before continuing.`);
       exit(1);
     }
@@ -147,11 +132,7 @@ try {
 }
 
 // Instantiate a package manager, based on the user's choice.
-const packageManager = getPackageManger(
-  userArgs.packageManager,
-  cmdRunner,
-  env.cwd
-);
+const packageManager = getPackageManger(userArgs.packageManager, cmdRunner, env.cwd);
 
 // Build a context that contains all of the configuration.
 const context = new ProjectContext(env, userArgs, packageManager, fs);
@@ -174,9 +155,13 @@ const runner = new TaskRunner([
   new Next_AddRelayEnvironmentProvider(context),
 ]);
 
+// We capture whether there was an error here, in order to
+// correctly end the program with a exit code of 1 later.
 let runnerHadError = false;
 
-runner.onError = () => (runnerHadError = true);
+runner.onError = () => {
+  runnerHadError = true;
+};
 
 // Execute all of the tasks sequentially.
 try {
@@ -194,16 +179,14 @@ console.log();
 console.log(headline("Next steps"));
 console.log();
 
-// prettier-ignore
 console.log(`1. Replace ${bold(context.schemaPath.rel)} with your own GraphQL schema file.`);
 
-// prettier-ignore
-const endpoints = bold(HTTP_ENDPOINT) + (!context.args.subscriptions ? "" : " / " + bold(WEBSOCKET_ENDPOINT))
-// prettier-ignore
+const endpoints = bold(HTTP_ENDPOINT) + (!context.args.subscriptions ? "" : " / " + bold(WEBSOCKET_ENDPOINT));
 console.log(`2. Replace the value of the ${endpoints} variable in the ${bold(context.relayEnvFile.rel)} file.`);
 
-// prettier-ignore
-console.log(`3. Ignore ${bold(context.artifactExtension)} files in your linter / formatter configuration (ESLint, prettier, etc.).`)
+const artifactFileExt = "*" + context.artifactExtension;
+
+console.log(`3. Ignore ${bold(artifactFileExt)} files in your linter / formatter configuration.`);
 
 // Create React app comes with some annoyances, so we warn the user about it,
 // and provide possible solutions that can be manually implemented.
@@ -211,15 +194,11 @@ if (context.is("cra")) {
   console.log();
   console.log(importantHeadline("Important"));
   console.log();
-  // prettier-ignore
   console.log(`Remember you need to import ${bold("graphql")} like the following:`);
   console.log("   " + bold(`import graphql from \"${BABEL_RELAY_MACRO}\";`));
   console.log();
-  // prettier-ignore
   console.log(`Otherwise the transform of the ${bold("graphql``")} tagged literal will not work!`);
-  // prettier-ignore
   console.log("If you do not want to use the macro, you can check out the following document for guidance:");
-  // prettier-ignore
   console.log("https://github.com/tobias-tengler/create-relay-app/blob/main/docs/cra-babel-setup.md");
 }
 
@@ -227,9 +206,7 @@ if (context.is("next")) {
   console.log();
   console.log(importantHeadline("Important"));
   console.log();
-  // prettier-ignore
   console.log(`Follow this guide, if you want to fetch data on the server instead of the client:`);
-  // prettier-ignore
   console.log("https://github.com/tobias-tengler/create-relay-app/blob/main/docs/next-data-fetching.md");
 }
 

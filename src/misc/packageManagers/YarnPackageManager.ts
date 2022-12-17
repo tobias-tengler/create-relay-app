@@ -14,10 +14,7 @@ export class YarnPackageManager implements PackageManager {
     return this.installDependency(packages, true);
   }
 
-  private installDependency(
-    packages: string | string[],
-    isDevDependency: boolean
-  ) {
+  private installDependency(packages: string | string[], isDevDependency: boolean) {
     const args = ["add", "--exact", "--cwd", this.cwd];
 
     if (isDevDependency) {

@@ -26,18 +26,11 @@ export abstract class ArgumentBase<TName extends keyof CliArguments> {
 
   abstract registerCliOption(command: Command): void;
 
-  abstract promptForValue(
-    existingArgs: Partial<CliArguments>
-  ): Promise<CliArguments[TName]>;
+  abstract promptForValue(existingArgs: Partial<CliArguments>): Promise<CliArguments[TName]>;
 
-  abstract getDefaultValue(
-    existingArgs: Partial<CliArguments>
-  ): Promise<CliArguments[TName]>;
+  abstract getDefaultValue(existingArgs: Partial<CliArguments>): Promise<CliArguments[TName]>;
 
-  abstract isValid(
-    value: CliArguments[TName],
-    existingArgs: Partial<CliArguments>
-  ): true | string;
+  abstract isValid(value: CliArguments[TName], existingArgs: Partial<CliArguments>): true | string;
 
   submitWithValue(value: CliArguments[TName]) {
     let val = value;

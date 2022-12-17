@@ -58,38 +58,24 @@ export class Next_ConfigureNextCompilerTask extends TaskBase {
           // so we need to resolve the variable declaration.
           const binding = path.scope.getBinding(node.right.name);
 
-          if (
-            !binding ||
-            !t.isVariableDeclarator(binding.path.node) ||
-            !t.isObjectExpression(binding.path.node.init)
-          ) {
-            throw new Error(
-              "`module.exports` references a variable, but the variable is not an object."
-            );
+          if (!binding || !t.isVariableDeclarator(binding.path.node) || !t.isObjectExpression(binding.path.node.init)) {
+            throw new Error("`module.exports` references a variable, but the variable is not an object.");
           }
 
           objExp = binding.path.node.init;
         } else if (t.isObjectExpression(node.right)) {
           objExp = node.right;
         } else {
-          throw new Error(
-            "Expected to find an object initializer or variable assigned to `module.exports`."
-          );
+          throw new Error("Expected to find an object initializer or variable assigned to `module.exports`.");
         }
 
         // We are creating or getting the 'compiler' property.
         let compiler_Prop = objExp.properties.find(
-          (p) =>
-            t.isObjectProperty(p) &&
-            t.isIdentifier(p.key) &&
-            p.key.name === "compiler"
+          (p) => t.isObjectProperty(p) && t.isIdentifier(p.key) && p.key.name === "compiler"
         ) as t.ObjectProperty;
 
         if (!compiler_Prop) {
-          compiler_Prop = t.objectProperty(
-            t.identifier("compiler"),
-            t.objectExpression([])
-          );
+          compiler_Prop = t.objectProperty(t.identifier("compiler"), t.objectExpression([]));
 
           objExp.properties.push(compiler_Prop);
         }
@@ -99,36 +85,21 @@ export class Next_ConfigureNextCompilerTask extends TaskBase {
         }
 
         let relay_ObjProps: t.ObjectProperty[] = [
-          t.objectProperty(
-            t.identifier("src"),
-            t.stringLiteral(this.context.srcPath.rel)
-          ),
-          t.objectProperty(
-            t.identifier("language"),
-            t.stringLiteral(this.context.compilerLanguage)
-          ),
+          t.objectProperty(t.identifier("src"), t.stringLiteral(this.context.srcPath.rel)),
+          t.objectProperty(t.identifier("language"), t.stringLiteral(this.context.compilerLanguage)),
         ];
 
         if (this.context.artifactPath) {
           relay_ObjProps.push(
-            t.objectProperty(
-              t.identifier("artifactDirectory"),
-              t.stringLiteral(this.context.artifactPath.rel)
-            )
+            t.objectProperty(t.identifier("artifactDirectory"), t.stringLiteral(this.context.artifactPath.rel))
           );
         }
 
         const compiler_relayProp = compiler_Prop.value.properties.find(
-          (p) =>
-            t.isObjectProperty(p) &&
-            t.isIdentifier(p.key) &&
-            p.key.name === "relay"
+          (p) => t.isObjectProperty(p) && t.isIdentifier(p.key) && p.key.name === "relay"
         ) as t.ObjectProperty;
 
-        if (
-          compiler_relayProp &&
-          t.isObjectExpression(compiler_relayProp.value)
-        ) {
+        if (compiler_relayProp && t.isObjectExpression(compiler_relayProp.value)) {
           // We already have a "relay" property, so we merge its properties,
           // with the new ones.
           compiler_relayProp.value = t.objectExpression(
@@ -137,10 +108,7 @@ export class Next_ConfigureNextCompilerTask extends TaskBase {
         } else {
           // We do not yet have a "relay" propery, so we add it.
           compiler_Prop.value.properties.push(
-            t.objectProperty(
-              t.identifier("relay"),
-              t.objectExpression(relay_ObjProps)
-            )
+            t.objectProperty(t.identifier("relay"), t.objectExpression(relay_ObjProps))
           );
         }
 

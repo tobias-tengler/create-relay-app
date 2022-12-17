@@ -29,19 +29,11 @@ export function prettifyCode(code: string): string {
   });
 }
 
-export function insertNamedImport(
-  path: NodePath,
-  importName: string,
-  packageName: string
-): t.Identifier {
+export function insertNamedImport(path: NodePath, importName: string, packageName: string): t.Identifier {
   return insertNamedImports(path, [importName], packageName)[0];
 }
 
-export function insertNamedImports(
-  path: NodePath,
-  imports: string[],
-  packageName: string
-): t.Identifier[] {
+export function insertNamedImports(path: NodePath, imports: string[], packageName: string): t.Identifier[] {
   const program = path.findParent((p) => p.isProgram()) as NodePath<t.Program>;
 
   const identifiers: t.Identifier[] = [];
@@ -72,10 +64,7 @@ export function insertNamedImports(
   for (const namedImport of missingImports) {
     const importIdentifier = t.identifier(namedImport);
 
-    const newImport = t.importSpecifier(
-      t.cloneNode(importIdentifier),
-      importIdentifier
-    );
+    const newImport = t.importSpecifier(t.cloneNode(importIdentifier), importIdentifier);
 
     importDeclaration.specifiers.push(newImport);
 
@@ -90,11 +79,7 @@ export function insertNamedImports(
   return identifiers;
 }
 
-export function insertDefaultImport(
-  path: NodePath,
-  importName: string,
-  packageName: string
-): t.Identifier {
+export function insertDefaultImport(path: NodePath, importName: string, packageName: string): t.Identifier {
   const importIdentifier = t.identifier(importName);
 
   const program = path.findParent((p) => p.isProgram()) as NodePath<t.Program>;
@@ -117,10 +102,7 @@ export function insertDefaultImport(
   return importIdentifier;
 }
 
-function getImportDeclaration(
-  path: NodePath<t.Program>,
-  packageName: string
-): t.ImportDeclaration | null {
+function getImportDeclaration(path: NodePath<t.Program>, packageName: string): t.ImportDeclaration | null {
   return path.node.body.find(
     (s) => t.isImportDeclaration(s) && s.source.value === packageName
   ) as t.ImportDeclaration | null;
@@ -135,24 +117,16 @@ export function getNamedImport(
     (s) =>
       t.isImportDeclaration(s) &&
       s.source.value === packageName &&
-      s.specifiers.some(
-        (sp) => t.isImportSpecifier(sp) && sp.local.name === importName
-      )
+      s.specifiers.some((sp) => t.isImportSpecifier(sp) && sp.local.name === importName)
   ) as t.ImportDeclaration;
 }
 
-function getDefaultImport(
-  path: NodePath<t.Program>,
-  importName: string,
-  packageName: string
-): t.ImportDeclaration {
+function getDefaultImport(path: NodePath<t.Program>, importName: string, packageName: string): t.ImportDeclaration {
   return path.node.body.find(
     (s) =>
       t.isImportDeclaration(s) &&
       s.source.value === packageName &&
-      s.specifiers.some(
-        (sp) => t.isImportDefaultSpecifier(sp) && sp.local.name === importName
-      )
+      s.specifiers.some((sp) => t.isImportDefaultSpecifier(sp) && sp.local.name === importName)
   ) as t.ImportDeclaration;
 }
 
@@ -164,11 +138,7 @@ export function mergeProperties(
 
   for (const prop of newProps) {
     const existingIndex = existingCopy.findIndex(
-      (p) =>
-        t.isObjectProperty(p) &&
-        t.isIdentifier(p.key) &&
-        t.isIdentifier(prop.key) &&
-        p.key.name === prop.key.name
+      (p) => t.isObjectProperty(p) && t.isIdentifier(p.key) && t.isIdentifier(prop.key) && p.key.name === prop.key.name
     );
 
     if (existingIndex !== -1) {

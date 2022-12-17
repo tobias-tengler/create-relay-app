@@ -7,11 +7,7 @@ import { YarnPackageManager } from "./YarnPackageManager.js";
 
 export type { PackageManager } from "./PackageManager.js";
 
-export function getPackageManger(
-  type: PackageManagerType,
-  cmdRunner: CommandRunner,
-  cwd: string
-): PackageManager {
+export function getPackageManger(type: PackageManagerType, cmdRunner: CommandRunner, cwd: string): PackageManager {
   switch (type) {
     case "npm":
       return new NpmPackageManager(cwd, cmdRunner);

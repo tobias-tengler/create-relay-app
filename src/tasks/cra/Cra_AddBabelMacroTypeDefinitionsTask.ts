@@ -22,9 +22,7 @@ export class Cra_AddBabelMacroTypeDefinitionsTask extends TaskBase {
   }
 
   async run(): Promise<void> {
-    const reactTypeDefFilepath = this.context.env.rel(
-      path.join("src", "react-app-env.d.ts")
-    );
+    const reactTypeDefFilepath = this.context.env.rel(path.join("src", "react-app-env.d.ts"));
 
     this.updateMessage(this.message + " to " + bold(reactTypeDefFilepath.rel));
 
@@ -32,9 +30,7 @@ export class Cra_AddBabelMacroTypeDefinitionsTask extends TaskBase {
       throw new Error(`Could not find ${bold(reactTypeDefFilepath.rel)}`);
     }
 
-    const typeDefContent = await this.context.fs.readFromFile(
-      reactTypeDefFilepath.abs
-    );
+    const typeDefContent = await this.context.fs.readFromFile(reactTypeDefFilepath.abs);
 
     if (typeDefContent.includes('declare module "babel-plugin-relay/macro"')) {
       this.skip("Already exists");
@@ -42,17 +38,11 @@ export class Cra_AddBabelMacroTypeDefinitionsTask extends TaskBase {
     }
 
     try {
-      await this.context.fs.appendToFile(
-        reactTypeDefFilepath.abs,
-        babelMacroTypeDef
-      );
+      await this.context.fs.appendToFile(reactTypeDefFilepath.abs, babelMacroTypeDef);
     } catch (error) {
-      throw new Error(
-        `Could not append ${BABEL_RELAY_MACRO} to ${bold(
-          reactTypeDefFilepath.rel
-        )}`,
-        { cause: error instanceof Error ? error : undefined }
-      );
+      throw new Error(`Could not append ${BABEL_RELAY_MACRO} to ${bold(reactTypeDefFilepath.rel)}`, {
+        cause: error instanceof Error ? error : undefined,
+      });
     }
   }
 }

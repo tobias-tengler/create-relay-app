@@ -39,9 +39,7 @@ export class TypeScriptArgument extends ArgumentBase<"typescript"> {
       return true;
     }
 
-    const typescriptInstalled = await this.env.packageJson.containsDependency(
-      TYPESCRIPT_PACKAGE
-    );
+    const typescriptInstalled = await this.env.packageJson.containsDependency(TYPESCRIPT_PACKAGE);
 
     if (typescriptInstalled) {
       return true;

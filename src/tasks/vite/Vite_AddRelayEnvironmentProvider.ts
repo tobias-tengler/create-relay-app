@@ -18,8 +18,7 @@ export class Vite_AddRelayEnvironmentProvider extends TaskBase {
   }
 
   async run(): Promise<void> {
-    const mainFilename =
-      "main" + (this.context.args.typescript ? ".tsx" : ".jsx");
+    const mainFilename = "main" + (this.context.args.typescript ? ".tsx" : ".jsx");
 
     const mainFile = this.context.env.rel(path.join("src", mainFilename));
 
@@ -29,11 +28,7 @@ export class Vite_AddRelayEnvironmentProvider extends TaskBase {
 
     const ast = parseAst(code);
 
-    configureRelayProviderInReactDomRender(
-      ast,
-      mainFile,
-      this.context.relayEnvFile
-    );
+    configureRelayProviderInReactDomRender(ast, mainFile, this.context.relayEnvFile);
 
     const updatedCode = printAst(ast, code);
 

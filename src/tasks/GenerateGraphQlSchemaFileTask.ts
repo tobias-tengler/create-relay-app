@@ -26,13 +26,8 @@ export class GenerateGraphQlSchemaFileTask extends TaskBase {
       return;
     }
 
-    await this.context.fs.createDirectory(
-      this.context.schemaPath.parentDirectory
-    );
+    await this.context.fs.createDirectory(this.context.schemaPath.parentDirectory);
 
-    await this.context.fs.writeToFile(
-      this.context.schemaPath.abs,
-      schemaGraphQLContent
-    );
+    await this.context.fs.writeToFile(this.context.schemaPath.abs, schemaGraphQLContent);
   }
 }

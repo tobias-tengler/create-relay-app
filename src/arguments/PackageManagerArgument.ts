@@ -4,11 +4,7 @@ import path from "path";
 import { Environment } from "../misc/Environment.js";
 import { Filesystem } from "../misc/Filesystem.js";
 import { inferPackageManager } from "../misc/packageManagers/index.js";
-import {
-  CliArguments,
-  PackageManagerType,
-  PackageManagerOptions,
-} from "../types.js";
+import { CliArguments, PackageManagerType, PackageManagerOptions } from "../types.js";
 import { ArgumentBase, getNormalizedCliString } from "./ArgumentBase.js";
 
 export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
@@ -23,16 +19,12 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
   registerCliOption(command: Command): void {
     const flags = this.getCliFlags("-p", "<manager>");
 
-    command.option(
-      flags,
-      "the package manager to use for installing packages",
-      (value) => this.parsePackageManager(value)
+    command.option(flags, "the package manager to use for installing packages", (value) =>
+      this.parsePackageManager(value)
     );
   }
 
-  promptForValue(
-    existingArgs: Partial<CliArguments>
-  ): Promise<PackageManagerType> {
+  promptForValue(existingArgs: Partial<CliArguments>): Promise<PackageManagerType> {
     return this.showInquirerPrompt(
       {
         type: "list",
@@ -42,16 +34,11 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
     );
   }
 
-  isValid(
-    value: PackageManagerType,
-    existingArgs: Partial<CliArguments>
-  ): true | string {
+  isValid(value: PackageManagerType, existingArgs: Partial<CliArguments>): true | string {
     return true;
   }
 
-  getDefaultValue(
-    existingArgs: Partial<CliArguments>
-  ): Promise<PackageManagerType> {
+  getDefaultValue(existingArgs: Partial<CliArguments>): Promise<PackageManagerType> {
     const inferred = inferPackageManager();
 
     const yarnLockFile = this.env.rel("yarn.lock");

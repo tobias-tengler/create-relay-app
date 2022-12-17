@@ -6,9 +6,7 @@ import { ProjectContext } from "../misc/ProjectContext.js";
 const validateRelayArtifactsScript = "relay-compiler --validate";
 
 export class ConfigureRelayCompilerTask extends TaskBase {
-  message: string = `Configure ${bold("relay-compiler")} in ${bold(
-    PACKAGE_FILE
-  )}`;
+  message: string = `Configure ${bold("relay-compiler")} in ${bold(PACKAGE_FILE)}`;
 
   constructor(private context: ProjectContext) {
     super();
@@ -30,29 +28,17 @@ export class ConfigureRelayCompilerTask extends TaskBase {
 
     const buildScript = scriptsSection["build"];
 
-    if (
-      buildScript &&
-      typeof buildScript === "string" &&
-      !buildScript.includes(validateRelayArtifactsScript)
-    ) {
+    if (buildScript && typeof buildScript === "string" && !buildScript.includes(validateRelayArtifactsScript)) {
       // There is an existing build script.
-      scriptsSection["build"] =
-        validateRelayArtifactsScript + " && " + buildScript;
+      scriptsSection["build"] = validateRelayArtifactsScript + " && " + buildScript;
     }
 
-    const relaySection = (packageJson["relay"] ?? {}) as Record<
-      string,
-      string | string[] | boolean
-    >;
+    const relaySection = (packageJson["relay"] ?? {}) as Record<string, string | string[] | boolean>;
 
     relaySection["src"] = this.context.srcPath.rel;
     relaySection["language"] = this.context.compilerLanguage;
     relaySection["schema"] = this.context.schemaPath.rel;
-    relaySection["exclude"] = [
-      "**/node_modules/**",
-      "**/__mocks__/**",
-      "**/__generated__/**",
-    ];
+    relaySection["exclude"] = ["**/node_modules/**", "**/__mocks__/**", "**/__generated__/**"];
 
     if (this.context.is("vite")) {
       // When generating without eagerEsModules artifacts contain

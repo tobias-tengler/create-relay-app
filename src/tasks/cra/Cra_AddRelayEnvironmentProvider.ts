@@ -1,18 +1,9 @@
 import traverse, { NodePath } from "@babel/traverse";
 import path from "path";
-import {
-  REACT_RELAY_PACKAGE,
-  RELAY_ENV,
-  RELAY_ENV_PROVIDER,
-} from "../../consts.js";
+import { REACT_RELAY_PACKAGE, RELAY_ENV, RELAY_ENV_PROVIDER } from "../../consts.js";
 import { ProjectContext } from "../../misc/ProjectContext.js";
 import { RelativePath } from "../../misc/RelativePath.js";
-import {
-  insertNamedImport,
-  insertNamedImports,
-  parseAst,
-  printAst,
-} from "../../utils/ast.js";
+import { insertNamedImport, insertNamedImports, parseAst, printAst } from "../../utils/ast.js";
 import { bold } from "../../utils/cli.js";
 import { TaskBase, TaskSkippedError } from "../TaskBase.js";
 import t from "@babel/types";
@@ -30,8 +21,7 @@ export class Cra_AddRelayEnvironmentProvider extends TaskBase {
   }
 
   async run(): Promise<void> {
-    const mainFilename =
-      "index" + (this.context.args.typescript ? ".tsx" : ".js");
+    const mainFilename = "index" + (this.context.args.typescript ? ".tsx" : ".js");
 
     const mainFile = this.context.env.rel(path.join("src", mainFilename));
 
@@ -41,11 +31,7 @@ export class Cra_AddRelayEnvironmentProvider extends TaskBase {
 
     const ast = parseAst(code);
 
-    configureRelayProviderInReactDomRender(
-      ast,
-      mainFile,
-      this.context.relayEnvFile
-    );
+    configureRelayProviderInReactDomRender(ast, mainFile, this.context.relayEnvFile);
 
     const updatedCode = printAst(ast, code);
 
@@ -62,10 +48,7 @@ export function hasRelayProvider(jsxPath: NodePath<t.JSXElement>): boolean {
         return;
       }
 
-      if (
-        t.isJSXIdentifier(path.node.name) &&
-        path.node.name.name === RELAY_ENV_PROVIDER
-      ) {
+      if (t.isJSXIdentifier(path.node.name) && path.node.name.name === RELAY_ENV_PROVIDER) {
         isProviderConfigured = true;
         path.skip();
         return;
@@ -107,16 +90,11 @@ export function configureRelayProviderInReactDomRender(
         throw new TaskSkippedError("Already added");
       }
 
-      const relativeRelayImport = new RelativePath(
-        currentFile.parentDirectory,
-        removeExtension(relayEnvFile.abs)
-      );
+      const relativeRelayImport = new RelativePath(currentFile.parentDirectory, removeExtension(relayEnvFile.abs));
 
       const envId = insertNamedImport(path, RELAY_ENV, relativeRelayImport.rel);
 
-      const envProviderId = t.jsxIdentifier(
-        insertNamedImport(path, RELAY_ENV_PROVIDER, REACT_RELAY_PACKAGE).name
-      );
+      const envProviderId = t.jsxIdentifier(insertNamedImport(path, RELAY_ENV_PROVIDER, REACT_RELAY_PACKAGE).name);
 
       wrapJsxInRelayProvider(path, envProviderId, envId);
 
@@ -140,10 +118,7 @@ export function wrapJsxInRelayProvider(
   jsxPath.replaceWith(
     t.jsxElement(
       t.jsxOpeningElement(envProviderId, [
-        t.jsxAttribute(
-          t.jsxIdentifier("environment"),
-          t.jsxExpressionContainer(envId)
-        ),
+        t.jsxAttribute(t.jsxIdentifier("environment"), t.jsxExpressionContainer(envId)),
       ]),
       t.jsxClosingElement(envProviderId),
       [jsxPath.node]

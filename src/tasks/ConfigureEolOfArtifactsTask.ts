@@ -24,15 +24,10 @@ export class ConfigureEolOfArtifactsTask extends TaskBase {
     if (!this.context.fs.exists(gitAttributesPath.abs)) {
       // .gitattributes does not exist - we create it.
 
-      this.context.fs.writeToFile(
-        gitAttributesPath.abs,
-        gitAttributesExpression + EOL
-      );
+      this.context.fs.writeToFile(gitAttributesPath.abs, gitAttributesExpression + EOL);
     } else {
       // .gitattributes exist - we check if our expression exists.
-      const gitAttributesContent = await this.context.fs.readFromFile(
-        gitAttributesPath.abs
-      );
+      const gitAttributesContent = await this.context.fs.readFromFile(gitAttributesPath.abs);
 
       if (gitAttributesContent.includes(gitAttributesExpression)) {
         this.skip("Already configured");
@@ -41,10 +36,7 @@ export class ConfigureEolOfArtifactsTask extends TaskBase {
 
       // The expression is not part of the file - we add it.
 
-      await this.context.fs.appendToFile(
-        gitAttributesPath.abs,
-        EOL + gitAttributesExpression + EOL
-      );
+      await this.context.fs.appendToFile(gitAttributesPath.abs, EOL + gitAttributesExpression + EOL);
     }
   }
 }

@@ -13,10 +13,7 @@ export class ArgumentHandler {
   async parse(env: Environment): Promise<Partial<CliArguments>> {
     const details = await env.ownPackageJson.getDetails();
 
-    program
-      .name(details.name)
-      .description(details.description)
-      .version(details.version, `-v, --version`);
+    program.name(details.name).description(details.description).version(details.version, `-v, --version`);
 
     // Register CLI options.
     for (const argumentDefinition of this.argumentDefinitions) {
@@ -24,14 +21,8 @@ export class ArgumentHandler {
     }
 
     program
-      .option(
-        "--ignore-git-changes",
-        "do not exit if the current directory has un-commited Git changes"
-      )
-      .option(
-        "--skip-install",
-        "skip the install of npm packages (only for testing)"
-      )
+      .option("--ignore-git-changes", "do not exit if the current directory has un-commited Git changes")
+      .option("--skip-install", "skip the install of npm packages (only for testing)")
       .option(
         `-i, --interactive`,
         `display an interactive prompt that allows you to manually input your project's details`
@@ -47,9 +38,7 @@ export class ArgumentHandler {
     return cliArgs;
   }
 
-  async promptForMissing(
-    parsedArgs: Partial<CliArguments>
-  ): Promise<CliArguments> {
+  async promptForMissing(parsedArgs: Partial<CliArguments>): Promise<CliArguments> {
     const allArgs: Partial<CliArguments> = { ...parsedArgs };
 
     for (const argumentDefinition of this.argumentDefinitions) {
@@ -96,11 +85,7 @@ export class ArgumentHandler {
         continue;
       }
 
-      throw argumentDefinition.getInvalidArgError(
-        value,
-        undefined,
-        successOrErrorReason
-      );
+      throw argumentDefinition.getInvalidArgError(value, undefined, successOrErrorReason);
     }
   }
 }

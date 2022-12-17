@@ -17,16 +17,10 @@ export class SrcArgument extends ArgumentBase<"src"> {
   registerCliOption(command: Command): void {
     const flags = this.getCliFlags("-s", "<path>");
 
-    command.option(
-      flags,
-      "root directory of your application code",
-      (value) => this.env.rel(value)?.rel
-    );
+    command.option(flags, "root directory of your application code", (value) => this.env.rel(value)?.rel);
   }
 
-  promptForValue(
-    existingArgs: Partial<CliArguments>
-  ): Promise<CliArguments["src"]> {
+  promptForValue(existingArgs: Partial<CliArguments>): Promise<CliArguments["src"]> {
     return this.showInquirerPrompt(
       {
         type: "input",
@@ -37,10 +31,7 @@ export class SrcArgument extends ArgumentBase<"src"> {
     );
   }
 
-  isValid(
-    value: CliArguments["src"],
-    existingArgs: Partial<CliArguments>
-  ): true | string {
+  isValid(value: CliArguments["src"], existingArgs: Partial<CliArguments>): true | string {
     if (!value) {
       return `Required`;
     }
@@ -56,9 +47,7 @@ export class SrcArgument extends ArgumentBase<"src"> {
     return true;
   }
 
-  getDefaultValue(
-    existingArgs: Partial<CliArguments>
-  ): Promise<CliArguments["src"]> {
+  getDefaultValue(existingArgs: Partial<CliArguments>): Promise<CliArguments["src"]> {
     if (existingArgs.toolchain === "next") {
       return Promise.resolve(NEXT_APP_ROOT);
     }

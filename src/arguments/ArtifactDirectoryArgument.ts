@@ -18,16 +18,10 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
   registerCliOption(command: Command): void {
     const flags = this.getCliFlags("-a", "<path>");
 
-    command.option(
-      flags,
-      "directory to place all Relay artifacts in",
-      (value) => this.env.rel(value)?.rel
-    );
+    command.option(flags, "directory to place all Relay artifacts in", (value) => this.env.rel(value)?.rel);
   }
 
-  promptForValue(
-    existingArgs: Partial<CliArguments>
-  ): Promise<CliArguments["artifactDirectory"]> {
+  promptForValue(existingArgs: Partial<CliArguments>): Promise<CliArguments["artifactDirectory"]> {
     return this.showInquirerPrompt(
       {
         type: "input",
@@ -38,10 +32,7 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
     );
   }
 
-  isValid(
-    value: CliArguments["artifactDirectory"],
-    existingArgs: Partial<CliArguments>
-  ): true | string {
+  isValid(value: CliArguments["artifactDirectory"], existingArgs: Partial<CliArguments>): true | string {
     if (!value) {
       if (existingArgs.toolchain === "next") {
         return "Required";
@@ -74,9 +65,7 @@ export class ArtifactDirectoryArgument extends ArgumentBase<"artifactDirectory">
     return true;
   }
 
-  getDefaultValue(
-    existingArgs: Partial<CliArguments>
-  ): Promise<CliArguments["artifactDirectory"]> {
+  getDefaultValue(existingArgs: Partial<CliArguments>): Promise<CliArguments["artifactDirectory"]> {
     if (existingArgs.toolchain === "next") {
       // Artifacts need to be located outside the ./pages directory,
       // or they will be treated as pages.

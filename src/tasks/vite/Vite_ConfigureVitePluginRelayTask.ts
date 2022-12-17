@@ -18,8 +18,7 @@ export class Vite_ConfigureVitePluginRelayTask extends TaskBase {
   }
 
   async run(): Promise<void> {
-    const configFilename =
-      "vite.config" + (this.context.args.typescript ? ".ts" : ".js");
+    const configFilename = "vite.config" + (this.context.args.typescript ? ".ts" : ".js");
 
     const configFile = this.context.env.rel(configFilename);
 
@@ -31,11 +30,7 @@ export class Vite_ConfigureVitePluginRelayTask extends TaskBase {
 
     traverse.default(ast, {
       ExportDefaultDeclaration: (path) => {
-        const relayImportId = insertDefaultImport(
-          path,
-          "relay",
-          VITE_RELAY_PACKAGE
-        );
+        const relayImportId = insertDefaultImport(path, "relay", VITE_RELAY_PACKAGE);
 
         const node = path.node;
 
@@ -52,41 +47,27 @@ export class Vite_ConfigureVitePluginRelayTask extends TaskBase {
         const arg = node.declaration.arguments[0];
 
         if (!t.isObjectExpression(arg)) {
-          throw new Error(
-            "Expected first argument of `defineConfig` to be an object"
-          );
+          throw new Error("Expected first argument of `defineConfig` to be an object");
         }
 
         // We are creating or getting the 'plugins' property.
         let pluginsProperty = arg.properties.find(
-          (p) =>
-            t.isObjectProperty(p) &&
-            t.isIdentifier(p.key) &&
-            p.key.name === "plugins"
+          (p) => t.isObjectProperty(p) && t.isIdentifier(p.key) && p.key.name === "plugins"
         ) as t.ObjectProperty;
 
         if (!pluginsProperty) {
-          pluginsProperty = t.objectProperty(
-            t.identifier("plugins"),
-            t.arrayExpression([])
-          );
+          pluginsProperty = t.objectProperty(t.identifier("plugins"), t.arrayExpression([]));
 
           arg.properties.push(pluginsProperty);
         }
 
         if (!t.isArrayExpression(pluginsProperty.value)) {
-          throw new Error(
-            "Expected the `plugins` property in the object passed to `defineConfig()` to be an array"
-          );
+          throw new Error("Expected the `plugins` property in the object passed to `defineConfig()` to be an array");
         }
 
         const vitePlugins = pluginsProperty.value.elements;
 
-        if (
-          vitePlugins.some(
-            (p) => t.isIdentifier(p) && p.name === relayImportId.name
-          )
-        ) {
+        if (vitePlugins.some((p) => t.isIdentifier(p) && p.name === relayImportId.name)) {
           this.skip("Already configured");
           return;
         }

@@ -14,11 +14,7 @@ export class ToolchainArgument extends ArgumentBase<"toolchain"> {
   registerCliOption(command: Command): void {
     const flags = this.getCliFlags("-t", "<toolchain>");
 
-    command.option(
-      flags,
-      "the toolchain used to bundle / serve the project",
-      (value) => this.parseToolChain(value)
-    );
+    command.option(flags, "the toolchain used to bundle / serve the project", (value) => this.parseToolChain(value));
   }
 
   promptForValue(existingArgs: Partial<CliArguments>): Promise<ToolchainType> {
@@ -31,16 +27,11 @@ export class ToolchainArgument extends ArgumentBase<"toolchain"> {
     );
   }
 
-  isValid(
-    value: ToolchainType,
-    existingArgs: Partial<CliArguments>
-  ): true | string {
+  isValid(value: ToolchainType, existingArgs: Partial<CliArguments>): true | string {
     return true;
   }
 
-  async getDefaultValue(
-    existingArgs: Partial<CliArguments>
-  ): Promise<ToolchainType> {
+  async getDefaultValue(existingArgs: Partial<CliArguments>): Promise<ToolchainType> {
     if (await this.env.packageJson.containsDependency("next")) {
       return "next";
     }

@@ -1,22 +1,13 @@
 import path from "path";
 import { NEXT_SRC_PATH, RELAY_ENV } from "../consts.js";
-import {
-  CliArguments,
-  RelayCompilerLanguage,
-  ToolchainType,
-} from "../types.js";
+import { CliArguments, RelayCompilerLanguage, ToolchainType } from "../types.js";
 import { Environment } from "./Environment.js";
 import { Filesystem } from "./Filesystem.js";
 import { PackageManager } from "./packageManagers/PackageManager.js";
 import { RelativePath } from "./RelativePath.js";
 
 export class ProjectContext {
-  constructor(
-    public env: Environment,
-    args: CliArguments,
-    public manager: PackageManager,
-    public fs: Filesystem
-  ) {
+  constructor(public env: Environment, args: CliArguments, public manager: PackageManager, public fs: Filesystem) {
     this.args = args;
 
     this.schemaPath = this.env.rel(args.schemaFile);
@@ -28,10 +19,7 @@ export class ProjectContext {
       this.artifactPath = null;
     }
 
-    this.compilerLanguage = getRelayCompilerLanguage(
-      args.typescript,
-      args.toolchain
-    );
+    this.compilerLanguage = getRelayCompilerLanguage(args.typescript, args.toolchain);
     this.relayEnvFile = getRelayEnvFilepath(env, args);
   }
 
@@ -61,10 +49,7 @@ export class ProjectContext {
   }
 }
 
-function getRelayCompilerLanguage(
-  useTypeScript: boolean,
-  toolchain: ToolchainType
-): RelayCompilerLanguage {
+function getRelayCompilerLanguage(useTypeScript: boolean, toolchain: ToolchainType): RelayCompilerLanguage {
   if (
     useTypeScript ||
     // Next does not support 'javascript' as an option,
@@ -78,10 +63,7 @@ function getRelayCompilerLanguage(
   }
 }
 
-function getRelayEnvFilepath(
-  env: Environment,
-  args: CliArguments
-): RelativePath {
+function getRelayEnvFilepath(env: Environment, args: CliArguments): RelativePath {
   const filename = RELAY_ENV + (args.typescript ? ".ts" : ".js");
 
   let srcDirectory = args.src;
