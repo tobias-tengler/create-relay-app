@@ -1,9 +1,8 @@
 import { execSync } from "child_process";
 import { Command } from "commander";
-import path from "path";
 import { Environment } from "../misc/Environment.js";
 import { Filesystem } from "../misc/Filesystem.js";
-import { inferPackageManager } from "../misc/packageManagers/index.js";
+import { getExecutingPackageManager } from "../misc/packageManagers/index.js";
 import { CliArguments, PackageManagerType, PackageManagerOptions } from "../types.js";
 import { ArgumentBase, getNormalizedCliString } from "./ArgumentBase.js";
 
@@ -39,12 +38,9 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
   }
 
   getDefaultValue(existingArgs: Partial<CliArguments>): Promise<PackageManagerType> {
-    const inferred = inferPackageManager();
-
     const yarnLockFile = this.env.rel("yarn.lock");
-    const pnpmLockFile = this.env.rel("pnpm-lock.yaml");
 
-    if (inferred !== "yarn" && this.fs.exists(yarnLockFile.abs)) {
+    if (this.fs.exists(yarnLockFile.abs)) {
       try {
         execSync("yarn --version", { stdio: "ignore" });
 
@@ -53,7 +49,9 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
       } catch {}
     }
 
-    if (inferred !== "pnpm" && this.fs.exists(pnpmLockFile.abs)) {
+    const pnpmLockFile = this.env.rel("pnpm-lock.yaml");
+
+    if (this.fs.exists(pnpmLockFile.abs)) {
       try {
         execSync("pnpm --version", { stdio: "ignore" });
 
@@ -62,7 +60,9 @@ export class PackageManagerArgument extends ArgumentBase<"packageManager"> {
       } catch {}
     }
 
-    return Promise.resolve(inferred);
+    const executingPackageManager = getExecutingPackageManager();
+
+    return Promise.resolve(executingPackageManager);
   }
 
   parsePackageManager(rawInput?: string): PackageManagerType | null {

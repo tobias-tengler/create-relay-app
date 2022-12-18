@@ -18,11 +18,9 @@ export function getPackageManger(type: PackageManagerType, cmdRunner: CommandRun
   }
 }
 
-export function inferPackageManager(): PackageManagerType {
+export function getExecutingPackageManager(): PackageManagerType {
   const userAgent = process.env.npm_config_user_agent;
 
-  // If this script is being run by a specific manager,
-  // we use this mananger.
   if (userAgent) {
     if (userAgent.startsWith("yarn")) {
       return "yarn";

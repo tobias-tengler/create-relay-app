@@ -10,7 +10,7 @@ export class ArgumentHandler {
     this.argumentDefinitions = argumentDefinitions;
   }
 
-  async parse(env: Environment): Promise<Partial<CliArguments>> {
+  async parseArgs(env: Environment): Promise<Partial<CliArguments>> {
     const details = await env.ownPackageJson.getDetails();
 
     program.name(details.name).description(details.description).version(details.version, `-v, --version`);
@@ -38,7 +38,7 @@ export class ArgumentHandler {
     return cliArgs;
   }
 
-  async promptForMissing(parsedArgs: Partial<CliArguments>): Promise<CliArguments> {
+  async resolveMissingArgs(parsedArgs: Partial<CliArguments>): Promise<CliArguments> {
     const allArgs: Partial<CliArguments> = { ...parsedArgs };
 
     for (const argumentDefinition of this.argumentDefinitions) {

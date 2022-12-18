@@ -16,7 +16,7 @@ import {
 } from "./arguments/index.js";
 import { BABEL_RELAY_MACRO, PACKAGE_FILE } from "./consts.js";
 import { Filesystem } from "./misc/Filesystem.js";
-import { getPackageManger, inferPackageManager } from "./misc/packageManagers/index.js";
+import { getPackageManger, getExecutingPackageManager } from "./misc/packageManagers/index.js";
 import {
   GenerateArtifactDirectoryTask,
   GenerateRelayEnvironmentTask,
@@ -50,7 +50,7 @@ const distDirectory = dirname(fileURLToPath(import.meta.url));
 const ownPackageJsonFilepath = path.join(distDirectory, "..", PACKAGE_FILE);
 
 const cwd = process.cwd();
-const pacMan = inferPackageManager();
+const pacMan = getExecutingPackageManager();
 
 const env = new Environment(cwd, ownPackageJsonFilepath, fs);
 
@@ -101,10 +101,9 @@ const isGitRepo = await git.isGitRepository(env.cwd);
 
 let userArgs: CliArguments;
 
-// Try to parse the CLI arguments
 try {
   // Get the arguments provided to the program.
-  const cliArgs = await argumentHandler.parse(env);
+  const cliArgs = await argumentHandler.parseArgs(env);
 
   if (isGitRepo && !cliArgs.ignoreGitChanges) {
     const hasUnsavedChanges = await git.hasUnsavedChanges(env.cwd);
@@ -116,7 +115,7 @@ try {
   }
 
   // Prompt for all of the missing arguments, required to execute the program.
-  userArgs = await argumentHandler.promptForMissing(cliArgs);
+  userArgs = await argumentHandler.resolveMissingArgs(cliArgs);
 
   console.log();
 } catch (error) {
@@ -155,18 +154,13 @@ const runner = new TaskRunner([
   new Next_AddRelayEnvironmentProvider(context),
 ]);
 
-// We capture whether there was an error here, in order to
-// correctly end the program with a exit code of 1 later.
-let runnerHadError = false;
-
-runner.onError = () => {
-  runnerHadError = true;
-};
-
 // Execute all of the tasks sequentially.
 try {
   await runner.run();
 } catch {
+  // The error should've already been correctly handled by the runner,
+  // we just exit the program here.
+
   console.log();
   printError("Some of the tasks failed unexpectedly.");
   exit(1);
@@ -211,9 +205,3 @@ if (context.is("next")) {
 }
 
 console.log();
-
-// We let the system output anything relevant
-// and only then fail at the end.
-if (runnerHadError) {
-  exit(1);
-}

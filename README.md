@@ -130,15 +130,7 @@ Expects:
 - `yarn`
 - `pnpm`
 
-Default:
-
-<!-- todo: refine -->
-
-If the script was **not** run with `yarn`, but there is a `yarn.lock` file and `yarn` is installed, we will choose `yarn`.
-
-If the script was **not** run with `pnpm`, but there is a `pnpm-lock.yml` file and `pnpm` is installed, we will choose `pnpm`.
-
-In all other cases we will choose the package manager that executed the script or `npm`.
+Default: `yarn`, if there's a `yarn.lock` file and `yarn` is installed. `pnpm`, if there's a `pnpm-lock.yml` file and `pnpm` is installed. Otherwise the package manager that is executing the script will be used to install packages.
 
 ### --ignore-git-changes
 
