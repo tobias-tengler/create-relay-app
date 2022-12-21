@@ -39,7 +39,7 @@ Contrary to many existing tools that aim to solve similiar use cases, this proje
 3. Run the script inside of the scaffolded directory:
 
 ```bash
-npm/yarn/pnpm create @tobiastengler/relay-app@latest
+npm/yarn/pnpm create @tobiastengler/relay-app
 ```
 
 > Note: You can specify `-i` after the command to walk through an interactive prompt, instead of the script inferring your project's details.
