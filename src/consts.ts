@@ -14,3 +14,5 @@ export const VITE_RELAY_PACKAGE = "vite-plugin-relay";
 
 export const RELAY_ENV_PROVIDER = "RelayEnvironmentProvider";
 export const RELAY_ENV = "RelayEnvironment";
+
+export const GITHUB_CODE_URL = "https://github.com/tobias-tengler/create-relay-app/blob/main";

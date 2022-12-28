@@ -14,7 +14,7 @@ import {
   TypeScriptArgument,
   SubscriptionsArgument,
 } from "./arguments/index.js";
-import { BABEL_RELAY_MACRO, PACKAGE_FILE } from "./consts.js";
+import { BABEL_RELAY_MACRO, GITHUB_CODE_URL, PACKAGE_FILE } from "./consts.js";
 import { Filesystem } from "./misc/Filesystem.js";
 import { getPackageManger, getExecutingPackageManager } from "./misc/packageManagers/index.js";
 import {
@@ -193,7 +193,7 @@ if (context.is("cra")) {
   console.log();
   console.log(`Otherwise the transform of the ${bold("graphql``")} tagged literal will not work!`);
   console.log("If you do not want to use the macro, you can check out the following document for guidance:");
-  console.log("https://github.com/tobias-tengler/create-relay-app/blob/main/docs/cra-babel-setup.md");
+  console.log(GITHUB_CODE_URL + "/docs/cra-babel-setup.md");
 }
 
 if (context.is("next")) {
@@ -201,7 +201,7 @@ if (context.is("next")) {
   console.log(importantHeadline("Important"));
   console.log();
   console.log(`Follow this guide, if you want to fetch data on the server instead of the client:`);
-  console.log("https://github.com/tobias-tengler/create-relay-app/blob/main/docs/next-data-fetching.md");
+  console.log(GITHUB_CODE_URL + "/docs/next-data-fetching.md");
 }
 
 console.log();
