@@ -49,11 +49,14 @@ npm/yarn/pnpm create @tobiastengler/relay-app
 ## Arguments
 
 ```bash
-npm/yarn/pnpm create @tobiastengler/relay-app@latest [options]
+npm/yarn/pnpm create @tobiastengler/relay-app [options]
 ```
 
 > **Warning**
-> npm requires you to pass `--` once before any command to a starter kit, e.g. `npm create @tobiastengler/relay-app -- --interactive`.
+> 
+> npm requires you to pass `--` before any command to a starter kit, e.g.
+> 
+> `npm create @tobiastengler/relay-app -- --interactive`.
 
 ### -h, --help
 
