@@ -32,9 +32,9 @@ Contrary to many existing tools that aim to solve similiar use cases, this proje
 ## Usage
 
 1. Scaffold a new project using the toolchain of your choice (as long as [it's supported](#supported-toolchains))
-   - Next.js: `npm/yarn/pnpm create next-app --typescript`
-   - Vite.js: `npm/yarn/pnpm create vite --template react-ts`
-   - Create React App: `npm/yarn/pnpm create react-app <project-name> --template typescript`
+   - [Next.js](https://nextjs.org/docs#automatic-setup)
+   - [Vite.js](https://vitejs.dev/guide/#scaffolding-your-first-vite-project)
+   - [Create React App](https://create-react-app.dev/docs/getting-started)
 2. If you are inside a Git repository, ensure your working directory is clean, by commiting or discarding any changes.
 3. Run the script inside of the scaffolded directory:
 
@@ -51,6 +51,9 @@ npm/yarn/pnpm create @tobiastengler/relay-app
 ```bash
 npm/yarn/pnpm create @tobiastengler/relay-app@latest [options]
 ```
+
+> **Warning**
+> npm requires you to pass `--` once before any command to a starter kit, e.g. `npm create @tobiastengler/relay-app -- --interactive`.
 
 ### -h, --help
 
