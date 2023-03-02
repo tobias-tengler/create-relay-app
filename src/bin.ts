@@ -96,22 +96,28 @@ const argumentHandler = new ArgumentHandler([
   new PackageManagerArgument(fs, env),
 ]);
 
-const git = new Git();
-const isGitRepo = await git.isGitRepository(env.cwd);
-
+let isGitRepo = false;
 let userArgs: CliArguments;
 
 try {
   // Get the arguments provided to the program.
   const cliArgs = await argumentHandler.parseArgs(env);
 
-  if (isGitRepo && !cliArgs.ignoreGitChanges) {
-    const hasUnsavedChanges = await git.hasUnsavedChanges(env.cwd);
+  try {
+    const git = new Git();
+    isGitRepo = await git.isGitRepository(env.cwd);
 
-    if (hasUnsavedChanges) {
-      printError(`Please commit or discard all changes in the ${bold(env.cwd)} directory before continuing.`);
-      exit(1);
+    if (isGitRepo && !cliArgs.ignoreGitChanges) {
+      const hasUnsavedChanges = await git.hasUnsavedChanges(env.cwd);
+
+      if (hasUnsavedChanges) {
+        printError(`Please commit or discard all changes in the ${bold(env.cwd)} directory before continuing.`);
+        exit(1);
+      }
     }
+  }
+  catch {
+    // We just ignore it if something goes wrong in the git detection.
   }
 
   // Prompt for all of the missing arguments, required to execute the program.
@@ -144,7 +150,7 @@ const runner = new TaskRunner([
   new GenerateRelayEnvironmentTask(context),
   new GenerateGraphQlSchemaFileTask(context),
   new GenerateArtifactDirectoryTask(context),
-  isGitRepo && new ConfigureEolOfArtifactsTask(context),
+  new ConfigureEolOfArtifactsTask(context, isGitRepo),
   new Cra_AddBabelMacroTypeDefinitionsTask(context),
   new Cra_AddRelayEnvironmentProvider(context),
   new Vite_ConfigureVitePluginRelayTask(context),
@@ -200,7 +206,7 @@ if (context.is("next")) {
   console.log();
   console.log(importantHeadline("Important"));
   console.log();
-  console.log(`Follow this guide, if you want to fetch data on the server instead of the client:`);
+  console.log(`Follow this guide, if you want to fetch data on the server instead of on the client:`);
   console.log(GITHUB_CODE_URL + "/docs/next-data-fetching.md");
 }
 

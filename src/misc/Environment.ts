@@ -29,4 +29,4 @@ export class Environment {
   packageJson: PackageJsonFile = null!;
 }
 
-export class MissingPackageJsonError extends Error {}
+export class MissingPackageJsonError extends Error { }

@@ -4,14 +4,14 @@ import { bold } from "../utils/cli.js";
 import { TaskBase } from "./TaskBase.js";
 
 export class ConfigureEolOfArtifactsTask extends TaskBase {
-  message: string = "Configure Relay artifact EOL";
+  message: string = "Configure Relay artifact EOL in .gitattributes";
 
-  constructor(private context: ProjectContext) {
+  constructor(private context: ProjectContext, private isGitRepo: boolean) {
     super();
   }
 
   isEnabled(): boolean {
-    return true;
+    return this.isGitRepo;
   }
 
   async run(): Promise<void> {

@@ -3,6 +3,7 @@ import { PACKAGE_FILE } from "../consts.js";
 import { bold } from "../utils/cli.js";
 import { ProjectContext } from "../misc/ProjectContext.js";
 import { RelayCompilerLanguage } from "../types.js";
+import { execSync } from "child_process";
 
 const validateRelayArtifactsScript = "relay-compiler --validate";
 
@@ -32,8 +33,14 @@ export class ConfigureRelayCompilerTask extends TaskBase {
     const scriptsSection: Record<string, string> = packageJson["scripts"] ?? {};
 
     if (!scriptsSection["relay"]) {
+      const watchmanInstalled = isWatchmanInstalled();
+
       // Add "relay" script
       scriptsSection["relay"] = "relay-compiler";
+
+      if (watchmanInstalled) {
+        scriptsSection["relay"] += " --watch";
+      }
     }
 
     const buildScript = scriptsSection["build"];
@@ -68,5 +75,15 @@ export class ConfigureRelayCompilerTask extends TaskBase {
     packageJson["relay"] = relaySection;
 
     this.context.env.packageJson.persist(packageJson);
+  }
+}
+
+function isWatchmanInstalled() {
+  try {
+    execSync("watchman", { stdio: "ignore" });
+
+    return true
+  } catch {
+    return false
   }
 }
