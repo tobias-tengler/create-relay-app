@@ -1,11 +1,7 @@
 import { TaskBase } from "./TaskBase.js";
-import { PACKAGE_FILE } from "../consts.js";
 import { bold } from "../utils/cli.js";
 import { ProjectContext } from "../misc/ProjectContext.js";
 import { RelayCompilerLanguage } from "../types.js";
-import { execSync } from "child_process";
-
-const validateRelayArtifactsScript = "relay-compiler --validate";
 
 type RelayCompilerConfig = {
   src: string;
@@ -17,7 +13,7 @@ type RelayCompilerConfig = {
 };
 
 export class ConfigureRelayCompilerTask extends TaskBase {
-  message: string = `Configure ${bold("relay-compiler")} in ${bold(PACKAGE_FILE)}`;
+  message: string = `Configure ${bold("relay-compiler")}`;
 
   constructor(private context: ProjectContext) {
     super();
@@ -28,32 +24,7 @@ export class ConfigureRelayCompilerTask extends TaskBase {
   }
 
   async run(): Promise<void> {
-    // Configure scripts in package.json
-    const packageJson = await this.context.env.packageJson.parse();
-
-    const scriptsSection: Record<string, string> = packageJson["scripts"] ?? {};
-
-    if (!scriptsSection["relay"]) {
-      const watchmanInstalled = isWatchmanInstalled();
-
-      // Add "relay" script
-      scriptsSection["relay"] = "relay-compiler";
-
-      if (watchmanInstalled) {
-        scriptsSection["relay"] += " --watch";
-      }
-    }
-
-    const buildScript = scriptsSection["build"];
-
-    if (buildScript && typeof buildScript === "string" && !buildScript.includes(validateRelayArtifactsScript)) {
-      // Validate Relay's artifacts as the first build step.
-      scriptsSection["build"] = validateRelayArtifactsScript + " && " + buildScript;
-    }
-
-    this.context.env.packageJson.persist(packageJson);
-
-    // Add relay.config.json
+    this.updateMessage(this.message + ` in ${bold(this.context.relayConfigFile.rel)}`)
 
     let relayConfig: Partial<RelayCompilerConfig>;
 
@@ -89,15 +60,5 @@ export class ConfigureRelayCompilerTask extends TaskBase {
     const relayConfigWriteContent = JSON.stringify(relayConfig, null, 2);
 
     await this.context.fs.writeToFile(this.context.relayConfigFile.abs, relayConfigWriteContent)
-  }
-}
-
-function isWatchmanInstalled() {
-  try {
-    execSync("watchman", { stdio: "ignore" });
-
-    return true
-  } catch {
-    return false
   }
 }

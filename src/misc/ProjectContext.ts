@@ -1,5 +1,5 @@
 import path from "path";
-import { NEXT_SRC_PATH, RELAY_ENV } from "../consts.js";
+import { NEXT_SRC_PATH, PACKAGE_FILE, RELAY_ENV } from "../consts.js";
 import { CliArguments, RelayCompilerLanguage, ToolchainType } from "../types.js";
 import { Environment } from "./Environment.js";
 import { Filesystem } from "./Filesystem.js";
@@ -38,6 +38,10 @@ export class ProjectContext {
 
   get relayConfigFile() {
     return this.env.rel("relay.config.json");
+  }
+
+  get ownPackageJsonFile() {
+    return this.env.rel(PACKAGE_FILE);
   }
 
   get artifactExtension() {

@@ -42,6 +42,7 @@ import { ProjectContext } from "./misc/ProjectContext.js";
 import { Environment, MissingPackageJsonError } from "./misc/Environment.js";
 import { Git } from "./misc/Git.js";
 import { CommandRunner } from "./misc/CommandRunner.js";
+import { AddRelayCompilerScriptsTask } from "./tasks/AddRelayCompilerScriptsTask.js";
 
 const fs = new Filesystem();
 const cmdRunner = new CommandRunner();
@@ -147,6 +148,7 @@ const runner = new TaskRunner([
   new InstallNpmDependenciesTask(context),
   new InstallNpmDevDependenciesTask(context),
   new ConfigureRelayCompilerTask(context),
+  new AddRelayCompilerScriptsTask(context),
   new GenerateRelayEnvironmentTask(context),
   new GenerateGraphQlSchemaFileTask(context),
   new GenerateArtifactDirectoryTask(context),
