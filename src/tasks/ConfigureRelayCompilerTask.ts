@@ -28,6 +28,7 @@ export class ConfigureRelayCompilerTask extends TaskBase {
   }
 
   async run(): Promise<void> {
+    // Configure scripts in package.json
     const packageJson = await this.context.env.packageJson.parse();
 
     const scriptsSection: Record<string, string> = packageJson["scripts"] ?? {};
@@ -50,31 +51,44 @@ export class ConfigureRelayCompilerTask extends TaskBase {
       scriptsSection["build"] = validateRelayArtifactsScript + " && " + buildScript;
     }
 
-    const relaySection = (packageJson["relay"] ?? {}) as RelayCompilerConfig;
+    this.context.env.packageJson.persist(packageJson);
 
-    relaySection["src"] = this.context.srcPath.rel;
-    relaySection["language"] = this.context.compilerLanguage;
-    relaySection["schema"] = this.context.schemaPath.rel;
+    // Add relay.config.json
 
-    if (!relaySection["exclude"]) {
+    let relayConfig: Partial<RelayCompilerConfig>;
+
+    try {
+      const relayConfigContent = await this.context.fs.readFromFile(this.context.relayConfigFile.abs);
+
+      relayConfig = JSON.parse(relayConfigContent) || {}
+    }
+    catch {
+      relayConfig = {};
+    }
+
+    relayConfig["src"] = this.context.srcPath.rel;
+    relayConfig["language"] = this.context.compilerLanguage;
+    relayConfig["schema"] = this.context.schemaPath.rel;
+
+    if (!relayConfig["exclude"]) {
       // We only want to add this, if the user hasn't already specified it.
-      relaySection["exclude"] = ["**/node_modules/**", "**/__mocks__/**", "**/__generated__/**"];
+      relayConfig["exclude"] = ["**/node_modules/**", "**/__mocks__/**", "**/__generated__/**"];
     }
 
     if (this.context.is("vite")) {
       // When generating without eagerEsModules artifacts contain
       // module.exports, which Vite can not handle correctly.
       // eagerEsModules will output export default.
-      relaySection["eagerEsModules"] = true;
+      relayConfig["eagerEsModules"] = true;
     }
 
     if (this.context.artifactPath) {
-      relaySection["artifactDirectory"] = this.context.artifactPath.rel;
+      relayConfig["artifactDirectory"] = this.context.artifactPath.rel;
     }
 
-    packageJson["relay"] = relaySection;
+    const relayConfigWriteContent = JSON.stringify(relayConfig, null, 2);
 
-    this.context.env.packageJson.persist(packageJson);
+    await this.context.fs.writeToFile(this.context.relayConfigFile.abs, relayConfigWriteContent)
   }
 }
 

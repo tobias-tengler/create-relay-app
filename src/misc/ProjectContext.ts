@@ -36,6 +36,10 @@ export class ProjectContext {
     return this.env.rel(".gitattributes");
   }
 
+  get relayConfigFile() {
+    return this.env.rel("relay.config.json");
+  }
+
   get artifactExtension() {
     if (this.args.typescript) {
       return ".graphql.ts";
