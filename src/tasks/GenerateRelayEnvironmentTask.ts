@@ -71,7 +71,7 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
       const resp = await fetch(${HTTP_ENDPOINT}, {
         method: "POST",
         headers: {
-          Accept: "application/json",
+          Accept: "application/graphql-response+json; charset=utf-8, application/json; charset=utf-8",
           "Content-Type": "application/json",
           // <-- Additional headers like 'Authorization' would go here
         },
@@ -105,7 +105,7 @@ export class GenerateRelayEnvironmentTask extends TaskBase {
             });
 
             subscribeFn = (request, variables) => {
-              // To understand why we return Observable<any>,
+              // To understand why we return Observable.create<any>,
               // please see: https://github.com/enisdenjo/graphql-ws/issues/316#issuecomment-1047605774
               return Observable.create<any>((sink) => {
                 if (!request.text) {
