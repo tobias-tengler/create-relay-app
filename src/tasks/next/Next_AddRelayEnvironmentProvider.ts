@@ -43,7 +43,22 @@ export class Next_AddRelayEnvironmentProvider extends TaskBase {
   async run(): Promise<void> {
     const mainFilename = "_app" + (this.context.args.typescript ? ".tsx" : ".js");
 
-    const mainFile = this.context.env.rel(path.join("pages", mainFilename));
+    const possibleMainFileLocations = [path.join("pages", mainFilename), path.join("src", "pages", mainFilename)];
+
+    let mainFile: RelativePath | null = null;
+
+    for (const possibleMainFileLocation of possibleMainFileLocations) {
+      const file = this.context.env.rel(possibleMainFileLocation);
+
+      if (this.context.fs.exists(file.abs)) {
+        mainFile = file;
+        break;
+      }
+    }
+
+    if (!mainFile) {
+      throw new Error(`${mainFilename} could not be found`);
+    }
 
     this.updateMessage(this.message + " in " + bold(mainFile.rel));
 
@@ -73,7 +88,7 @@ export class Next_AddRelayEnvironmentProvider extends TaskBase {
         if (this.context.args.typescript) {
           // Import RelayPageProps.
           const relayTypesPath = Next_AddTypeHelpers.getRelayTypesPath(this.context);
-          const relayTypesImportPath = new RelativePath(mainFile.parentDirectory, removeExtension(relayTypesPath.abs));
+          const relayTypesImportPath = new RelativePath(mainFile!.parentDirectory, removeExtension(relayTypesPath.abs));
 
           insertNamedImport(path, RELAY_PAGE_PROPS, relayTypesImportPath.rel);
 
@@ -106,7 +121,7 @@ export class Next_AddRelayEnvironmentProvider extends TaskBase {
         insertNamedImport(path, "RecordSource", RELAY_RUNTIME_PACKAGE);
 
         const relayEnvImportPath = new RelativePath(
-          mainFile.parentDirectory,
+          mainFile!.parentDirectory,
           removeExtension(this.context.relayEnvFile.abs)
         );
 

@@ -2,7 +2,6 @@ import path from "path";
 import fs from "fs/promises";
 import { existsSync, lstatSync } from "fs";
 import fsExtra from "fs-extra";
-import glob from "glob";
 
 export class Filesystem {
   getParent(filepath: string): string {
