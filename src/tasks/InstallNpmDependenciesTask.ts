@@ -1,5 +1,5 @@
 import { TaskBase } from "./TaskBase.js";
-import { GRAPHQL_WS_PACKAGE, REACT_RELAY_PACKAGE } from "../consts.js";
+import { GRAPHQL_WS_PACKAGE, REACT_RELAY_PACKAGE, RELAY_RUNTIME_PACKAGE } from "../consts.js";
 import { bold } from "../utils/cli.js";
 import { ProjectContext } from "../misc/ProjectContext.js";
 
@@ -20,7 +20,7 @@ export class InstallNpmDependenciesTask extends TaskBase {
       return;
     }
 
-    const packages = [REACT_RELAY_PACKAGE];
+    const packages = [REACT_RELAY_PACKAGE, RELAY_RUNTIME_PACKAGE];
 
     if (this.context.args.subscriptions) {
       packages.push(GRAPHQL_WS_PACKAGE, "graphql@15.x");
