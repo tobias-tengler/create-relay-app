@@ -15,7 +15,7 @@ export class NpmPackageManager implements PackageManager {
   }
 
   private installDependency(packages: string | string[], isDevDependency: boolean) {
-    const args = ["install", "--save-exact", isDevDependency ? "--save-dev" : "--save"];
+    const args = ["install", isDevDependency ? "--save-dev" : "--save", "--legacy-peer-deps"];
 
     if (typeof packages === "string") {
       args.push(packages);
