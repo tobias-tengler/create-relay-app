@@ -25,7 +25,7 @@ Contrary to many existing tools that aim to solve similiar use cases, this proje
 
 `create-relay-app` supports:
 
-- [Next.js](https://nextjs.org/)
+- [Next.js](https://nextjs.org/) (the v13 App Router is not yet supported)
 - [Vite.js](https://vitejs.dev/)
 - [Create React App](https://create-react-app.dev/)
 
