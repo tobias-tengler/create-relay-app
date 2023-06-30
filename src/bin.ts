@@ -68,15 +68,15 @@ try {
     console.log();
 
     console.log("1. Remember to first scaffold a React project using:");
-    console.log("   Next.js: " + bold(pacMan + "create next-app --typescript"));
-    console.log("   Vite.js: " + bold(pacMan + "create vite --template react-ts"));
-    console.log("   Create React App: " + bold(pacMan + "create react-app <project-name> --template typescript"));
+    console.log("   Next.js: " + bold(pacMan + " create next-app --typescript"));
+    console.log("   Vite.js: " + bold(pacMan + " create vite --template react-ts"));
+    console.log("   Create React App: " + bold(pacMan + " create react-app <project-name> --template typescript"));
     console.log();
     console.log("2. Move into the scaffolded directory:");
     console.log("   " + bold("cd <project-name>"));
     console.log();
     console.log(`3. Run the original command again:`);
-    console.log("   " + bold(pacMan + "create @tobiastengler/relay-app"));
+    console.log("   " + bold(pacMan + " create @tobiastengler/relay-app"));
   } else if (error instanceof Error) {
     printError("Unexpected error while gathering environment information: " + error.message);
   } else {
