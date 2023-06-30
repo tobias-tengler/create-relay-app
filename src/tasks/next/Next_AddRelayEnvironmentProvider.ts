@@ -41,25 +41,32 @@ export class Next_AddRelayEnvironmentProvider extends TaskBase {
   }
 
   async run(): Promise<void> {
-    const mainFilename = "_app" + (this.context.args.typescript ? ".tsx" : ".js");
+    const pagesMainFilename = "_app" + (this.context.args.typescript ? ".tsx" : ".js");
 
-    const possibleMainFileLocations = [path.join("pages", mainFilename), path.join("src", "pages", mainFilename)];
+    const possiblePagesMainFileLocations = [
+      path.join("pages", pagesMainFilename),
+      path.join("src", "pages", pagesMainFilename),
+    ];
 
-    let mainFile: RelativePath | null = null;
+    let pagesMainFile: RelativePath | null = null;
 
-    for (const possibleMainFileLocation of possibleMainFileLocations) {
+    for (const possibleMainFileLocation of possiblePagesMainFileLocations) {
       const file = this.context.env.rel(possibleMainFileLocation);
 
       if (this.context.fs.exists(file.abs)) {
-        mainFile = file;
+        pagesMainFile = file;
         break;
       }
     }
 
-    if (!mainFile) {
-      throw new Error(`${mainFilename} could not be found`);
+    if (pagesMainFile) {
+      await this.setupPages(pagesMainFile);
+    } else {
+      throw new Error(`${pagesMainFilename} could not be found`);
     }
+  }
 
+  private async setupPages(mainFile: RelativePath) {
     this.updateMessage(this.message + " in " + bold(mainFile.rel));
 
     const code = await this.context.fs.readFromFile(mainFile.abs);

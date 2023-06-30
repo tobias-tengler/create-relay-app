@@ -12,13 +12,12 @@ test.beforeAll(async () => {
   test.setTimeout(180000);
 
   if (!existsSync(TARGET_DIR)) {
-    await runCmd(`yarn create next-app ${TARGET_DIR} --typescript --eslint`);
+    await runCmd(
+      `yarn create next-app ${TARGET_DIR} --typescript --no-eslint --no-tailwind --no-app --no-src-dir --import-alias '@/*'`
+    );
   }
 
-  await runCmd(
-    `node ../../dist/bin.js --ignore-git-changes --package-manager yarn`,
-    { cwd: TARGET_DIR }
-  );
+  await runCmd(`node ../../dist/bin.js --ignore-git-changes --package-manager yarn`, { cwd: TARGET_DIR });
 
   copyFileSync("./assets/next/test.tsx", TARGET_DIR + "/pages/test.tsx");
 
