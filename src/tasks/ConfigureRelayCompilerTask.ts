@@ -7,7 +7,7 @@ type RelayCompilerConfig = {
   src: string;
   language: RelayCompilerLanguage;
   schema: string;
-  exclude: string[];
+  excludes: string[];
   eagerEsModules?: boolean;
   artifactDirectory?: string;
 };
@@ -41,9 +41,9 @@ export class ConfigureRelayCompilerTask extends TaskBase {
     relayConfig["language"] = this.context.compilerLanguage;
     relayConfig["schema"] = this.context.schemaPath.rel;
 
-    if (!relayConfig["exclude"]) {
+    if (!relayConfig["excludes"]) {
       // We only want to add this, if the user hasn't already specified it.
-      relayConfig["exclude"] = ["**/node_modules/**", "**/__mocks__/**", "**/__generated__/**"];
+      relayConfig["excludes"] = ["**/node_modules/**", "**/__mocks__/**", "**/__generated__/**"];
     }
 
     if (this.context.is("vite")) {
