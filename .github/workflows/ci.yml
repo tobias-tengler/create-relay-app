@@ -20,11 +20,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16.x
-      - uses: actions/cache@v2
+          node-version: 20.x
+      - uses: actions/cache@v4
         with:
           path: node_modules
           key: node_modules-${{ hashFiles('yarn.lock') }}
@@ -33,7 +33,7 @@ jobs:
       - run: yarn build
       - run: yarn --cwd ./e2e install --frozen-lockfile
       - run: yarn --cwd ./e2e test
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         if: ${{ inputs.publishExperimental }}
         with:
           name: build-output
@@ -43,21 +43,21 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v2
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
         with:
           name: build-output
           path: dist
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16.x
+          node-version: 20.x
           registry-url: https://registry.npmjs.org/
       - run: yarn version --no-git-tag-version --new-version "0.0.0-experimental-$(echo $GITHUB_SHA | cut -c1-9)"
       - run: yarn pack --filename package.tgz
       - run: yarn publish package.tgz --tag experimental --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: experimental-package
           path: package.tgz
